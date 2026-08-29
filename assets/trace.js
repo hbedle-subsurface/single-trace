@@ -246,8 +246,21 @@ const TRACE = (function () {
 
   /**
    * Sweetness (Radovich and Oliveros, 1998): envelope divided by the square
-   * root of frequency, both taken from the STABLE (response or averaged)
-   * versions. Bright and low frequency scores high.
+   * root of frequency. Bright and low frequency scores high.
+   *
+   * WHICH frequency is the whole question, and it changes the picture more
+   * than the formula does. Radovich and Oliveros used the response (wavelet)
+   * attributes, and the AASPI documentation follows them; taken literally that
+   * gives a piecewise-constant attribute, one value per event, which is not
+   * what a sweetness volume looks like in any package. What is displayed in
+   * practice is the smooth version: the envelope itself over the square root
+   * of an energy-weighted average frequency, which is Barnes's stabilization
+   * rather than Bodine's. AASPI reaches the same place from the other
+   * direction, by running a median filter over the response version.
+   *
+   * Both are computed here. `sweet` is the smooth one and is what the modules
+   * display; `sweetResp` is the literal response-attribute form, kept so the
+   * difference can be shown rather than described.
    *
    * It has no units anyone can defend and its absolute value means nothing
    * between two surveys; it is a within-survey ranking, and the module says so.
@@ -318,7 +331,8 @@ const TRACE = (function () {
       favg: avg.favg, frms: avg.frms, band: avg.band,
       wphase: wav.phase, wfreq: wav.freq, wenv: wav.env,
       isPeak: wav.isPeak, maxima: wav.maxima, minima: wav.minima,
-      sweet: sweetness(wav.env, wav.freq),
+      sweet: sweetness(env, avg.favg),               // the one packages display
+      sweetResp: sweetness(wav.env, wav.freq),       // the literal 1998 form
     };
   }
 
