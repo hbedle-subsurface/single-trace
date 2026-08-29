@@ -80,14 +80,16 @@ attributes that do look sideways: dip, coherence, curvature.
 
 ## The modules
 
+All six are finished.
+
 | # | Subject | The question it answers | Status |
 |---|---------|-------------------------|--------|
 | 01 | [Instantaneous attributes](modules/instantaneous.html) | Why does my frequency volume go negative? | **ready** |
-| 02 | Relative acoustic impedance | Is this inversion? No — but why not? | planned |
-| 03 | RMS amplitude | How long should my window be? | planned |
-| 04 | AGC | Why did my bright spot disappear? | planned |
-| 05 | Amplitude volume transform | What am I actually looking at on an AVT slice? | planned |
-| 06 | Teager-Kaiser energy | How is this different from the envelope? | planned |
+| 02 | [Relative acoustic impedance](modules/impedance.html) | Is this inversion? No — but why not? | **ready** |
+| 03 | [RMS amplitude](modules/rms.html) | How long should my window be? | **ready** |
+| 04 | [AGC](modules/agc.html) | Why did my bright spot disappear? | **ready** |
+| 05 | [Amplitude volume transform](modules/avt.html) | What am I actually looking at on an AVT slice? | **ready** |
+| 06 | [Teager-Kaiser energy](modules/teager.html) | How is this different from the envelope? | **ready** |
 
 Algorithms follow the AASPI program documentation and the original papers. Where
 a source is ambiguous or contradicts itself, the module says so rather than
