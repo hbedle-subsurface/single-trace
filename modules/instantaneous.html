@@ -295,7 +295,16 @@
     <p class="lede">Radovich and Oliveros noticed in the Gulf of Mexico that sands encased in shale tended
       to show up two ways at once: <b>higher envelope</b> and <b>lower frequency</b> than the shale around
       them. Rather than display two maps, they built one attribute that goes up when both happen together:
-      <span class="k">sweetness = e / √f</span>, using the stabilized wavelet versions of both.</p>
+      <span class="k">sweetness = e / √f</span>.</p>
+    <p class="lede">That formula is the easy part. What decides how the map looks is <b>which envelope and
+      which frequency you put into it</b>, because instantaneous frequency on its own is far too unstable to
+      divide by — step 4 showed why. Two answers are in use, and the toggle below switches between them.
+      Radovich and Oliveros used the <b>response attributes</b>: one value per event, held between envelope
+      minima, which makes the result a staircase. What interpretation packages actually display is the
+      smooth version, built from the envelope itself over an <b>energy-weighted average frequency</b>.
+      AASPI reaches the same smooth place from the other direction, by running a median filter over the
+      response version. Switch between the two and watch what happens: the value at each event barely
+      moves, and everything between the events changes completely.</p>
     <p class="lede">The line above has a gas sand in it, on the right-hand side between about 0.47 and
       0.52 s. It is brighter than its brine-filled equivalent on the left, and it is lower frequency,
       because gas attenuates the high frequencies passing through it. Both effects push sweetness the same
@@ -306,10 +315,19 @@
       different gain. It is a ranking within one volume, and it is only as good as the amplitudes going in.
       Anything that brightens the data brightens sweetness, whether it is a sand or not.</p>
 
+    <div class="ctl" style="max-width:560px;margin-bottom:16px">
+      <label for="smode">Which envelope and which frequency go into it
+        <span class="val" id="smodeV">weighted average</span></label>
+      <div class="seg" id="smode">
+        <button type="button" data-mode="avg" aria-pressed="true">Weighted average &mdash; what packages display</button>
+        <button type="button" data-mode="resp" aria-pressed="false">Response attributes &mdash; the 1998 recipe</button>
+      </div>
+    </div>
+
     <div class="sec-row" id="row5">
       <div class="panel-col">
         <p class="sublabel"><b>1</b> How the number is built
-          <span class="note">wavelet envelope, wavelet frequency, sweetness</span></p>
+          <span class="note">envelope, frequency, sweetness</span></p>
         <canvas id="c5a" aria-label="Wavelet envelope, wavelet frequency and sweetness against time"></canvas>
       </div>
       <div class="panel-col">
@@ -331,7 +349,10 @@
         sweetness separates them by a larger one, because the frequency drop adds to the brightness instead
         of cancelling it. That is the entire case for the attribute. It is also the entire risk: a bright
         spot with no frequency change, or a low-frequency zone with no brightening, will still raise
-        sweetness, and the map cannot tell you which of the two ingredients did it.</span>
+        sweetness, and the map cannot tell you which of the two ingredients did it. Notice also that the
+        two stabilization modes give nearly the same number at the sand — 0.164 against 0.162 — because at
+        an envelope peak the response value and the averaged value are read off the same wavelet. Their
+        disagreement is everywhere else, which is most of the volume.</span>
     </div>
   </section>
 
@@ -449,13 +470,15 @@
             the next person will compare it against something else entirely.</span></details></li>
         <li><b>Take the sweetness apart.</b> In step 5, read the envelope, frequency and sweetness of the
           gas sand and of the brine sand, and work out how much of the contrast comes from each ingredient.
-          <details class="reveal"><summary>Hint</summary><span class="ans">Gas sand: envelope 0.652, wavelet frequency 16.2 Hz, sweetness 0.162. Brine sand:
-            0.198, 28.0 Hz, 0.037. The envelope on its own separates them by ×3.29. The frequency drop
-            contributes √(28.0 / 16.2) = ×1.31. Multiply the two and you get ×4.31, which is the ×4.33
+          <details class="reveal"><summary>Hint</summary><span class="ans">Gas sand: envelope 0.652, average frequency 15.8 Hz, sweetness 0.164. Brine
+            sand: 0.198, 27.7 Hz, 0.038. The envelope on its own separates them by ×3.29. The frequency drop
+            contributes √(27.7 / 15.8) = ×1.32. Multiply the two and you get ×4.36, which is the ×4.35
             sweetness ratio to within rounding — sweetness is exactly its two ingredients and nothing else.
             So on this model a little under a quarter of the contrast comes from the frequency term and the
             rest from brightness. Worth knowing before crediting a sweetness anomaly to gas: a bright spot
-            with no frequency change at all would have produced most of this anomaly on its own.</span></details></li>
+            with no frequency change at all would have produced most of this anomaly on its own. Switch the
+            toggle to the response attributes and the two ratios are ×4.33 and ×3.29 — the same conclusion,
+            from a map that looks quite different.</span></details></li>
       </ol>
     </div>
   </section>
@@ -530,10 +553,18 @@
         phase and frequency at each maximum are held across the interval between the minima either side.
         The result is blocky by construction. AASPI offers Barnes's weighted alternative as well, which is
         the averaged version above.</p>
-      <p><b>Sweetness</b> is <span class="k">e / √f</span> after Radovich and Oliveros (1998), computed from
-        the wavelet envelope and wavelet frequency rather than the instantaneous ones, which is what makes
-        it stable enough to display. The sections here are scaled to their own maximum, since the raw value
-        has no interpretable units.</p>
+      <p><b>Sweetness</b> is <span class="k">e / √f</span> after Radovich and Oliveros (1998). The formula
+        is not in dispute; the inputs are. Their paper, and the AASPI documentation following it, use the
+        response attributes, which are piecewise constant by construction — taken literally that produces a
+        staircase, and no package displays sweetness that way. The AASPI GUI resolves it with a
+        user-defined median filter over the result. This module instead offers both inputs explicitly and
+        defaults to the smooth one: the envelope over the square root of the energy-weighted average
+        frequency, which is Barnes's stabilization rather than Bodine's and is what a sweetness volume
+        looks like in practice. At an envelope peak the two agree to within about one percent; between
+        events they do not agree at all. Neither is a median filter, so neither is bit-for-bit what AASPI
+        will hand you. The sections here are scaled to their own maximum, since the raw value has no
+        interpretable units, and the curve in step 5 is drawn on a fixed axis so that changing a slider
+        changes the curve rather than the scale.</p>
       <p><b>Simplifications, and where this departs from AASPI's <span class="k">instantaneous_attributes</span>.</b>
         The program computes on a 3D volume and offers a median filter over a user-defined window to
         stabilize sweetness and phase unwrapping; there is no median filter here. Unwrapped phase, which the
@@ -586,10 +617,14 @@
         If you use it in a course or a talk, a credit line and a link back are all that is asked.</p>
       <p class="lic">To cite: H. Bedle, <i>How Single-Trace Attributes Actually Work</i>, University of
         Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
+      <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that the
+        page was opened &mdash; no cookie, no account, nothing about you &mdash; so that I can show the
+        university that these are getting used.</p>
     </div>
   </footer>
 </div>
 
+<script src="../assets/count.js"></script>
 <script src="../assets/seismic.js"></script>
 <script src="../assets/trace.js"></script>
 <script>
@@ -748,7 +783,8 @@
         favg: avg.favg, frms: avg.frms, band: avg.band,
         wphase: w.phase, wfreq: w.freq, wenv: w.env,
         isPeak: w.isPeak, maxima: w.maxima, minima: w.minima,
-        sweet: sweetness(w.env, w.freq),
+        sweet: sweetness(env, avg.favg),
+        sweetResp: sweetness(w.env, w.freq),
       };
     }
     return {
@@ -856,7 +892,7 @@
 
   const DEF = {
     freq: 25, phase: 0, decay: 6, noise: 0, win: 16,
-    tr: GASTRACE, ts: 0.158, tab: 'p1',
+    tr: GASTRACE, ts: 0.158, tab: 'p1', smode: 'avg',
   };
   let S = SEIS.readState(DEF);
   S.tr = clamp(Math.round(S.tr), 0, NX - 1);
@@ -925,10 +961,11 @@
     const K = Math.max(1, Math.round((S.win / 1000) / DT));
     for (let ix = 0; ix < NX; ix++) {
       const c = T.complexTrace(traceAt(ix), DT, { K: K });
+      const sp = sweetParts(c);
       for (let it = 0; it < NT; it++) {
         env[ix * NT + it] = c.env[it];
         cph[ix * NT + it] = c.cosPhase[it];
-        swt[ix * NT + it] = c.sweet[it];
+        swt[ix * NT + it] = sp.sweet[it];
       }
     }
     let pe = 0, ps = 0;
@@ -949,6 +986,15 @@
      Every number that appears in the prose or an exercise is read out of
      these, never estimated.
      ===================================================================== */
+
+  /* Sweetness is envelope over the square root of frequency, but WHICH
+     envelope and WHICH frequency is a live choice, and it changes the picture
+     far more than the formula does. Step 5 exposes it rather than hiding it. */
+  function sweetParts(c) {
+    return S.smode === 'resp'
+      ? { env: c.wenv, freq: c.wfreq, sweet: c.sweetResp }
+      : { env: c.env, freq: c.favg, sweet: c.sweet };
+  }
 
   const iOf = (t) => clamp(Math.round(t / DT), 0, NT - 1);
   const tOf = (i) => i * DT;
@@ -996,8 +1042,9 @@
     const c = T.complexTrace(traceAt(ix), DT, { K: K });
     const s = tShift(ix);
     const i = argMaxIn(c.env, SANDT + s - 0.020, SANDB + s + 0.020);
+    const sp = sweetParts(c);
     return {
-      i: i, t: tOf(i), env: c.wenv[i], freq: c.wfreq[i], sweet: c.sweet[i],
+      i: i, t: tOf(i), env: sp.env[i], freq: sp.freq[i], sweet: sp.sweet[i],
       amp: c.u[i], ct: c,
     };
   }
@@ -1465,19 +1512,22 @@
     ctx.clearRect(0, 0, w, h);
     const P = panels(w, h, 3, 12);
     const A = 1.15;
-    const sw = CT.sweet;
-    let smax = 1e-6;
-    for (let i = iOf(TV0); i <= iOf(TV1); i++) smax = Math.max(smax, sw[i]);
+    const sp = sweetParts(CT);
+    const sw = sp.sweet;
+    /* A fixed sweetness axis, taken from the smooth version at the default
+       settings, so that switching the mode or moving a slider changes the
+       curve rather than the scale under it. */
+    const SMAX = 0.36;
     panelBox(ctx, P[0], 0, A, (v) => v.toFixed(1), 3);
     panelBox(ctx, P[1], 0, FHI, (v) => v.toFixed(0), 3);
-    panelBox(ctx, P[2], 0, smax * 1.1, (v) => v.toFixed(2), 3);
+    panelBox(ctx, P[2], 0, SMAX, (v) => v.toFixed(2), 3);
     SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
-    series(ctx, P[0], CT.wenv, 0, A, CRIM, { width: 1.5, fillTo: 0, fill: 'rgba(132,22,23,.14)' });
-    series(ctx, P[0], CT.env, 0, A, 'rgba(92,102,112,.6)', { width: 1 });
-    series(ctx, P[1], CT.wfreq, 0, FHI, TEAL, { width: 1.5, fillTo: 0, fill: 'rgba(11,114,133,.12)' });
-    series(ctx, P[2], sw, 0, smax * 1.1, INK, { width: 1.6, fillTo: 0, fill: 'rgba(22,25,28,.12)' });
-    panelTitle(ctx, P[0], 'wavelet envelope  e', CRIM);
-    panelTitle(ctx, P[1], 'wavelet frequency  f', TEAL);
+    series(ctx, P[0], sp.env, 0, A, CRIM, { width: 1.5, fillTo: 0, fill: 'rgba(132,22,23,.14)' });
+    series(ctx, P[1], sp.freq, 0, FHI, TEAL, { width: 1.5, fillTo: 0, fill: 'rgba(11,114,133,.12)' });
+    series(ctx, P[2], sw, 0, SMAX, INK, { width: 1.6, fillTo: 0, fill: 'rgba(22,25,28,.12)' });
+    const resp = S.smode === 'resp';
+    panelTitle(ctx, P[0], resp ? 'wavelet envelope  e' : 'envelope  e', CRIM);
+    panelTitle(ctx, P[1], resp ? 'wavelet frequency  f' : 'average frequency  f', TEAL);
     panelTitle(ctx, P[2], 'sweetness  e / \u221af', INK);
     cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
 
@@ -1510,6 +1560,10 @@
     setText('decayV', S.decay === 0 ? 'none' : S.decay + ' dB/s');
     setText('noiseV', S.noise === 0 ? 'none' : S.noise + '% of RMS');
     setText('winV', '\u00b1' + S.win + ' ms');
+    setText('smodeV', S.smode === 'resp' ? 'response attributes' : 'weighted average');
+    document.querySelectorAll('#smode button').forEach((q) => {
+      q.setAttribute('aria-pressed', q.dataset.mode === S.smode);
+    });
   }
 
   function syncStats() {
@@ -1544,7 +1598,7 @@
     const im = argMaxIn(CT.env, MARK + tShift(S.tr) - 0.020, MARK + tShift(S.tr) + 0.020);
     setText('s4k', fmtF(CT.freq[im]) + ' against a dominant ' + S.freq + ' Hz');
 
-    setText('s5s', CT.sweet[i].toFixed(3));
+    setText('s5s', sweetParts(CT).sweet[i].toFixed(3));
     const gas = sandAt(GASTRACE), brine = sandAt(BRINETRACE);
     setText('s5g', fmt2(gas.env) + ',  ' + gas.freq.toFixed(1) + ' Hz,  ' + gas.sweet.toFixed(3));
     setText('s5b', fmt2(brine.env) + ',  ' + brine.freq.toFixed(1) + ' Hz,  ' + brine.sweet.toFixed(3));
@@ -1678,6 +1732,17 @@
     c.addEventListener('pointerup', () => { down = false; });
     c.addEventListener('pointercancel', () => { down = false; });
   }
+
+  document.querySelectorAll('#smode button').forEach((b) => {
+    b.addEventListener('click', () => {
+      S.smode = b.dataset.mode;
+      document.querySelectorAll('#smode button').forEach((q) => {
+        q.setAttribute('aria-pressed', q.dataset.mode === S.smode);
+      });
+      ATT = null;                       // the section has to be recomputed
+      drawAll(); saveState();
+    });
+  });
 
   attachSection('cMap', (w, h) => ({ x: M.l, y: M.t, w: w - M.l - M.r - 74, h: h - M.t - 56 }));
   ['c1a', 'c2a', 'c3a', 'c4a', 'c5a'].forEach(attachTime);
