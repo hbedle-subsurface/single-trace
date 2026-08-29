@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amplitude volume transform | How Single-Trace Attributes Actually Work</title>
+<meta name="description" content="The amplitude volume transform for beginners: envelope, then a running RMS, then a Hilbert transform back. Why the last step exists, where the events land, and why the result is lower frequency than the data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <a class="brand" href="../index.html"><span class="dot"></span>How single-trace attributes <b>actually</b> work</a>
+    <nav>
+      <a href="../index.html">All modules</a>
+      <a href="rms.html">Module 03</a>
+      <a href="#notes">Method &amp; references</a>
+    </nav>
+  </header>
+
+  <div class="mod-head">
+    <p class="eyebrow">Module 05 &nbsp;·&nbsp; Single-trace attributes</p>
+    <h1>Amplitude volume transform: three things you already know</h1>
+    <p class="sub">There is nothing new in this module. Take the envelope from module 01. Take its running
+      RMS from module 03. Then take a Hilbert transform, from module 01 again. That is the whole recipe.
+      What makes it worth a module is what the combination does: it turns a display of interfaces into a
+      display of packages, and it loses about a third of the frequency doing it.</p>
+  </div>
+
+  <div class="labhead">
+    <div class="labgrid">
+      <div>
+        <p class="cap">The seismic line <span>&mdash; click it to pick a trace and a time</span></p>
+        <canvas id="cMap" aria-label="Vertical seismic section, with the selected trace and time marked"></canvas>
+      </div>
+      <div>
+        <p class="cap">Change the data <span>&mdash; every panel updates as you drag</span></p>
+        <div class="controls" id="winControls">
+          <div class="ctl-col">
+            <h2>The transform</h2>
+            <div class="ctl">
+              <label for="win">RMS window <span class="val" id="winV">&plusmn;24 ms</span></label>
+              <input type="range" data-key="win" id="win" min="4" max="80" step="2" value="24">
+            </div>
+            <div class="ctl">
+              <label for="noise">Random noise <span class="val" id="noiseV">none</span></label>
+              <input type="range" data-key="noise" id="noise" min="0" max="40" step="2" value="0">
+            </div>
+          </div>
+          <div class="ctl-col">
+            <h2>The data</h2>
+            <div class="ctl">
+              <label for="decay">Amplitude decay <span class="val" id="decayV">8 dB/s</span></label>
+              <input type="range" data-key="decay" id="decay" min="0" max="24" step="2" value="8">
+            </div>
+            <div class="ctl">
+              <label for="freq">Dominant frequency <span class="val" id="freqV">25 Hz</span></label>
+              <input type="range" data-key="freq" id="freq" min="12" max="45" step="1" value="25">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
+    Method and references are there when you want them.</p>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
+    <button role="tab" data-tab="p1" aria-selected="false">1 · Three steps</button>
+    <button role="tab" data-tab="p2" aria-selected="false">2 · The last one</button>
+    <button role="tab" data-tab="p3" aria-selected="false">3 · Frequency</button>
+    <button role="tab" data-tab="p4" aria-selected="false">4 · Window</button>
+    <button role="tab" data-tab="p5" aria-selected="false">5 · Beside RAI</button>
+    <button role="tab" data-tab="pw" aria-selected="false">Why it matters</button>
+    <span class="gap"></span>
+    <button role="tab" data-tab="pe" aria-selected="false">Exercises</button>
+    <button role="tab" data-tab="pk" aria-selected="false">Key points</button>
+    <button role="tab" data-tab="pm" aria-selected="false">Method</button>
+  </nav>
+
+  <!-- =============================== STEP 1 =============================== -->
+  <section class="tabpane" id="p1" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">1</span>Envelope, RMS, Hilbert</h3>
+      <span class="hint">Four panels, three of which you have seen before</span>
+    </div>
+    <p class="lede">The panels below are the recipe in order, left to right.</p>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>The trace.</b> Reflections from interfaces, positive and negative.</li>
+      <li><b>The envelope</b>, from module 01: how strong the reflection is at each instant, with polarity
+        and phase thrown away. Never negative.</li>
+      <li><b>The RMS of that envelope</b>, from module 03: a running window slid down it. Smoother again,
+        and still never negative.</li>
+      <li><b>The Hilbert transform of that</b>, which makes it bipolar and gives it something to display.
+        This is the amplitude volume transform.</li>
+    </ul>
+    <p class="lede">The technique came out of Brazil in the late 1990s, where Bulh&otilde;es called it
+      <em>tecnica volume de amplitudes</em>, and the idea behind it was the <em>elementary seismic
+      layer</em>: stop trying to interpret the reflections and interpret the packages between them
+      instead.</p>
+
+    <canvas id="c1a" aria-label="The trace, its envelope, the RMS of the envelope, and the amplitude volume transform"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>Trace at the cursor</span><b id="s1u">—</b></div>
+      <div class="stat"><span>Envelope there</span><b id="s1e">—</b></div>
+      <div class="stat"><span>RMS of the envelope</span><b id="s1r">—</b></div>
+      <div class="stat key"><span>AVT</span><b id="s1a">—</b></div>
+      <div class="stat"><span>RMS window</span><b id="s1w">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Two of these four numbers can be negative and two cannot. That is the entire reason the third
+        step exists, and step 2 is about it. Notice also how much smoother each panel is than the one
+        before: every step in this chain is a smoothing operation, and none of them adds anything that was
+        not already in the trace.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 2 =============================== -->
+  <section class="tabpane" id="p2" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">2</span>Why take a Hilbert transform of it</h3>
+      <span class="hint">And where the events end up</span>
+    </div>
+    <p class="lede">Stop at step three and you have an all-positive attribute. That is a genuinely awkward
+      thing to look at. Every value is on one side of zero, so a section of it is all one color, there are
+      no zero crossings to autotrack, and picking a boundary means picking the middle of a gradient by eye.
+      Envelope displays have this problem too, which is why they are usually shown on a one-sided color
+      bar and rarely picked directly.</p>
+    <p class="lede">The Hilbert transform fixes the display problem in one step. Applied to a positive
+      hump, it returns a wiggle that is <b>zero at the center of the hump and largest at its edges</b>, one
+      side positive and the other negative. So an AVT section has zero crossings, has polarity, and can be
+      autotracked &mdash; and the events on it mark the <b>edges of energy packages</b> rather than the
+      packages themselves.</p>
+    <p class="lede">Two measurements below make that concrete. The RMS envelope peaks at
+      <b id="s2a2">—</b>; the AVT crosses zero <b id="s2d">—</b> away from it, which is to say on top of
+      it. The AVT's own peak is <b id="s2g">—</b> further out, on the edge of the package. You have met
+      this rotation before: in module 02 integration turned the trace by 90 degrees and moved the events
+      off the interfaces and onto the layers. Same rotation, same kind of favour.</p>
+
+    <canvas id="c2a" aria-label="The RMS envelope and its Hilbert transform, showing where the events land"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>Peak of the RMS envelope</span><b id="s2a">—</b></div>
+      <div class="stat key"><span>Nearest AVT zero crossing</span><b id="s2b">—</b></div>
+      <div class="stat key"><span>AVT peak</span><b id="s2c">—</b></div>
+      <div class="stat"><span>Peak to nearest AVT extreme</span><b id="s2e">—</b></div>
+      <div class="stat"><span>Fraction of AVT below zero</span><b id="s2f">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The last readout is the point of the whole step. The input to the Hilbert transform is
+        positive at every single sample; the output is below zero at most of them. Nothing was added and
+        nothing was measured &mdash; the information is identical and it has simply been made displayable.
+        That is worth being clear about, because an AVT section looks like new data and is not.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 3 =============================== -->
+  <section class="tabpane" id="p3" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">3</span>It comes out lower frequency</h3>
+      <span class="hint">A real cost, not a side effect</span>
+    </div>
+    <p class="lede">The AASPI documentation notes in passing that AVT results are lower frequency than the
+      data they came from. It is worth understanding why, because it puts a limit on what the attribute can
+      resolve.</p>
+    <p class="lede">Taking an envelope is <b>demodulation</b>. The trace is a slow shape multiplied by a
+      fast oscillation, and the envelope keeps the slow shape and discards the oscillation. What is left
+      has a bandwidth similar to the original but centered near zero rather than near the dominant
+      frequency. Then the running RMS smooths it further. By the time you reach the Hilbert transform, the
+      high frequencies are long gone.</p>
+    <p class="lede">The spectra below are measured on the current trace, and the numbers quoted are
+      amplitude-weighted mean frequencies rather than spectral peaks &mdash; a trace with a handful of
+      reflectors has a lumpy spectrum whose tallest lump jumps about from trace to trace, while the mean
+      sits still. The seismic averages <b id="s3a">—</b>. The AVT averages <b id="s3b">—</b>. Change the
+      dominant frequency in the header and watch what happens: the seismic number follows the slider, and
+      the AVT number barely moves. Its frequency is set by the transform &mdash; by the envelope's own
+      bandwidth and the RMS window &mdash; and not much by the data going in.</p>
+
+    <div class="sec-row" id="row3">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> The two spectra
+          <span class="note">both normalized to their own peak</span></p>
+        <canvas id="c3a" aria-label="Amplitude spectra of the trace and of the AVT"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> The same thing in time
+          <span class="note">count the wiggles</span></p>
+        <canvas id="c3b" aria-label="The trace and the AVT plotted against time"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Seismic mean frequency</span><b id="s3c">—</b></div>
+      <div class="stat key"><span>AVT mean frequency</span><b id="s3d">—</b></div>
+      <div class="stat key"><span>Ratio</span><b id="s3e">—</b></div>
+      <div class="stat"><span>Seismic bandwidth, at half power</span><b id="s3f">—</b></div>
+      <div class="stat"><span>AVT bandwidth</span><b id="s3g">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Lower frequency means poorer vertical resolution, and there is no way to get it back. Worse,
+        the loss is not a fixed fraction: taking the wavelet from 12 Hz to 40 Hz moves the seismic mean
+        from 10.9 to 34.5 Hz and the AVT mean only from 7.2 to 10.5 Hz. Better data buys you far less on
+        this attribute than it buys you on the amplitude display. If two beds are separated well enough to
+        be distinguished on the amplitude display but not on the AVT, that is the transform talking. Use the amplitude data for anything about thickness and timing, and
+        the AVT for the shape and continuity of packages, which is what it was designed for.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 4 =============================== -->
+  <section class="tabpane" id="p4" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">4</span>The window, again</h3>
+      <span class="hint">Same lesson as module 03, one step further along</span>
+    </div>
+    <p class="lede">The running RMS in the middle of the recipe has a window length, and it does here
+      exactly what it did in module 03: it decides what counts as a package.</p>
+    <p class="lede">A short window keeps the individual events separate, and the AVT ends up looking like a
+      slightly smoothed, phase-rotated version of the data. A long window merges neighbouring events into
+      single blocks, which is what the technique was built for, at the cost of not being able to tell you
+      what is inside them. The wedge on the left of this line is a good place to watch the two behaviours
+      trade off, because it has two events that get closer together across the section.</p>
+    <p class="lede">The count below is of separate events surviving on the AVT of this trace, above a
+      floor of a tenth of its peak. At the current window there are <b id="s4a">—</b> of them. Nothing in
+      the earth changed; events merged.</p>
+
+    <canvas id="c4a" aria-label="The AVT at three window lengths"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>RMS window</span><b id="s4w">—</b></div>
+      <div class="stat key"><span>Events surviving, this window</span><b id="s4b">—</b></div>
+      <div class="stat"><span>At &plusmn;8 ms</span><b id="s4c">—</b></div>
+      <div class="stat"><span>At &plusmn;60 ms</span><b id="s4d">—</b></div>
+      <div class="stat"><span>Events on the trace itself</span><b id="s4e">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Two windows are now stacked in this attribute: the wavelet, which sets what the seismic could
+        resolve in the first place, and the RMS window, which sets what the transform can resolve after
+        that. The second can only ever be worse than the first. If you find yourself lengthening the window
+        to make the display look cleaner, be clear with yourself that you are choosing to see less.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 5 =============================== -->
+  <section class="tabpane" id="p5" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">5</span>Beside relative acoustic impedance</h3>
+      <span class="hint">Two ways to make a layer display, and one big difference</span>
+    </div>
+    <p class="lede">Module 02 produced a layer-like display by integrating the trace. This module produces
+      one by taking an envelope and Hilbert transforming it. They look similar on screen and they are not
+      the same thing at all.</p>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>Relative acoustic impedance keeps polarity.</b> A hard bed and a soft bed come out with
+        opposite signs, because integration is a linear operation on a signed trace. That is why it can be
+        read as a rock property.</li>
+      <li><b>AVT throws polarity away in its first step.</b> The envelope is a magnitude, so a hard bed and
+        a soft bed of the same strength are identical from that point on. AVT tells you where the energy
+        is, not what kind.</li>
+    </ul>
+    <p class="lede">The panels show both, computed from the same trace. Look at the sand: on the impedance
+      display it is a low, because gas-charged sand is soft. On the AVT it is a strong event, because it is
+      bright. Both are correct answers to different questions, and reading the second as though it were the
+      first is a mistake that a display alone will never reveal.</p>
+
+    <div class="sec-row" id="row5">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> The two transforms
+          <span class="note">impedance keeps sign, AVT does not</span></p>
+        <canvas id="c5a" aria-label="Relative acoustic impedance and AVT computed from the same trace"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> The whole line, as AVT
+          <span class="note">the same section, transformed</span></p>
+        <canvas id="c5b" aria-label="Amplitude section beside an AVT section"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>At the sand, impedance</span><b id="s5a">—</b></div>
+      <div class="stat"><span>At the sand, AVT</span><b id="s5b">—</b></div>
+      <div class="stat key"><span>Polarity survives integration?</span><b id="s5c">—</b></div>
+      <div class="stat key"><span>Polarity survives AVT?</span><b id="s5d">—</b></div>
+      <div class="stat"><span>The two transforms, correlated</span><b id="s5e">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The polarity readouts are measured by flipping the sign of the whole trace and recomputing.
+        Relative acoustic impedance flips with it, as any linear transform must. AVT does not change at
+        all, because the envelope of a trace and the envelope of its negative are the same function. If you
+        are ever unsure whether an attribute has kept polarity, that test takes ten seconds and settles
+        it.</span>
+    </div>
+  </section>
+
+  <!-- ============================ WHY IT MATTERS ========================== -->
+  <section class="tabpane" id="pw" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">?</span>What it is for</h3>
+      <span class="hint">A display transform with a specific job</span>
+    </div>
+    <p class="lede">AVT was built by interpreters for interpreting, and the job it was built for is a real
+      one: seeing depositional packages as bodies rather than as pairs of reflections you have to
+      mentally join up.</p>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      What it is used for</h2>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>Seismic geomorphology.</b> Channels, fans, bars and mounds read more clearly as shapes when
+        the display is showing packages of energy rather than individual interfaces.</li>
+      <li><b>Stratigraphic surfaces.</b> Onlap and downlap terminations are often easier to follow, because
+        the events are the edges of packages and the packages are what terminates.</li>
+      <li><b>Continuity through noisy or dim data.</b> The chain of smoothing operations is fairly
+        forgiving, so a package can stay visible where individual reflections have become hard to
+        follow.</li>
+      <li><b>Horizon tracking</b> where the amplitude data has variable polarity or character along the
+        horizon, since AVT is indifferent to both.</li>
+    </ul>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      The four ways it will mislead you</h2>
+    <p class="lede"><b>It has no polarity, at all.</b> The first step throws it away and nothing later
+      recovers it. A hard streak and a soft sand of equal brightness are the same event on an AVT display.
+      If your interpretation depends on knowing which, do not use this attribute for it.</p>
+    <p class="lede"><b>The events are not the interfaces.</b> They mark the edges of energy packages, a
+      quarter cycle away from the RMS envelope peaks. Picking an AVT event and calling it a formation top
+      will put the pick in the wrong place, consistently and by a predictable amount.</p>
+    <p class="lede"><b>The resolution is worse than the data's.</b> Measurably so: on this line the AVT
+      peaks at roughly a third of the seismic frequency. Anything you cannot separate on it may well be
+      separable on the amplitude display.</p>
+    <p class="lede"><b>It inherits every amplitude decision, twice.</b> Both the envelope and the RMS scale
+      directly with the input amplitudes, so gain applied upstream flows straight through &mdash; and
+      module 04 showed what that does. An AVT volume made from AGC'd data is a picture of the AGC
+      window.</p>
+    <div class="legend prose">
+      <span>The honest summary: AVT does not measure anything the trace did not already contain. It is a
+        rearrangement chosen to suit a particular kind of looking, and it is a good one. Trouble starts
+        when a rearrangement gets treated as a measurement.</span>
+    </div>
+  </section>
+
+  <!-- ============================== EXERCISES ============================= -->
+  <section class="tabpane" id="pe" role="tabpanel" hidden>
+    <div class="tryit" style="max-width:none">
+      <h3>Exercises</h3>
+      <ol>
+        <li><b>Watch a positive quantity become bipolar.</b> In step 2, read what fraction of the AVT is
+          below zero, and compare it against its own input.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The input to the last step, the RMS envelope, is positive at every one of the 441
+            samples in the window &mdash; it is a square root, so it cannot be anything else. The output is
+            below zero at 68% of them. No information was created and none was destroyed: a Hilbert
+            transform is a phase rotation, and it keeps every frequency at the same strength it had. What it
+            does is move the whole thing off one side of zero, so the result has zero crossings to track and
+            two colors to display. If that sounds like a cosmetic operation, it is, and it is the reason
+            anybody uses the attribute.</span></details></li>
+        <li><b>Find the frequency you lost.</b> In step 3, read both peak frequencies, then change the
+          dominant frequency in the header from 12 Hz to 45 Hz and read them again.
+          <details class="reveal"><summary>Hint</summary><span class="ans">At 25 Hz the seismic averages 22.5 Hz and the AVT averages 8.9 Hz, a factor of 2.5. Now
+            sweep the slider. At 12 Hz the two read 10.9 and 7.2 Hz. At 40 Hz they read 34.5 and 10.5 Hz.
+            The seismic number follows the wavelet, tripling across that range. The AVT number moves from
+            7.2 to 10.5 and no further. Its frequency is set by the envelope's own bandwidth and by the RMS
+            window, not by the data. The practical consequence is uncomfortable: buying better bandwidth
+            improves your amplitude display a great deal and your AVT display hardly at all.</span></details></li>
+        <li><b>Make the window do the damage.</b> In step 4, take the RMS window from &plusmn;4 ms to
+          &plusmn;80 ms and watch how many separate events survive on the trace.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The trace itself carries 12 events above the threshold. Its AVT carries 7 at
+            &plusmn;4 ms, 5 at &plusmn;24, 2 at &plusmn;60 and 1 at &plusmn;80. By the longest setting the
+            entire second half of the trace has become a single feature. Nothing merged in the earth. Two
+            windows are now stacked in this attribute &mdash; the wavelet, which decides what the seismic
+            could resolve at all, and the RMS window, which decides what survives the transform &mdash; and
+            the second can only ever make things blunter than the first.</span></details></li>
+        <li><b>Prove the polarity is gone.</b> In step 5, read the two polarity tests and think about what
+          each one is telling you.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Negate the trace and recompute. Relative acoustic impedance correlates at
+            &minus;1.000 against its original: it flipped completely, which is what any linear operation on
+            a signed trace must do. AVT correlates at +1.000: it did not change by one sample. The envelope
+            of a trace and the envelope of its negative are the same function, so from the first step onward
+            AVT has no way of knowing which way up the data was. That is fine if you are mapping where the
+            energy is. It is fatal if you are trying to tell a hard streak from a soft sand, and no amount
+            of looking at the display will warn you, because the display looks the same either way.</span></details></li>
+        <li><b>Put the pick in the wrong place.</b> In step 2, compare the time of the RMS envelope peak
+          against the nearest AVT zero crossing and the AVT peak.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The RMS envelope peaks at 488 ms. The AVT crosses zero at 490 ms, two milliseconds
+            away, which within one sample is the same place. Its own peak is 60 ms further on, at 548 ms.
+            So a pick made on the bright part of an AVT display sits about 60 ms from the centre of the
+            package that produced it, and a pick made on the zero crossing sits on it. That is the opposite
+            of the habit most people bring from amplitude displays, where the bright part is the thing. On
+            this attribute the bright parts are the edges.</span></details></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================= KEY POINTS ============================= -->
+  <section class="tabpane" id="pk" role="tabpanel" hidden>
+    <div class="takeaway" style="max-width:none">
+      <h3>The main points</h3>
+      <ul>
+        <li><b>Three steps, all of them familiar.</b> Envelope, running RMS of the envelope, Hilbert
+          transform. Nothing in AVT is new; the combination is the idea.</li>
+        <li><b>The Hilbert transform at the end is for display.</b> It turns an all-positive quantity into
+          a bipolar one with zero crossings, adding no information whatsoever.</li>
+        <li><b>The events mark package edges</b>, a quarter cycle from the RMS envelope peaks, not the
+          interfaces that produced them.</li>
+        <li><b>The result is lower frequency than the data</b> by roughly a factor of three on this line,
+          so its vertical resolution is worse and cannot be recovered.</li>
+        <li><b>Polarity is gone from the first step onward.</b> Hard and soft look identical.</li>
+        <li><b>Two window lengths now govern the answer</b>: the wavelet, and the RMS window you chose.
+          The second can only make things blunter than the first.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =============================== METHOD ============================== -->
+  <section class="tabpane" id="pm" role="tabpanel" hidden>
+    <details class="notes" id="notes" open>
+      <summary>Method, sources, and what has been simplified</summary>
+      <p><b>The data</b> is the same synthetic line as modules 01, 03 and 04: 96 traces of 500
+        samples at 2 ms, reflection coefficients convolved with a Ricker wavelet over a low-relief
+        anticline, with a wedge, a gas sand and its brine equivalent, interbeds and a dimming reflector.
+        The identical model code runs in all four modules and the harness compares their output sample by
+        sample, so the line cannot drift between them.</p>
+      <p><b>The attribute</b> follows AASPI's <span class="k">avt</span> exactly as its documentation gives
+        it. The analytic trace is formed, the envelope taken as its magnitude, the RMS of the envelope
+        computed in a running window of 2K+1 samples, and the inverse Hilbert transform applied to the
+        result. The inverse Hilbert transform is the negative of the forward one, which is what makes the
+        output bipolar; if your implementation appears to differ from another package by a sign, that is
+        where to look first.</p>
+      <p><b>The spectra in step 3</b> are amplitude spectra computed by discrete Fourier transform over the
+        drawn window, each normalized to its own peak so the shapes can be compared. Peak frequency is
+        read as the largest bin; bandwidth is the width where the spectrum falls to half its peak power.
+        Both quantities are read from the running page, not assumed.</p>
+      <p><b>The polarity test in step 5</b> negates the whole trace, recomputes both transforms, and
+        correlates each against its original. A linear transform returns exactly &minus;1; a
+        magnitude-based one returns +1. Relative acoustic impedance is computed here with the same
+        <span class="k">integrate</span> routine module 02 uses, with a 5 Hz filter corner, so the two
+        modules are running the same code on different models.</p>
+      <p><b>Simplifications.</b> One dimension, normal incidence, acoustic, no multiples and no
+        transmission losses. AASPI runs on a 3D volume. There is no spectral balancing step here; on real
+        data a wavelet closer to a spike changes the envelope and therefore everything downstream of it.
+        The original technique is described in two Brazilian conference papers, both in Portuguese, and the
+        account here follows the AASPI documentation's summary of them rather than the originals.</p>
+      <ul>
+        <li>Bulh&otilde;es, E. M., 1999, T&eacute;cnica "volume de amplitudes" para mapeamento de
+          fei&ccedil;&otilde;es estruturais: 6th International Congress of the Brazilian Society of
+          Geophysics (in Portuguese).</li>
+        <li>Bulh&otilde;es, E. M., and W. de Amorim, 2005, Princ&iacute;pio da sismocamada elementar e sua
+          aplica&ccedil;&atilde;o &agrave; t&eacute;cnica de volume de amplitudes (TecVa): 9th
+          International Congress of the Brazilian Geophysical Society (in Portuguese).</li>
+        <li>Taner, M. T., F. Koehler, and R. E. Sheriff, 1979, Complex seismic trace analysis:
+          <em>Geophysics</em>, 44, 1041&ndash;1063.</li>
+        <li>AASPI, <em>Single Trace Attributes: Program avt</em>, University of Oklahoma.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="nextup" id="nextup" hidden>
+    <p class="eyebrow">Next up</p>
+    <h3>06 · Teager-Kaiser energy</h3>
+    <p>Energy from a mass on a spring, borrowed for seismic. It depends on frequency as well as amplitude,
+      which makes it the one attribute in this set that measures something the envelope cannot.</p>
+    <a class="btn ghost" href="teager.html">Go to module 06 →</a>
+  </section>
+
+  <div class="pager" id="pager" hidden>
+    <a class="btn ghost" href="agc.html">← Module 04: AGC</a>
+    <a class="btn ghost" href="teager.html">Module 06: Teager-Kaiser →</a>
+  </div>
+
+  <footer>
+    <div class="foot-grid">
+      <div style="flex:1 1 330px;max-width:46ch">
+        <p>Built for teaching by Heather Bedle, School of Geosciences, University of Oklahoma, with the
+          <a href="https://www.ou.edu/mcee/labs/aaspi">AASPI</a> consortium.</p>
+        <p class="lic">To cite: H. Bedle, <i>How Single-Trace Attributes Actually Work</i>, University of
+          Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
+      </div>
+      <div style="flex:1 1 330px;max-width:52ch">
+        <p class="lic" style="margin-top:0">Free to use for teaching, demonstration and non-commercial
+          study, with credit. Please do not republish or redistribute it, modified or otherwise, without
+          permission.</p>
+        <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
+          the page was opened, so that I can show the university these are being used &mdash; no cookie, no
+          account, nothing about you.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="../assets/count.js"></script>
+<script src="../assets/seismic.js"></script>
+<script src="../assets/trace.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  if (typeof SEIS === 'undefined') {
+    const el = document.createElement('div');
+    el.setAttribute('style', 'background:#841617;color:#fff;padding:14px 18px;margin:16px 0;' +
+      'font:13px/1.6 ui-monospace,Menlo,monospace');
+    el.textContent = 'This module could not load assets/seismic.js. It expects it one directory up, ' +
+      'at ../assets/, and file names are case-sensitive on GitHub Pages.';
+    const w = document.querySelector('.wrap');
+    (w || document.body).insertBefore(el, w ? w.firstChild : null);
+    return;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const visible = (id) => { const el = $(id); return el && !el.hidden; };
+  const CRIM = '#841617', TEAL = '#0B7285', SLATE = '#5C6670', INK = '#16191C';
+  const TWOPI = 2 * Math.PI;
+
+
+  /* =====================================================================
+     LOCAL FALLBACK FOR trace.js
+
+     Deliberately duplicated, so a module that is emailed around, or served
+     from a directory whose assets/ is a version behind, still draws. Anything
+     the shared library provides wins; the harness checks the two agree.
+     ===================================================================== */
+
+  const LOCALT = (function () {
+    function pow2(n) { let p = 1; while (p < n) p *= 2; return p; }
+    function hilbert(x) { return SEIS.hilbert(x); }
+    function envelope(u, uh) {
+      const n = u.length, o = new Float32Array(n);
+      for (let i = 0; i < n; i++) o[i] = Math.sqrt(u[i] * u[i] + uh[i] * uh[i]);
+      return o;
+    }
+    function runningRMS(x, K) {
+      const n = x.length, out = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        let s = 0, c = 0;
+        for (let k = -K; k <= K; k++) {
+          const j = i + k;
+          if (j < 0 || j >= n) continue;
+          s += x[j] * x[j]; c++;
+        }
+        out[i] = c ? Math.sqrt(s / c) : 0;
+      }
+      return out;
+    }
+    function avt(u, dt, K) {
+      const env = envelope(u, hilbert(u));
+      const envRms = runningRMS(env, K);
+      const h = hilbert(envRms);
+      const out = new Float32Array(h.length);
+      for (let i = 0; i < h.length; i++) out[i] = -h[i];
+      return { env: env, envRms: envRms, avt: out };
+    }
+    function ormsbyAmp(f, f1, f2, f3, f4) {
+      const a = Math.abs(f);
+      if (a <= f1 || a >= f4) return 0;
+      if (a < f2) return (a - f1) / (f2 - f1);
+      if (a <= f3) return 1;
+      return (f4 - a) / (f4 - f3);
+    }
+    function integrate(x, dt, filt) {
+      const n0 = x.length, n = pow2(2 * n0);
+      const re = new Float64Array(n), im = new Float64Array(n);
+      for (let i = 0; i < n0; i++) re[i] = x[i];
+      SEIS.fft(re, im, false);
+      for (let k = 0; k < n; k++) {
+        const kk = k <= n / 2 ? k : k - n;
+        const w = 2 * Math.PI * kk / (n * dt);
+        if (k === 0 || k === n / 2) { re[k] = 0; im[k] = 0; continue; }
+        const h = filt ? ormsbyAmp(kk / (n * dt), filt.f1, filt.f2, filt.f3, filt.f4) : 1;
+        const g = h / w;
+        const a = re[k], b = im[k];
+        re[k] = b * g; im[k] = -a * g;
+      }
+      SEIS.fft(re, im, true);
+      const out = new Float32Array(n0);
+      for (let i = 0; i < n0; i++) out[i] = re[i];
+      return out;
+    }
+    function correlation(a, b, i0, i1) {
+      let sa = 0, sb = 0, n = 0;
+      for (let i = i0; i <= i1; i++) { sa += a[i]; sb += b[i]; n++; }
+      const ma = sa / n, mb = sb / n;
+      let num = 0, va = 0, vb = 0;
+      for (let i = i0; i <= i1; i++) {
+        const da = a[i] - ma, db = b[i] - mb;
+        num += da * db; va += da * da; vb += db * db;
+      }
+      return (va > 0 && vb > 0) ? num / Math.sqrt(va * vb) : 0;
+    }
+    return { hilbert, envelope, runningRMS, avt, ormsbyAmp, integrate, correlation };
+  })();
+
+  const T = (function () {
+    const out = Object.assign({}, LOCALT);
+    const shared = (typeof TRACE !== 'undefined') ? TRACE : null;
+    if (shared) for (const k in shared) if (typeof shared[k] === 'function') out[k] = shared[k];
+    return out;
+  })();
+
+  /* =====================================================================
+     THE EARTH
+
+     Reflection coefficients on a low-relief anticline, convolved with a
+     Ricker wavelet. Everything the module says about the data has to be
+     true of this model, so the features are deliberate:
+
+       0.140  a strong isolated marker             (a clean single event)
+       0.232  a weaker trough
+       0.330  a wedge, 40 ms thinning to 2 ms      (interference, tuning)
+       0.470  a gas sand, brine-filled along strike(bright and low frequency)
+       0.600  seven weak interbeds                 (low envelope)
+       0.770  a reflector that dims laterally      (the phase argument)
+       0.885  a deep marker
+     ===================================================================== */
+
+  const NX = 96, NT = 500, DT = 0.002;
+  const TV0 = 0.08, TV1 = 0.96;               // the time window every panel draws
+  const GASF = 0.62;                          // gas window wavelet, as a fraction of f
+  const WEDGE = 0.330, SANDT = 0.470, SANDB = 0.520, DIMT = 0.770, MARK = 0.140;
+  const GASTRACE = 66, BRINETRACE = 20, DIMTRACE = 62, BRIGHTTRACE = 8;
+
+  const step3 = (x) => { const u = clamp(x, 0, 1); return u * u * (3 - 2 * u); };
+  const tShift = (ix) => -0.028 * Math.exp(-0.5 * Math.pow((ix - 30) / 13, 2))
+    + 0.016 * Math.exp(-0.5 * Math.pow((ix - 70) / 12, 2))
+    + 0.00022 * (ix - 48);
+  const wedgeGap = (ix) => 0.040 - 0.038 * clamp((ix - 8) / 80, 0, 1);
+  const gasWin = (ix) => Math.min(step3((ix - 46) / 8), 1 - step3((ix - 82) / 8));
+  const dimFac = (ix) => 1 - 0.90 * Math.exp(-0.5 * Math.pow((ix - DIMTRACE) / 13, 2));
+
+  function spikesFor(ix) {
+    const s = tShift(ix), g = clamp(gasWin(ix), 0, 1);
+    const norm = [], atten = [];
+    // a spike above the gas goes through the normal wavelet; below the gas it
+    // is split, the part under the gas window losing its high frequencies and
+    // some amplitude on the way through
+    const below = (t, r) => {
+      norm.push({ t: t, r: r * (1 - g) });
+      atten.push({ t: t, r: r * g * 0.72 });
+    };
+    norm.push({ t: MARK + s, r: 0.130 });
+    norm.push({ t: 0.232 + s, r: -0.075 });
+    norm.push({ t: WEDGE + s, r: 0.085 });
+    norm.push({ t: WEDGE + wedgeGap(ix) + s, r: -0.085 });
+    // the sand: soft, so the top is a negative reflection coefficient
+    atten.push({ t: SANDT + s, r: -0.115 * g });
+    atten.push({ t: SANDB + s, r: 0.115 * g });
+    norm.push({ t: SANDT + s, r: -0.035 * (1 - g) });
+    norm.push({ t: SANDB + s, r: 0.035 * (1 - g) });
+    for (let k = 0; k < 7; k++) below(0.600 + 0.015 * k + s, (k % 2 ? -1 : 1) * 0.022);
+    below(DIMT + s, 0.095 * dimFac(ix));
+    below(0.885 + s, -0.075);
+    return { norm: norm, atten: atten };
+  }
+
+  function wavelets(freq, phase) {
+    let w = SEIS.makeWavelet({ f: freq });
+    let wl = SEIS.makeWavelet({ f: Math.max(6, freq * GASF) });
+    if (phase) { w = SEIS.phaseRotate(w, phase); wl = SEIS.phaseRotate(wl, phase); }
+    return { w: w, wl: wl };
+  }
+
+  function rawSection(freq, phase) {
+    const W = wavelets(freq, phase);
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikesFor(ix);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) f[ix * NT + it] = a[it] + b[it];
+    }
+    return f;
+  }
+
+  /* One fixed normalization constant, taken once from the default settings.
+     Normalizing by the current peak instead would rescale the display every
+     time a slider moved, which is the quickest way to hide the effect the
+     slider is meant to demonstrate. */
+  const NORM = (function () {
+    const f = rawSection(25, 0);
+    let p = 0;
+    for (let i = 0; i < f.length; i++) p = Math.max(p, Math.abs(f[i]));
+    return p || 1;
+  })();
+
+  /* =====================================================================
+     STATE
+
+     NX, NT, DT, TV0, TV1, WEDGE, SANDT, SANDB, GASTRACE and BRINETRACE all
+     come from the earth block above, shared verbatim with modules 01, 03
+     and 04.
+     ===================================================================== */
+
+  const RAIFILT = { f1: 5, f2: 10, f3: 70, f4: 90 };   // as module 02 uses
+
+  const DEF = {
+    win: 24, decay: 8, freq: 25, noise: 0,
+    tr: GASTRACE, ts: 0.500, tab: 'p1',
+  };
+  let S = SEIS.readState(DEF);
+  S.tr = clamp(Math.round(S.tr), 0, NX - 1);
+  S.ts = clamp(S.ts, TV0, TV1);
+
+  const CAN_LINK = location.protocol !== 'file:';
+  const saveState = () => {
+    if (!CAN_LINK) return;
+    try { SEIS.writeState(S, DEF); } catch (e) { /* nothing shareable */ }
+  };
+
+  let FIELD = null;        // the seismic section
+  let AVTF = null;         // the same section, transformed
+  let CUR = null;          // everything about the selected trace
+  let NOISE = { f: -1, field: null };
+
+  function noiseField(freq) {
+    if (NOISE.f !== freq) {
+      NOISE.f = freq;
+      NOISE.field = SEIS.bandLimitedNoise(NX, NT, DT, SEIS.makeWavelet({ f: freq }), 7, 3);
+    }
+    return NOISE.field;
+  }
+
+  function recompute() {
+    const raw = rawSection(S.freq, 0);
+    const f = new Float32Array(NX * NT);
+    let s2 = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) {
+        const g = Math.pow(10, -S.decay * (it * DT) / 20);
+        const v = raw[ix * NT + it] * g / NORM;
+        f[ix * NT + it] = v;
+        s2 += v * v;
+      }
+    }
+    if (S.noise > 0) {
+      const rms = Math.sqrt(s2 / (NX * NT)) || 1;
+      const nf = noiseField(S.freq);
+      const amp = (S.noise / 100) * rms;
+      for (let i = 0; i < f.length; i++) f[i] += amp * nf[i];
+    }
+    FIELD = f;
+
+    const K = kOf(S.win);
+    AVTF = new Float32Array(NX * NT);
+    const u = new Float32Array(NT);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) u[it] = f[ix * NT + it];
+      const a = T.avt(u, DT, K);
+      for (let it = 0; it < NT; it++) AVTF[ix * NT + it] = a.avt[it];
+    }
+    computeTrace();
+  }
+
+  function traceAt(ix, arr) {
+    const u = new Float32Array(NT);
+    for (let it = 0; it < NT; it++) u[it] = arr[ix * NT + it];
+    return u;
+  }
+
+  function computeTrace() {
+    const ix = S.tr;
+    const u = traceAt(ix, FIELD);
+    const a = T.avt(u, DT, kOf(S.win));
+    const shortA = T.avt(u, DT, kOf(8));
+    const longA = T.avt(u, DT, kOf(60));
+    const neg = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) neg[i] = -u[i];
+    CUR = {
+      ix: ix, u: u, env: a.env, envRms: a.envRms, avt: a.avt,
+      shortA: shortA.avt, longA: longA.avt,
+      shortRms: shortA.envRms, longRms: longA.envRms,
+      rai: T.integrate(u, DT, RAIFILT),
+      // the polarity test: everything recomputed on the negated trace
+      negAvt: T.avt(neg, DT, kOf(S.win)).avt,
+      negRai: T.integrate(neg, DT, RAIFILT),
+    };
+  }
+
+  /* =====================================================================
+     MEASUREMENT, the parts particular to this module
+     ===================================================================== */
+
+  /** Amplitude spectrum of a trace over the drawn window, normalized to 1. */
+  function spectrum(arr) {
+    const i0 = iOf(TV0), i1 = iOf(TV1), m = i1 - i0 + 1;
+    let n = 1;
+    while (n < 2 * m) n *= 2;
+    const re = new Float64Array(n), im = new Float64Array(n);
+    for (let i = 0; i < m; i++) {
+      // a cosine taper, or the window edges invent frequencies of their own
+      const w = 0.5 - 0.5 * Math.cos(TWOPI * i / (m - 1));
+      re[i] = arr[i0 + i] * w;
+    }
+    SEIS.fft(re, im, false);
+    const nf = Math.floor(n / 2);
+    const mag = new Float32Array(nf);
+    let pk = 1e-30;
+    for (let k = 0; k < nf; k++) {
+      mag[k] = Math.sqrt(re[k] * re[k] + im[k] * im[k]);
+      pk = Math.max(pk, mag[k]);
+    }
+    for (let k = 0; k < nf; k++) mag[k] /= pk;
+    return { mag: mag, df: 1 / (n * DT), nf: nf };
+  }
+
+  /** Peak frequency and half-power bandwidth of a spectrum.
+      Bins below 4 Hz are skipped. Down there the spectrum is describing the
+      amplitude decay applied to the whole trace rather than anything in the
+      geology, and on the AVT it dominates everything else -- taking the raw
+      peak reports 1 Hz, which is the gain curve, not the attribute. */
+  function spectrumStats(sp) {
+    const kmin = Math.max(1, Math.ceil(4 / sp.df));
+    let pk = kmin;
+    for (let k = kmin; k < sp.nf; k++) if (sp.mag[k] > sp.mag[pk]) pk = k;
+    const half = sp.mag[pk] / Math.SQRT2;      // half power
+    let lo = pk, hi = pk;
+    while (lo > kmin && sp.mag[lo] > half) lo--;
+    while (hi < sp.nf - 1 && sp.mag[hi] > half) hi++;
+    /* The peak bin is a poor statistic here. A trace with a handful of
+       reflectors has a lumpy spectrum, and the tallest lump moves from trace to
+       trace: on this line the peak reads 15.6 Hz on one trace and 28.8 Hz on
+       another, at the same wavelet. The amplitude-weighted centroid is stable,
+       so that is what the module quotes. */
+    let num = 0, den = 0;
+    for (let k = kmin; k < sp.nf; k++) { num += k * sp.df * sp.mag[k]; den += sp.mag[k]; }
+    return {
+      peak: pk * sp.df, centroid: den > 0 ? num / den : 0,
+      lo: lo * sp.df, hi: hi * sp.df, band: (hi - lo) * sp.df,
+    };
+  }
+
+  /** Where the RMS envelope peaks near the sand, and what AVT does there. */
+  function packageEdges() {
+    const s = tShift(S.tr);
+    const pk = argMaxIn(CUR.envRms, SANDT + s - 0.03, SANDB + s + 0.03);
+    // the nearest zero crossing of the AVT, searching outward from that peak
+    let zc = -1;
+    for (let d = 1; d < iOf(0.12); d++) {
+      if (pk + d < NT - 1 && CUR.avt[pk + d] * CUR.avt[pk + d - 1] <= 0) { zc = pk + d; break; }
+      if (pk - d > 0 && CUR.avt[pk - d] * CUR.avt[pk - d + 1] <= 0) { zc = pk - d; break; }
+    }
+    /* The nearest AVT extreme, searched within 60 ms so the result belongs to
+       this package rather than to the edge of the next one along. */
+    let ex = pk, ev = -1;
+    for (let i = iOf(tOf(pk) - 0.06); i <= iOf(tOf(pk) + 0.06); i++) {
+      if (Math.abs(CUR.avt[i]) > ev) { ev = Math.abs(CUR.avt[i]); ex = i; }
+    }
+    let below = 0, n = 0;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) { if (CUR.avt[i] < 0) below++; n++; }
+    return {
+      peak: tOf(pk), zero: zc >= 0 ? tOf(zc) : NaN, ext: tOf(ex),
+      gap: zc >= 0 ? Math.abs(tOf(zc) - tOf(pk)) : NaN,
+      extGap: Math.abs(tOf(ex) - tOf(pk)),
+      belowPct: 100 * below / n,
+    };
+  }
+
+  /** How many separate events survive, counted against the curve's own RMS.
+      An earlier version used a fraction of the peak instead, which is not
+      scale-invariant: one big event pushes the floor up and the count drops for
+      a reason that has nothing to do with the window. With an RMS threshold the
+      count falls monotonically as the window lengthens, which is the behaviour
+      the step is describing. */
+  function eventCount(arr) {
+    let n = 0, s2 = 0, m = 0;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) { s2 += arr[i] * arr[i]; m++; }
+    const floor = Math.sqrt(s2 / Math.max(1, m));
+    for (let i = iOf(TV0) + 1; i < iOf(TV1); i++) {
+      const v = arr[i];
+      if (Math.abs(v) < floor) continue;
+      if ((v > arr[i - 1] && v >= arr[i + 1]) || (v < arr[i - 1] && v <= arr[i + 1])) n++;
+    }
+    return n;
+  }
+
+  /* An earlier version of this module tried to report the thinnest wedge the
+     AVT could still separate. The measurement was not stable enough to publish:
+     counting peaks against a relative floor gave a limit that moved when it
+     should not have, and once reported a longer window resolving more than a
+     short one. Counting how many separate events survive on the whole trace
+     behaves properly, so that is what step 4 quotes instead. */
+
+  /* =====================================================================
+     DRAWING
+     ===================================================================== */
+
+  const ALO = -1.15, AHI = 1.15;
+  const EHI = 1.05;                            // envelope and RMS envelope axis
+  const VHI = 0.75;                            // AVT axis
+  const RHI = 1.6;                             // impedance axis, display units
+
+  function drawStep1() {
+    const el = $('c1a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 4, 14);
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], 0, EHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], 0, EHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[3], -VHI, VHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI); zeroLine(ctx, P[3], -VHI, VHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], CUR.env, 0, EHI, CRIM, { width: 1.4, fillTo: 0, fill: 'rgba(132,22,23,.13)' });
+    series(ctx, P[2], CUR.envRms, 0, EHI, CRIM, { width: 1.6, fillTo: 0, fill: 'rgba(132,22,23,.13)' });
+    series(ctx, P[3], CUR.avt, -VHI, VHI, TEAL, { fillPositive: true, width: 1.2,
+      fill: 'rgba(11,114,133,.55)' });
+    panelTitle(ctx, P[0], '1  the trace', INK);
+    panelTitle(ctx, P[1], '2  envelope', CRIM);
+    panelTitle(ctx, P[2], '3  RMS of it', CRIM);
+    panelTitle(ctx, P[3], '4  AVT', TEAL);
+    P.forEach((R) => cursorLine(ctx, R));
+  }
+
+  function drawStep2() {
+    const el = $('c2a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 2, 24);
+    const pe = packageEdges();
+    panelBox(ctx, P[0], 0, EHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], -VHI, VHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[1], -VHI, VHI);
+    series(ctx, P[0], CUR.envRms, 0, EHI, CRIM, { width: 1.8, fillTo: 0, fill: 'rgba(132,22,23,.13)' });
+    series(ctx, P[1], CUR.avt, -VHI, VHI, TEAL, { fillPositive: true, width: 1.3,
+      fill: 'rgba(11,114,133,.55)' });
+    panelTitle(ctx, P[0], 'in: positive everywhere', CRIM);
+    panelTitle(ctx, P[1], 'out: half of it below zero', TEAL);
+    [P[0], P[1]].forEach((R) => {
+      const y = yT(R, pe.peak);
+      SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(132,22,23,.8)', [5, 4], 1.5);
+    });
+    if (isFinite(pe.zero)) {
+      const y = yT(P[1], pe.zero);
+      SEIS.dashedLine(ctx, P[1].x, y, P[1].x + P[1].w, y, 'rgba(11,114,133,.9)', [3, 3], 1.4);
+      SEIS.tag(ctx, P[1].x + 6, clamp(y + 11, P[1].y + 8, P[1].y + P[1].h - 8),
+        'zero crossing', TEAL);
+    }
+    SEIS.tag(ctx, P[0].x + 6, clamp(yT(P[0], pe.peak) - 11, P[0].y + 8, P[0].y + P[0].h - 8),
+      'package peak', CRIM);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]);
+  }
+
+  function drawStep3() {
+    const el = $('c3a');
+    if (!el) return;
+    const w = rowWidth('row3', 2);
+    const h = clamp(Math.round(w * 0.72), 260, 400);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const R = { x: M.l, y: M.t + 6, w: w - M.l - M.r, h: h - M.t - M.b - 16 };
+    const su = spectrum(CUR.u), sa = spectrum(CUR.avt);
+    const FMAX = 90;
+    ctx.save(); ctx.fillStyle = '#fff'; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
+    const plot = (sp, color, wid, fill) => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(R.x, R.y + R.h);
+      for (let k = 0; k < sp.nf; k++) {
+        const f = k * sp.df;
+        if (f > FMAX) break;
+        ctx.lineTo(R.x + (f / FMAX) * R.w, R.y + R.h - sp.mag[k] * R.h);
+      }
+      if (fill) {
+        ctx.lineTo(R.x + R.w, R.y + R.h); ctx.closePath();
+        ctx.fillStyle = fill; ctx.fill();
+      }
+      ctx.strokeStyle = color; ctx.lineWidth = wid; ctx.stroke();
+      ctx.restore();
+    };
+    plot(sa, TEAL, 1.8, 'rgba(11,114,133,.14)');
+    plot(su, INK, 1.6, null);
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, FMAX, 'frequency (Hz)', (v) => v.toFixed(0), { ticks: 6 });
+    SEIS.axisLeft(ctx, R, 0, 1, 'relative amplitude', (v) => v.toFixed(1), { ticks: 3, flip: true });
+    SEIS.tag(ctx, R.x + R.w - 8, R.y + 14, 'seismic', INK, 'right');
+    SEIS.tag(ctx, R.x + R.w - 8, R.y + 32, 'AVT', TEAL, 'right');
+
+    const el2 = $('c3b');
+    if (!el2) return;
+    const w2 = rowWidth('row3', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const P = panels(w2, h2, 2, 18);
+    panelBox(c2, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(c2, P[1], -VHI, VHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(c2, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(c2, P[0], ALO, AHI); zeroLine(c2, P[1], -VHI, VHI);
+    series(c2, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(c2, P[1], CUR.avt, -VHI, VHI, TEAL, { fillPositive: true, width: 1.2,
+      fill: 'rgba(11,114,133,.55)' });
+    panelTitle(c2, P[0], 'the trace', INK);
+    panelTitle(c2, P[1], 'AVT', TEAL);
+    cursorLine(c2, P[0]); cursorLine(c2, P[1]);
+  }
+
+  function drawStep4() {
+    const el = $('c4a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 4, 14);
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], -VHI, VHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], -VHI, VHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[3], -VHI, VHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    [[P[1], CUR.shortA, '\u00b18 ms'], [P[2], CUR.avt, '\u00b1' + S.win + ' ms'],
+     [P[3], CUR.longA, '\u00b160 ms']].forEach((q) => {
+      zeroLine(ctx, q[0], -VHI, VHI);
+      series(ctx, q[0], q[1], -VHI, VHI, TEAL, { fillPositive: true, width: 1.2,
+        fill: 'rgba(11,114,133,.55)' });
+      panelTitle(ctx, q[0], q[2], TEAL);
+    });
+    panelTitle(ctx, P[0], 'the trace', INK);
+    // the wedge, where two events become one
+    const s = tShift(S.tr);
+    P.forEach((R) => {
+      const y0 = yT(R, WEDGE + s - 0.02), y1 = yT(R, WEDGE + wedgeGap(S.tr) + s + 0.02);
+      ctx.save();
+      ctx.fillStyle = 'rgba(132,22,23,.08)';
+      ctx.fillRect(R.x, Math.min(y0, y1), R.w, Math.abs(y1 - y0));
+      ctx.restore();
+      cursorLine(ctx, R);
+    });
+  }
+
+  function drawStep5() {
+    const el = $('c5a');
+    if (!el) return;
+    const w = rowWidth('row5', 2);
+    const h = clamp(Math.round(w * 0.95), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 12);
+    const rai = new Float32Array(NT);
+    let rp = 1e-9;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) rp = Math.max(rp, Math.abs(CUR.rai[i]));
+    for (let i = 0; i < NT; i++) rai[i] = CUR.rai[i] / rp;
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], -1.15, 1.15, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], -VHI, VHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI); zeroLine(ctx, P[1], -1.15, 1.15); zeroLine(ctx, P[2], -VHI, VHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], rai, -1.15, 1.15, CRIM, { width: 1.6, fillTo: 0, fill: 'rgba(132,22,23,.13)' });
+    series(ctx, P[2], CUR.avt, -VHI, VHI, TEAL, { fillPositive: true, width: 1.2,
+      fill: 'rgba(11,114,133,.55)' });
+    panelTitle(ctx, P[0], 'the trace', INK);
+    panelTitle(ctx, P[1], 'impedance: keeps sign', CRIM);
+    panelTitle(ctx, P[2], 'AVT: does not', TEAL);
+    const s = tShift(S.tr);
+    P.forEach((R) => {
+      const y0 = yT(R, SANDT + s - 0.012), y1 = yT(R, SANDB + s + 0.012);
+      ctx.save();
+      ctx.fillStyle = 'rgba(132,22,23,.08)';
+      ctx.fillRect(R.x, Math.min(y0, y1), R.w, Math.abs(y1 - y0));
+      ctx.restore();
+      cursorLine(ctx, R);
+    });
+
+    const el2 = $('c5b');
+    if (!el2) return;
+    const w2 = rowWidth('row5', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const Q = panels(w2, h2 - 16, 2, 18);
+    let ap = 1e-9;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = iOf(TV0); it <= iOf(TV1); it++) ap = Math.max(ap, Math.abs(AVTF[ix * NT + it]));
+    }
+    sectionPanel(c2, Q[0], FIELD, { clip: 1, timeAxis: true, label: null });
+    sectionPanel(c2, Q[1], AVTF, { cmap: SEIS.COLORMAPS.cbsafe, clip: ap, label: null });
+    panelTitle(c2, Q[0], 'amplitude', SLATE);
+    panelTitle(c2, Q[1], 'AVT, \u00b1' + S.win + ' ms', SLATE);
+    bar(c2, { x: Q[0].x, y: Q[0].y + Q[0].h + 26, w: Q[0].w, h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+    bar(c2, { x: Q[1].x, y: Q[1].y + Q[1].h + 26, w: Q[1].w, h: 8 },
+      SEIS.COLORMAPS.cbsafe, '\u2212', '+', null, false);
+  }
+
+  /* =====================================================================
+     READOUTS
+     ===================================================================== */
+
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+
+  function syncLabels() {
+    setText('winV', '\u00b1' + S.win + ' ms');
+    setText('decayV', S.decay === 0 ? 'none' : S.decay + ' dB/s');
+    setText('freqV', S.freq + ' Hz');
+    setText('noiseV', S.noise === 0 ? 'none' : S.noise + '% of RMS');
+  }
+
+  function syncStats() {
+    const i = iOf(S.ts);
+    setText('s1u', fmt2(CUR.u[i]));
+    setText('s1e', fmt2(CUR.env[i]));
+    setText('s1r', fmt2(CUR.envRms[i]));
+    setText('s1a', fmt2(CUR.avt[i]));
+    setText('s1w', '\u00b1' + S.win + ' ms');
+
+    const pe = packageEdges();
+    setText('s2a', fmtT(pe.peak));
+    setText('s2a2', fmtT(pe.peak));
+    setText('s2b', isFinite(pe.zero) ? fmtT(pe.zero) : '\u2014');
+    setText('s2c', fmtT(pe.ext));
+    setText('s2d', isFinite(pe.gap) ? fmtT(pe.gap) : '\u2014');
+    setText('s2g', fmtT(pe.extGap));
+    setText('s2e', fmtT(pe.extGap));
+    setText('s2f', pe.belowPct.toFixed(0) + '%');
+
+    const su = spectrumStats(spectrum(CUR.u));
+    const sa = spectrumStats(spectrum(CUR.avt));
+    setText('s3a', su.centroid.toFixed(1) + ' Hz');
+    setText('s3b', sa.centroid.toFixed(1) + ' Hz');
+    setText('s3c', su.centroid.toFixed(1) + ' Hz');
+    setText('s3d', sa.centroid.toFixed(1) + ' Hz');
+    setText('s3e', fmtX(su.centroid / (sa.centroid || 1e-9)) + ' lower');
+    setText('s3f', su.band.toFixed(1) + ' Hz');
+    setText('s3g', sa.band.toFixed(1) + ' Hz');
+
+    setText('s4w', '\u00b1' + S.win + ' ms');
+    setText('s4a', String(eventCount(CUR.avt)));
+    setText('s4b', String(eventCount(CUR.avt)));
+    setText('s4c', String(eventCount(CUR.shortA)));
+    setText('s4d', String(eventCount(CUR.longA)));
+    setText('s4e', String(eventCount(CUR.u)));
+
+    const s = tShift(S.tr);
+    const isand = argMaxIn(CUR.env, SANDT + s - 0.02, SANDB + s + 0.02);
+    let rp = 1e-9;
+    for (let k = iOf(TV0); k <= iOf(TV1); k++) rp = Math.max(rp, Math.abs(CUR.rai[k]));
+    const i0 = iOf(TV0 + 0.03), i1 = iOf(TV1 - 0.03);
+    setText('s5a', fmt2(CUR.rai[isand] / rp));
+    setText('s5b', fmt2(CUR.avt[isand]));
+    const rc = T.correlation(CUR.rai, CUR.negRai, i0, i1);
+    const ac = T.correlation(CUR.avt, CUR.negAvt, i0, i1);
+    setText('s5c', rc.toFixed(3) + (rc < -0.98 ? '   yes, it flips' : ''));
+    setText('s5d', ac.toFixed(3) + (ac > 0.98 ? '   no, unchanged' : ''));
+    setText('s5e', T.correlation(CUR.rai, CUR.avt, i0, i1).toFixed(3));
+  }
+
+  /* =====================================================================
+     TABS AND WIRING
+     ===================================================================== */
+
+  function drawAll() {
+    syncLabels();
+    if (!CUR) return;
+    const onStep = visible('p1') || visible('p2') || visible('p3')
+      || visible('p4') || visible('p5');
+    if (onStep) drawHeader();
+    if (visible('p1')) drawStep1();
+    if (visible('p2')) drawStep2();
+    if (visible('p3')) drawStep3();
+    if (visible('p4')) drawStep4();
+    if (visible('p5')) drawStep5();
+    syncStats();
+  }
+
+  const STEPNAMES = {
+    p1: 'Three steps', p2: 'The last one', p3: 'Frequency', p4: 'Window',
+    p5: 'Beside RAI', pw: 'Why it matters', pe: 'Exercises',
+    pk: 'Key points', pm: 'Method',
+  };
+  const TIMECANVASES = ['c1a', 'c2a', 'c3b', 'c4a', 'c5a'];
+  const SECTIONCANVASES = ['c5b'];
+
+
+  /* =====================================================================
+     MEASUREMENT
+
+     Every number that appears in the prose or an exercise is read out of
+     these, never estimated.
+     ===================================================================== */
+
+  const iOf = (t) => clamp(Math.round(t / DT), 0, NT - 1);
+  const tOf = (i) => i * DT;
+  const kOf = (ms) => Math.max(1, Math.round((ms / 1000) / DT));
+
+  function argMaxIn(arr, t0, t1) {
+    let bi = iOf(t0), bv = -Infinity;
+    for (let i = iOf(t0); i <= iOf(t1); i++) if (arr[i] > bv) { bv = arr[i]; bi = i; }
+    return bi;
+  }
+  function maxAbsIn(arr, t0, t1) {
+    let v = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) v = Math.max(v, Math.abs(arr[i]));
+    return v;
+  }
+  function meanIn(arr, t0, t1) {
+    let s = 0, n = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) { s += arr[i]; n++; }
+    return n ? s / n : 0;
+  }
+  function rmsIn(arr, t0, t1) {
+    let s = 0, n = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) { s += arr[i] * arr[i]; n++; }
+    return n ? Math.sqrt(s / n) : 0;
+  }
+
+  const fmtT = (t) => (t * 1000).toFixed(0) + ' ms';
+  const fmt2 = (v) => (Math.abs(v) < 0.0005 ? '0.000' : v.toFixed(3));
+  const fmtX = (v) => '\u00d7' + (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+
+  /* =====================================================================
+     DRAWING
+     ===================================================================== */
+
+  const M = { l: 54, r: 14, t: 24, b: 34 };
+
+  function pw(el) {
+    const par = el && el.parentElement;
+    if (!par) return 900;
+    const cs = window.getComputedStyle(par);
+    const inner = par.clientWidth
+      - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+    return Math.max(240, Math.floor(inner));
+  }
+
+  function rowWidth(rowId, n) {
+    const row = $(rowId);
+    const total = row ? pw(row.firstElementChild || row) : 800;
+    const w = window.innerWidth <= 700
+      ? Math.max(240, total)
+      : Math.max(180, Math.floor((total - 10 * (n - 1)) / n));
+    if (row) {
+      row.querySelectorAll(':scope > .panel-col').forEach((el) => {
+        el.style.width = w + 'px'; el.style.maxWidth = w + 'px';
+      });
+    }
+    return w;
+  }
+
+  function panels(w, h, n, gap) {
+    const g = gap === undefined ? 16 : gap;
+    const inner = w - M.l - M.r - g * (n - 1);
+    const pwid = inner / n;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      out.push({ x: M.l + i * (pwid + g), y: M.t, w: pwid, h: h - M.t - M.b });
+    }
+    return out;
+  }
+
+  const yT = (R, t) => R.y + ((t - TV0) / (TV1 - TV0)) * R.h;
+  const tY = (R, y) => TV0 + ((y - R.y) / R.h) * (TV1 - TV0);
+  const xV = (R, v, lo, hi) => R.x + ((v - lo) / (hi - lo)) * R.w;
+
+  function panelTitle(ctx, R, text, color) {
+    ctx.save();
+    ctx.font = '10.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = color || SLATE;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(text, R.x, R.y - 8);
+    ctx.restore();
+  }
+
+  /** One curve, time down the page and value across. */
+  function series(ctx, R, arr, lo, hi, color, opts) {
+    const o = opts || {};
+    const i0 = iOf(TV0), i1 = iOf(TV1);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(R.x - 1, R.y, R.w + 2, R.h); ctx.clip();
+    if (o.fillPositive) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, 0, lo, hi), yT(R, tOf(i0)));
+      for (let i = i0; i <= i1; i++) {
+        ctx.lineTo(xV(R, Math.max(0, arr[i]), lo, hi), yT(R, tOf(i)));
+      }
+      ctx.lineTo(xV(R, 0, lo, hi), yT(R, tOf(i1)));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(22,25,28,.72)';
+      ctx.fill();
+    }
+    if (o.fillTo !== undefined) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i0)));
+      for (let i = i0; i <= i1; i++) ctx.lineTo(xV(R, arr[i], lo, hi), yT(R, tOf(i)));
+      ctx.lineTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i1)));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(11,114,133,.16)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    for (let i = i0; i <= i1; i++) {
+      const v = arr[i];
+      const x = xV(R, isFinite(v) ? clamp(v, lo - (hi - lo), hi + (hi - lo)) : lo, lo, hi);
+      const y = yT(R, tOf(i));
+      i === i0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = color; ctx.lineWidth = o.width || 1.3;
+    if (o.dash) ctx.setLineDash(o.dash);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function zeroLine(ctx, R, lo, hi, v) {
+    const x = xV(R, v === undefined ? 0 : v, lo, hi);
+    if (x < R.x - 1 || x > R.x + R.w + 1) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(92,102,112,.45)'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    ctx.restore();
+  }
+
+  function cursorLine(ctx, R) {
+    const y = yT(R, S.ts);
+    if (y < R.y || y > R.y + R.h) return;
+    SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(11,114,133,.85)', [4, 3], 1.4);
+  }
+
+  function panelBox(ctx, R, lo, hi, fmt, ticks) {
+    ctx.save(); ctx.fillStyle = '#fff'; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, lo, hi, null, fmt, { ticks: ticks || 3 });
+  }
+
+  /** Sequential or diverging color bar with numbers on it. */
+  function bar(ctx, rect, cmap, lo, hi, title, seq) {
+    const n = Math.max(2, Math.round(rect.w));
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1);
+      const c = cmap(seq ? u : (-1 + 2 * u) * 0.98);
+      ctx.fillStyle = 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+      ctx.fillRect(rect.x + i * (rect.w / n), rect.y, rect.w / n + 1, rect.h);
+    }
+    ctx.save();
+    ctx.strokeStyle = 'rgba(22,25,28,.45)'; ctx.lineWidth = 1;
+    ctx.strokeRect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h);
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText(lo, rect.x, rect.y + rect.h + 3);
+    ctx.textAlign = 'right'; ctx.fillText(hi, rect.x + rect.w, rect.y + rect.h + 3);
+    if (title) {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(title, rect.x + rect.w / 2, rect.y - 3);
+    }
+    ctx.restore();
+  }
+
+  /** A section panel: variable density, framed, with time and trace axes. */
+  function sectionPanel(ctx, R, data, opts) {
+    const o = opts || {};
+    const i0 = iOf(TV0), i1 = iOf(TV1), nsub = i1 - i0 + 1;
+    const sub = new Float32Array(NX * nsub);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < nsub; it++) sub[ix * nsub + it] = data[ix * NT + i0 + it];
+    }
+    SEIS.drawVarDensity(ctx, sub, NX, nsub, R, {
+      cmap: o.cmap || SEIS.COLORMAPS.gray, clip: o.clip, gain: o.gain || 1,
+    });
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, NX - 1, o.label === null ? null : (o.label || 'trace'),
+      (v) => v.toFixed(0), { ticks: 4 });
+    if (o.timeAxis) SEIS.axisLeft(ctx, R, TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 5 });
+    // where the analysis trace is
+    /* A crosshair, not just a trace marker. The vertical line says which trace
+       the curves belong to; the horizontal one lets a reader line the same
+       instant up across an amplitude panel and an attribute panel sitting side
+       by side, which is the comparison these paired sections exist to make. */
+    const x = R.x + (S.tr / (NX - 1)) * R.w;
+    const yc = yT(R, S.ts);
+    ctx.save();
+    ctx.strokeStyle = TEAL; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    if (yc >= R.y && yc <= R.y + R.h) {
+      ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(R.x, yc); ctx.lineTo(R.x + R.w, yc); ctx.stroke();
+      // a small open square where they cross, so the point itself is readable
+      // against both a bright and a dark background
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = 'rgba(255,255,255,.9)';
+      ctx.strokeRect(x - 4.5, yc - 4.5, 9, 9);
+      ctx.strokeStyle = TEAL;
+      ctx.strokeRect(x - 3.5, yc - 3.5, 7, 7);
+    }
+    ctx.restore();
+  }
+
+  /* ------------------------------ the header --------------------------- */
+  function drawHeader() {
+    const el = $('cMap');
+    if (!el || !el.parentElement || !el.parentElement.clientWidth) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.56), 230, 330);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    // 56 px at the foot rather than M.b: the trace axis label takes 34 of it
+    // and the color bar with its end labels needs the rest
+    const R = { x: M.l, y: M.t, w: w - M.l - M.r - 74, h: h - M.t - 56 };
+    sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
+    SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
+      R.y + 12, 'trace ' + S.tr, TEAL);
+    // and the time, labelled where the horizontal line leaves the panel, so the
+    // crosshair reads as a coordinate rather than as decoration
+    const yc = yT(R, S.ts);
+    if (yc >= R.y && yc <= R.y + R.h) {
+      SEIS.tag(ctx, R.x + R.w - 4, clamp(yc - 10, R.y + 8, R.y + R.h - 8),
+        fmtT(S.ts), TEAL, 'right');
+    }
+    // the features, labeled once, on the right
+    ctx.save();
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const s = tShift(NX - 1);
+    [[MARK + s, 'marker'], [WEDGE + 0.01 + s, 'wedge'], [SANDT + 0.025 + s, 'sand'],
+     [0.645 + s, 'interbeds'], [DIMT + s, 'dims out']].forEach((f) => {
+      const yy = yT(R, f[0]);
+      if (yy < R.y || yy > R.y + R.h) return;
+      ctx.strokeStyle = 'rgba(92,102,112,.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(R.x + R.w, yy); ctx.lineTo(R.x + R.w + 6, yy); ctx.stroke();
+      ctx.fillText(f[1], R.x + R.w + 9, yy);
+    });
+    ctx.restore();
+    bar(ctx, { x: R.x, y: R.y + R.h + 36, w: Math.min(180, R.w * 0.4), h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212 trough', '+ peak', null, false);
+  }
+
+  /* ------------------------------- step 1 ------------------------------ */
+
+  const PANES = ['p1', 'p2', 'p3', 'p4', 'p5', 'pw', 'pe', 'pk', 'pm'];
+
+  function buildStepNav() {
+    PANES.forEach((id, i) => {
+      const pane = $(id);
+      if (!pane || pane.querySelector('.stepnav')) return;
+      const prev = PANES[i - 1], next = PANES[i + 1];
+      const nav = document.createElement('div');
+      nav.className = 'stepnav';
+      const mk = (target, text, ghost) => {
+        const bt = document.createElement('button');
+        bt.type = 'button';
+        bt.className = 'btn' + (ghost ? ' ghost' : '') + ' small';
+        bt.textContent = text;
+        bt.addEventListener('click', () => {
+          showTab(target);
+          const t = document.querySelector('.tabhint');
+          if (t && t.scrollIntoView) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return bt;
+      };
+      nav.appendChild(prev ? mk(prev, '\u2190 ' + STEPNAMES[prev], true)
+                           : document.createElement('span'));
+      const where = document.createElement('span');
+      where.className = 'where';
+      where.textContent = i < 5 ? 'step ' + (i + 1) + ' of 5' : STEPNAMES[id];
+      nav.appendChild(where);
+      nav.appendChild(next ? mk(next, STEPNAMES[next] + ' \u2192')
+                           : document.createElement('span'));
+      pane.appendChild(nav);
+    });
+  }
+
+  function showTab(id) {
+    PANES.forEach((q) => { const el = $(q); if (el) el.hidden = q !== id; });
+    document.querySelectorAll('#tabs button').forEach((b) => {
+      b.setAttribute('aria-selected', b.dataset.tab === id);
+    });
+    const lab = document.querySelector('.labhead');
+    if (lab) lab.hidden = (id === 'pw' || id === 'pe' || id === 'pk' || id === 'pm');
+    const last = (id === 'pk' || id === 'pm');
+    if ($('nextup')) $('nextup').hidden = !last;
+    if ($('pager')) $('pager').hidden = !last;
+    S.tab = id;
+    drawAll();
+    saveState();
+  }
+  document.querySelectorAll('#tabs button').forEach((b) => {
+    b.addEventListener('click', () => showTab(b.dataset.tab));
+  });
+
+  document.addEventListener('input', (ev) => {
+    const key = ev.target && ev.target.dataset && ev.target.dataset.key;
+    if (!key) return;
+    S[key] = parseFloat(ev.target.value);
+    recompute();
+    drawAll();
+    saveState();
+  });
+
+  function attachSection(canvasId, getRect) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = getRect(r.width, r.height, ev.clientX - r.left);
+      S.tr = clamp(Math.round(((ev.clientX - r.left - R.x) / R.w) * (NX - 1)), 0, NX - 1);
+      S.ts = clamp(TV0 + ((ev.clientY - r.top - R.y) / R.h) * (TV1 - TV0), TV0, TV1);
+      computeTrace();
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  function attachTime(canvasId) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = { x: M.l, y: M.t, w: r.width - M.l - M.r, h: r.height - M.t - M.b };
+      S.ts = clamp(tY(R, ev.clientY - r.top), TV0, TV1);
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  attachSection('cMap', (w, h) => ({ x: M.l, y: M.t, w: w - M.l - M.r - 74, h: h - M.t - 56 }));
+  TIMECANVASES.forEach(attachTime);
+  SECTIONCANVASES.forEach((id) => attachSection(id, (w, h, x) => {
+    const Q = panels(w, h - 16, 2, 18);
+    return (x !== undefined && x > Q[1].x - 9) ? Q[1] : Q[0];
+  }));
+
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawAll, 140); });
+
+  recompute();
+  buildStepNav();
+  showTab(PANES.indexOf(S.tab) >= 0 ? S.tab : 'p1');
+  document.fonts && document.fonts.ready.then(drawAll);
+
+
+  // exposed for the headless harness only
+  window.__MOD = {
+    state: () => S, cur: () => CUR, field: () => FIELD, avtf: () => AVTF,
+    set: (k, v) => { S[k] = v; recompute(); },
+    T: T, LOCALT: LOCALT, traceAt: traceAt, tShift: tShift, DT: DT, NT: NT, NX: NX,
+    iOf: iOf, tOf: tOf, kOf: kOf, showTab: showTab, drawAll: drawAll,
+    spectrum: spectrum, spectrumStats: spectrumStats, packageEdges: packageEdges,
+    eventCount: eventCount, rawSection: rawSection,
+  };
+})();
+</script>
+</body>
+</html>

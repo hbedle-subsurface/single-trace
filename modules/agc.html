@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGC | How Single-Trace Attributes Actually Work</title>
+<meta name="description" content="Automatic gain control for beginners: dividing the trace by its own RMS amplitude, what that recovers, what it destroys, and why AGC applied upstream ruins every amplitude attribute computed afterwards.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <a class="brand" href="../index.html"><span class="dot"></span>How single-trace attributes <b>actually</b> work</a>
+    <nav>
+      <a href="../index.html">All modules</a>
+      <a href="rms.html">Module 03</a>
+      <a href="#notes">Method &amp; references</a>
+    </nav>
+  </header>
+
+  <div class="mod-head">
+    <p class="eyebrow">Module 04 &nbsp;·&nbsp; Single-trace attributes</p>
+    <h1>AGC: making everything equally bright</h1>
+    <p class="sub">Take the RMS amplitude you computed in module 03 and divide the trace by it. That is the
+      whole operation. Deep reflectors that were invisible come up to full strength, the section becomes
+      easy to look at from top to bottom, and every amplitude interpretation you were about to do becomes
+      impossible. This module is about the trade, and about why AGC done quietly to your data upstream is
+      the most common way an amplitude study goes wrong.</p>
+  </div>
+
+  <div class="labhead">
+    <div class="labgrid">
+      <div>
+        <p class="cap">The seismic line <span>&mdash; click it to pick a trace and a time</span></p>
+        <canvas id="cMap" aria-label="Vertical seismic section, with the selected trace and time marked"></canvas>
+      </div>
+      <div>
+        <p class="cap">Change the data <span>&mdash; every panel updates as you drag</span></p>
+        <div class="controls" id="winControls">
+          <div class="ctl-col">
+            <h2>The AGC</h2>
+            <div class="ctl">
+              <label for="win">Window half-length <span class="val" id="winV">&plusmn;120 ms</span></label>
+              <input type="range" data-key="win" id="win" min="10" max="300" step="10" value="120">
+            </div>
+            <div class="ctl">
+              <label for="noise">Random noise <span class="val" id="noiseV">none</span></label>
+              <input type="range" data-key="noise" id="noise" min="0" max="40" step="2" value="0">
+            </div>
+          </div>
+          <div class="ctl-col">
+            <h2>The data</h2>
+            <div class="ctl">
+              <label for="decay">Amplitude decay <span class="val" id="decayV">14 dB/s</span></label>
+              <input type="range" data-key="decay" id="decay" min="0" max="24" step="2" value="14">
+            </div>
+            <div class="ctl">
+              <label for="freq">Dominant frequency <span class="val" id="freqV">25 Hz</span></label>
+              <input type="range" data-key="freq" id="freq" min="12" max="45" step="1" value="25">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
+    Method and references are there when you want them.</p>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
+    <button role="tab" data-tab="p1" aria-selected="false">1 · Divide</button>
+    <button role="tab" data-tab="p2" aria-selected="false">2 · What it fixes</button>
+    <button role="tab" data-tab="p3" aria-selected="false">3 · What it costs</button>
+    <button role="tab" data-tab="p4" aria-selected="false">4 · Window</button>
+    <button role="tab" data-tab="p5" aria-selected="false">5 · Downstream</button>
+    <button role="tab" data-tab="pw" aria-selected="false">Why it matters</button>
+    <span class="gap"></span>
+    <button role="tab" data-tab="pe" aria-selected="false">Exercises</button>
+    <button role="tab" data-tab="pk" aria-selected="false">Key points</button>
+    <button role="tab" data-tab="pm" aria-selected="false">Method</button>
+  </nav>
+
+  <!-- =============================== STEP 1 =============================== -->
+  <section class="tabpane" id="p1" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">1</span>Divide the trace by its own loudness</h3>
+      <span class="hint">Two steps, and the first one is module 03</span>
+    </div>
+    <p class="lede">AGC is defined in two lines. Compute the RMS amplitude in a running window, exactly as
+      in module 03. Then divide every sample by the RMS at that sample:</p>
+    <p class="lede" style="text-align:center"><span class="k">d<sub>AGC</sub>(t) = d(t) / &sigma;(t)</span></p>
+    <p class="lede">That is all of it. Where the trace is loud, &sigma; is large and the division shrinks it.
+      Where the trace is quiet, &sigma; is small and the division blows it up. The result is a trace whose
+      loudness is roughly constant all the way down, because it has been defined to be.</p>
+    <p class="lede">The middle panel is the divisor. Read it as the gain curve being applied, upside down:
+      wherever it is high the data is being turned down, and wherever it is low the data is being turned
+      up. At the cursor the trace is being multiplied by <b id="s1g">—</b>.</p>
+
+    <canvas id="c1a" aria-label="The trace, its RMS amplitude, and the result of dividing one by the other"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>AGC window</span><b id="s1w">—</b></div>
+      <div class="stat"><span>Trace value at the cursor</span><b id="s1u">—</b></div>
+      <div class="stat"><span>RMS there, the divisor</span><b id="s1r">—</b></div>
+      <div class="stat key"><span>Gain applied</span><b id="s1x">—</b></div>
+      <div class="stat"><span>Result</span><b id="s1a">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Notice that the gain is different at every sample and on every trace. Nothing coordinates them.
+        Two neighbouring traces with different amounts of energy in their windows get different gains, so
+        after AGC the amplitude relationship <em>between</em> traces has been rewritten too &mdash; not just
+        the relationship down a trace. The AASPI documentation is blunt about this: trace-to-trace AGC is a
+        poor choice before any true amplitude analysis.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 2 =============================== -->
+  <section class="tabpane" id="p2" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">2</span>What it fixes</h3>
+      <span class="hint">The reason it is on by default nearly everywhere</span>
+    </div>
+    <p class="lede">Seismic amplitudes fall off with depth, badly. Energy spreads out as the wavefront
+      grows, and the earth absorbs the higher frequencies as it goes. By a second or two, reflections from
+      real, interpretable geology can be a hundredth the size of the shallow ones. Displayed honestly, the
+      bottom half of the section is a gray smear.</p>
+    <p class="lede">The decay slider in the header controls how severe that is here. At the default setting
+      the shallow marker on this trace is <b id="s2r">—</b> times the size of the deep one. After AGC the
+      same two events are <b id="s2s">—</b> apart. That is the entire case for the process, and it is a
+      strong one: you cannot interpret what you cannot see.</p>
+    <p class="lede">This is also why AGC is nearly always already on. Every display package applies some
+      form of gain by default, often without saying so in any obvious place. If you have never turned it
+      off, you have probably never seen your data.</p>
+
+    <div class="sec-row" id="row2">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> Before and after
+          <span class="note">the same line, the same clip</span></p>
+        <canvas id="c2a" aria-label="Amplitude section beside the same section after AGC"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> The selected trace
+          <span class="note">shallow and deep events marked</span></p>
+        <canvas id="c2b" aria-label="The trace before and after AGC"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Shallow marker, before</span><b id="s2a">—</b></div>
+      <div class="stat"><span>Deep marker, before</span><b id="s2b">—</b></div>
+      <div class="stat key"><span>Ratio before</span><b id="s2c">—</b></div>
+      <div class="stat"><span>The same two, after</span><b id="s2d">—</b></div>
+      <div class="stat key"><span>Ratio after</span><b id="s2e">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Both sections are drawn with the same colour limits, so the comparison is fair. Turn the decay
+        slider to zero and the two displays become almost the same picture, which is worth doing once: AGC
+        has very little to do when there is no gain problem to fix, and the temptation to leave it on
+        anyway is exactly where the trouble starts.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 3 =============================== -->
+  <section class="tabpane" id="p3" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">3</span>What it costs</h3>
+      <span class="hint">The bright spot was the point, and it is gone</span>
+    </div>
+    <p class="lede">This line has a gas sand on the right and the same sand, brine-filled, on the left. On
+      the amplitude display that contrast is the most important thing in the picture: it is what a
+      direct hydrocarbon indicator <em>is</em>.</p>
+    <p class="lede">AGC does not know that. It sees a stretch of trace with more energy in it than its
+      neighbours, and its job is to remove exactly that difference. The gas sand is <b id="s3a">—</b>
+      brighter than the brine sand before AGC and <b id="s3b">—</b> after it. The anomaly has been divided
+      away by a process running on autopilot.</p>
+    <p class="lede">Nothing on the display announces this. The AGC section looks cleaner, more balanced and
+      more professional than the one it came from. It is the more attractive picture and the less
+      informative one, and if you were handed it without being told, there is no way to tell from the
+      screen that a bright spot ever existed.</p>
+
+    <div class="sec-row" id="row3">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> The sand, before and after
+          <span class="note">gas on the right, brine on the left</span></p>
+        <canvas id="c3a" aria-label="The sand interval before and after AGC"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> Amplitude along the sand
+          <span class="note">one value per trace</span></p>
+        <canvas id="c3b" aria-label="Amplitude of the sand along the line, before and after AGC"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Gas sand, before</span><b id="s3c">—</b></div>
+      <div class="stat"><span>Brine sand, before</span><b id="s3d">—</b></div>
+      <div class="stat key"><span>Contrast before</span><b id="s3e">—</b></div>
+      <div class="stat"><span>Gas and brine, after</span><b id="s3f">—</b></div>
+      <div class="stat key"><span>Contrast after</span><b id="s3g">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The lower panel is the amplitude of the sand event trace by trace along the line, before and
+        after. Before AGC there is a step where the gas comes in. After AGC there is a much smaller one,
+        and its size depends entirely on the window length. An anomaly whose size depends on a processing
+        parameter is not a measurement of the rock.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 4 =============================== -->
+  <section class="tabpane" id="p4" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">4</span>Long windows are gentler than short ones</h3>
+      <span class="hint">The one setting that decides how much damage is done</span>
+    </div>
+    <p class="lede">The window length controls how local the gain is, and therefore how much of the real
+      amplitude variation gets removed along with the unwanted trend.</p>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>A long window</b> &mdash; several hundred milliseconds &mdash; only sees the slow fall-off with
+        depth. It corrects that and leaves most of the local contrast alone. This is the safe setting, and
+        the reason AASPI's default is &plusmn;500 ms.</li>
+      <li><b>A short window</b> follows the data so closely that it removes almost everything, including
+        the anomaly you were looking for. At the extreme it starts flattening within a single wavelet,
+        which distorts the waveform itself.</li>
+    </ul>
+    <p class="lede">The panel below shows the same trace at three window lengths, with the sand marked. The
+      readouts measure two costs: how much of the gas-to-brine contrast survives, and how much the shape of
+      an individual wavelet has been altered, measured as a correlation against the original.</p>
+
+    <div class="ctl" style="max-width:520px;margin-bottom:14px">
+      <label for="cmp">Window to compare against <span class="val" id="cmpV">&plusmn;30 ms</span></label>
+      <input type="range" data-key="cmp" id="cmp" min="10" max="300" step="10" value="30">
+    </div>
+
+    <canvas id="c4a" aria-label="The trace after AGC at three window lengths"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>Header window</span><b id="s4w">—</b></div>
+      <div class="stat key"><span>Contrast kept, header window</span><b id="s4a">—</b></div>
+      <div class="stat key"><span>Contrast kept, comparison window</span><b id="s4b">—</b></div>
+      <div class="stat"><span>Waveform preserved, header window</span><b id="s4c">—</b></div>
+      <div class="stat"><span>Waveform preserved, comparison</span><b id="s4d">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The waveform numbers are correlations between the shape of the shallow marker before and after
+        AGC. A long window leaves it essentially untouched. A short one does not: dividing by a quantity
+        that changes across the wavelet stretches one side of it relative to the other, which shifts the
+        apparent peak and changes the phase. If you are picking horizons on AGC'd data with a short window,
+        your picks are being moved by the processing.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 5 =============================== -->
+  <section class="tabpane" id="p5" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">5</span>Everything downstream inherits it</h3>
+      <span class="hint">The reason this module exists at all</span>
+    </div>
+    <p class="lede">AGC is not usually applied by the person doing the interpretation. It is applied
+      earlier, by someone else, for a display that was perfectly reasonable at the time. Then the volume
+      gets passed along, and attributes get computed from it.</p>
+    <p class="lede">Here is what that does. The panel below computes the <b>envelope</b> from module 01 two
+      ways: from the original trace, and from the AGC'd trace. On the original, the gas sand's envelope is
+      <b id="s5a">—</b> times the brine sand's. On the AGC'd version it is <b id="s5b">—</b>. The envelope
+      is a perfectly good attribute and it has been told a lie.</p>
+    <p class="lede">The same applies to everything else in this set that depends on amplitude: RMS, of
+      course, since AGC is defined as division by it; sweetness, which is envelope over a root frequency;
+      and relative acoustic impedance, whose whole output scales with the trace it integrated. Only the
+      attributes that already threw amplitude away survive &mdash; instantaneous phase and instantaneous
+      frequency come through unharmed, because they are ratios in which the gain cancels.</p>
+    <p class="lede">So the question to ask before computing any amplitude attribute is not what the
+      attribute does. It is what was done to the amplitudes before you got them.</p>
+
+    <canvas id="c5a" aria-label="Envelope computed from the original trace and from the AGC'd trace"></canvas>
+
+    <div class="stats">
+      <div class="stat key"><span>Envelope contrast, original data</span><b id="s5c">—</b></div>
+      <div class="stat key"><span>Envelope contrast, after AGC</span><b id="s5d">—</b></div>
+      <div class="stat"><span>Phase, before against after</span><b id="s5e">—</b></div>
+      <div class="stat"><span>Frequency, before against after</span><b id="s5f">—</b></div>
+      <div class="stat"><span>AGC window</span><b id="s5g">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The last two readouts are correlations between the phase and the frequency computed before
+        and after AGC, taken over the samples that have enough energy to have a meaningful frequency at all
+        &mdash; module 01 spent a step on why that qualifier is needed. Both sit close to 1, because each of
+        those attributes already divides the trace by its own strength, so a gain applied beforehand
+        cancels. That is a genuinely useful property: on data whose processing history nobody can tell you,
+        the phase-based attributes are the ones still worth trusting, which is why phase makes such a good
+        horizon-tracking attribute on old volumes.</span>
+    </div>
+  </section>
+
+  <!-- ============================ WHY IT MATTERS ========================== -->
+  <section class="tabpane" id="pw" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">?</span>When to use it and when not to</h3>
+      <span class="hint">A display tool that keeps being used as a processing step</span>
+    </div>
+    <p class="lede">AGC is not a bad process. It is a display process being used, very often, on data that
+      is about to be interpreted quantitatively, and that is a different thing.</p>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      Where it is the right tool</h2>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>Looking at the data.</b> Structural interpretation, fault picking, seeing whether the deep
+        section has anything in it at all. If the question is where things are rather than how bright they
+        are, AGC costs you nothing you needed.</li>
+      <li><b>Horizon tracking</b>, with a long window. An autotracker works better when events are of
+        comparable strength across the survey.</li>
+      <li><b>Quality control.</b> Balanced data makes acquisition footprint, noise bursts and processing
+        artifacts much easier to spot.</li>
+      <li><b>Correlating with something else</b> where only shape matters &mdash; a synthetic tie, a
+        crossline comparison, a display for a talk.</li>
+    </ul>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      Where it will cost you</h2>
+    <p class="lede"><b>Any amplitude interpretation, full stop.</b> Bright spots, dim spots, AVO, impedance,
+      RMS maps, anything with the word amplitude in it. AGC is defined as removing amplitude variation, and
+      it cannot tell your anomaly from the trend it was asked to flatten.</p>
+    <p class="lede"><b>Anything that compares one place against another.</b> The gain is computed
+      independently on every trace, so amplitudes are no longer comparable between traces, between lines or
+      between surveys.</p>
+    <p class="lede"><b>Precise picking on a short window.</b> A window short enough to vary across the
+      wavelet changes the waveform, which moves the peak and the zero crossings by a small but real
+      amount.</p>
+    <p class="lede"><b>Anything computed from the volume afterwards.</b> This is the one that actually
+      happens. Nobody sets out to interpret AGC'd amplitudes; they inherit a volume, compute an attribute
+      and never ask. Step 5 measures what that costs.</p>
+    <div class="legend prose">
+      <span>The practical habit: when a volume arrives, find out whether gain was applied, what kind and
+        over what window, and write it down where the interpretation will be read. If nobody knows, treat
+        every amplitude number from that volume as a relative comparison within a single trace and nothing
+        more.</span>
+    </div>
+  </section>
+
+  <!-- ============================== EXERCISES ============================= -->
+  <section class="tabpane" id="pe" role="tabpanel" hidden>
+    <div class="tryit" style="max-width:none">
+      <h3>Exercises</h3>
+      <ol>
+        <li><b>Measure what AGC recovers.</b> In step 2, read the shallow-to-deep ratio before and after,
+          then set the decay to 24 dB/s and read both again.
+          <details class="reveal"><summary>Hint</summary><span class="ans">At the default 14 dB per second the shallow marker reads 0.772 and the deep one
+            0.097 &mdash; a factor of eight. After AGC they are 4.011 and 3.279, a factor of 1.2. Push the
+            decay to 24 dB/s and the difference before AGC becomes nineteenfold, with the deep event down at
+            0.034, and after AGC it is still 1.3. That is the process doing its job, and doing it well.
+            Now set the decay to zero. The two events still differ by a factor of 2.4, because they are
+            genuinely different reflectors, and AGC still flattens them to 1.2. It cannot tell the
+            difference between a gain problem and geology, because from inside a single trace there is no
+            difference to see.</span></details></li>
+        <li><b>Measure what it destroys.</b> In step 3, read the gas-to-brine contrast before and after,
+          then take the AGC window from &plusmn;300 ms down to &plusmn;10 ms.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Before AGC the gas sand is &times;3.2 brighter than the brine sand at every window,
+            since the window has nothing to do with the recorded data. After AGC: &times;2.4 at
+            &plusmn;300 ms, &times;2.0 at &plusmn;200, &times;1.2 at &plusmn;120, &times;0.9 at
+            &plusmn;30 and &times;0.8 at &plusmn;10. Read the last two again. Below about &plusmn;60 ms the
+            ratio drops under 1, which means the gas sand has become <em>dimmer</em> than the brine sand.
+            The anomaly has not merely been removed, it has been turned upside down, because a short window
+            sitting inside the bright event divides it by its own brightness while the quiet brine sand
+            gets multiplied up. A short-window AGC display can show you a dim spot where the gas is.</span></details></li>
+        <li><b>Find the window that damages the waveform.</b> In step 4, watch the waveform correlation as
+          you shorten the comparison window from &plusmn;300 to &plusmn;10 ms.
+          <details class="reveal"><summary>Hint</summary><span class="ans">At &plusmn;300, &plusmn;120 and &plusmn;60 ms the correlation is 1.0000 to four
+            decimals: the waveform is untouched, and only its size has changed. At &plusmn;30 it is 0.9999.
+            At &plusmn;20 it is 0.9937, and at &plusmn;10 it is 0.9773. The damage starts when the window
+            gets short enough for the divisor to change appreciably across the wavelet itself, which for a
+            25 Hz wavelet means somewhere around 20 ms. Below that, one side of the wavelet is being divided
+            by a different number than the other, which shifts the peak and moves your pick. The rule that
+            falls out of this is the same one the AASPI documentation gives: keep the window long compared
+            with the wavelet, and much longer than that if you care about amplitudes.</span></details></li>
+        <li><b>Ruin an envelope map.</b> In step 5, compare the envelope contrast computed before and after
+          AGC, at a long window and a short one.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The envelope contrast between the two sands is &times;3.2 on the original data. Computed
+            from the AGC'd version it is &times;2.4 at a &plusmn;300 ms window, &times;1.2 at
+            &plusmn;120, &times;0.8 at &plusmn;30 and &times;1.0 at &plusmn;10. Nothing was done to the
+            envelope calculation. It is the same code from module 01, run on data that had already been
+            through a process nobody told it about, and it now reports somewhere between a much weaker
+            anomaly and no anomaly at all. This is the whole reason this module sits where it does in the
+            set: the attribute you compute is only as trustworthy as the amplitudes you were given.</span></details></li>
+        <li><b>Find the attributes that survive.</b> In step 5, read the phase and frequency correlations,
+          then change the AGC window and read them again.
+          <details class="reveal"><summary>Hint</summary><span class="ans">At the default &plusmn;120 ms window the phase correlates at 0.9999 before against
+            after, and the frequency at 0.9990. Both are essentially untouched, because each already
+            divides the trace by its own strength: multiply the trace by anything positive and the ratio is
+            unchanged. But shorten the window and even they start to go. At &plusmn;30 ms the frequency is
+            0.9880, and at &plusmn;10 ms it is 0.9006 with the phase down to 0.9932. The immunity is not
+            absolute, it holds while the gain is roughly constant across a wavelet. So the useful version of
+            the rule is this: on data of unknown history, phase and frequency are the attributes you can
+            still work with, provided nobody applied a short-window AGC.</span></details></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================= KEY POINTS ============================= -->
+  <section class="tabpane" id="pk" role="tabpanel" hidden>
+    <div class="takeaway" style="max-width:none">
+      <h3>The main points</h3>
+      <ul>
+        <li><b>AGC is division by the RMS amplitude.</b> Module 03 computed the divisor; this module
+          divides by it. There is nothing else in the process.</li>
+        <li><b>It makes the deep section visible</b>, and that is a real and often necessary gain. On this
+          line it turns a hundredfold difference between shallow and deep into a small one.</li>
+        <li><b>It removes exactly the differences an amplitude interpretation is looking for.</b> A bright
+          spot is a stretch of trace with more energy than its neighbours, which is the definition of what
+          AGC is built to flatten.</li>
+        <li><b>Long windows are gentler.</b> They correct the slow trend and leave local contrast alone.
+          Short windows remove almost everything and distort the waveform as well.</li>
+        <li><b>Every trace is gained independently.</b> After AGC, amplitudes are not comparable between
+          traces, lines or surveys.</li>
+        <li><b>Attributes computed afterwards inherit all of it.</b> Envelope, RMS, sweetness and impedance
+          are all changed. Instantaneous phase and frequency are not, because the gain cancels in a
+          ratio.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =============================== METHOD ============================== -->
+  <section class="tabpane" id="pm" role="tabpanel" hidden>
+    <details class="notes" id="notes" open>
+      <summary>Method, sources, and what has been simplified</summary>
+      <p><b>The data</b> is the same synthetic line as modules 01 and 03: 96 traces of 500 samples at
+        2 ms, reflection coefficients convolved with a Ricker wavelet, over a low-relief anticline,
+        with a wedge, a gas sand and its brine equivalent, interbeds and a laterally dimming reflector. The
+        default amplitude decay is higher again here, at 14 dB per second, because AGC has nothing to do
+        until there is a gain problem to fix. The identical model code runs in all three modules and the
+        test harness compares their output sample by sample, so the line cannot drift between them.</p>
+      <p><b>The attribute</b> is AASPI's <span class="k">agc</span> as its documentation gives it: the RMS
+        amplitude in a running window of 2K+1 samples, then every sample divided by it. One addition, which
+        AASPI does not need on real data and this module does: a floor under the divisor, set at 2% of the
+        largest RMS on the trace. A synthetic can contain a genuinely silent stretch where &sigma; goes to
+        zero and the division goes to infinity; real data always has noise in it. Where the floor takes
+        over, the module says so rather than drawing the result as though it meant something.</p>
+      <p><b>Window lengths.</b> The AASPI default is &plusmn;500 ms, which on a one-second synthetic would
+        be the entire trace, so the slider here runs from &plusmn;10 to &plusmn;300 ms with a default of
+        &plusmn;120. The documentation's own advice is the important part and it is stated plainly there:
+        long-window AGC is safer than short-window AGC for preserving relative amplitudes, and trace-to-trace
+        AGC is a poor choice before true amplitude analysis.</p>
+      <p><b>The measurements.</b> Contrast between the gas and brine sands is the peak absolute amplitude of
+        the sand event on trace 66 against trace 20, read within a window around the sand that
+        follows the structure. Waveform preservation is the correlation between the shallow marker's
+        waveform before and after AGC, over a window of &plusmn;40 ms centered on it, with each version
+        scaled to its own peak so that the correlation measures shape rather than size. The step 5
+        comparisons recompute the envelope, instantaneous phase and instantaneous frequency from scratch on
+        both versions of the trace, using the same library module 01 uses.</p>
+      <p><b>Simplifications.</b> One dimension, normal incidence, acoustic, no multiples and no
+        transmission losses. The decay is a gain function in dB per second rather than a model of spherical
+        divergence and absorption, so the shape of the fall-off is a stand-in. Real AGC implementations
+        differ in details this module does not cover: some use a mean absolute value rather than an RMS,
+        some taper the window, some apply the gain in overlapping blocks rather than sample by sample, and
+        some clip the gain. All of them share the property this module is about.</p>
+      <ul>
+        <li>Yilmaz, Ö., 2001, <em>Seismic Data Analysis</em>: SEG Investigations in Geophysics 10.</li>
+        <li>Sheriff, R. E., and L. P. Geldart, 1995, <em>Exploration Seismology</em>, 2nd edition: Cambridge
+          University Press.</li>
+        <li>Chopra, S., and K. J. Marfurt, 2007, <em>Seismic Attributes for Prospect Identification and
+          Reservoir Characterization</em>: SEG Geophysical Development Series 11.</li>
+        <li>AASPI, <em>Single Trace Attributes: Program agc</em>, University of Oklahoma.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="nextup" id="nextup" hidden>
+    <p class="eyebrow">Next up</p>
+    <h3>05 · Amplitude volume transform</h3>
+    <p>Envelope, then the RMS of the envelope in a window, then a Hilbert transform back. Three steps that
+      turn a wiggle into something that images stratigraphy, and lower the frequency doing it.</p>
+    <a class="btn ghost" href="../index.html">All modules</a>
+  </section>
+
+  <div class="pager" id="pager" hidden>
+    <a class="btn ghost" href="rms.html">← Module 03: RMS amplitude</a>
+    <a class="btn ghost" href="../index.html">All modules</a>
+  </div>
+
+  <footer>
+    <div class="foot-grid">
+      <div style="flex:1 1 330px;max-width:46ch">
+        <p>Built for teaching by Heather Bedle, School of Geosciences, University of Oklahoma, with the
+          <a href="https://www.ou.edu/mcee/labs/aaspi">AASPI</a> consortium.</p>
+        <p class="lic">To cite: H. Bedle, <i>How Single-Trace Attributes Actually Work</i>, University of
+          Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
+      </div>
+      <div style="flex:1 1 330px;max-width:52ch">
+        <p class="lic" style="margin-top:0">Free to use for teaching, demonstration and non-commercial
+          study, with credit. Please do not republish or redistribute it, modified or otherwise, without
+          permission.</p>
+        <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
+          the page was opened, so that I can show the university these are being used &mdash; no cookie, no
+          account, nothing about you.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="../assets/count.js"></script>
+<script src="../assets/seismic.js"></script>
+<script src="../assets/trace.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  if (typeof SEIS === 'undefined') {
+    const el = document.createElement('div');
+    el.setAttribute('style', 'background:#841617;color:#fff;padding:14px 18px;margin:16px 0;' +
+      'font:13px/1.6 ui-monospace,Menlo,monospace');
+    el.textContent = 'This module could not load assets/seismic.js. It expects it one directory up, ' +
+      'at ../assets/, and file names are case-sensitive on GitHub Pages.';
+    const w = document.querySelector('.wrap');
+    (w || document.body).insertBefore(el, w ? w.firstChild : null);
+    return;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const visible = (id) => { const el = $(id); return el && !el.hidden; };
+  const CRIM = '#841617', TEAL = '#0B7285', SLATE = '#5C6670', INK = '#16191C';
+  const TWOPI = 2 * Math.PI;
+
+
+  /* =====================================================================
+     LOCAL FALLBACK FOR trace.js
+
+     Deliberately duplicated, so a module that is emailed around, or served
+     from a directory whose assets/ is a version behind, still draws. Anything
+     the shared library provides wins; the harness checks the two agree.
+     ===================================================================== */
+
+  const LOCALT = (function () {
+    function runningRMS(x, K) {
+      const n = x.length, out = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        let s = 0, c = 0;
+        for (let k = -K; k <= K; k++) {
+          const j = i + k;
+          if (j < 0 || j >= n) continue;
+          s += x[j] * x[j]; c++;
+        }
+        out[i] = c ? Math.sqrt(s / c) : 0;
+      }
+      return out;
+    }
+    function runningStd(x, K) {
+      const n = x.length, out = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        let s = 0, s2 = 0, c = 0;
+        for (let k = -K; k <= K; k++) {
+          const j = i + k;
+          if (j < 0 || j >= n) continue;
+          s += x[j]; s2 += x[j] * x[j]; c++;
+        }
+        if (!c) { out[i] = 0; continue; }
+        const m = s / c;
+        out[i] = Math.sqrt(Math.max(0, s2 / c - m * m));
+      }
+      return out;
+    }
+    function agc(x, K, floorFrac) {
+      const rms = runningRMS(x, K);
+      const n = x.length;
+      let mx = 0;
+      for (let i = 0; i < n; i++) mx = Math.max(mx, rms[i]);
+      const floor = (floorFrac === undefined ? 0.02 : floorFrac) * mx;
+      const out = new Float32Array(n);
+      let floored = 0;
+      for (let i = 0; i < n; i++) {
+        const d = rms[i];
+        if (d < floor) floored++;
+        out[i] = x[i] / Math.max(d, floor || 1e-30);
+      }
+      return { out: out, rms: rms, floored: floored, floor: floor };
+    }
+    function envelope(u, uh) {
+      const n = u.length, o = new Float32Array(n);
+      for (let i = 0; i < n; i++) o[i] = Math.sqrt(u[i] * u[i] + uh[i] * uh[i]);
+      return o;
+    }
+    function hilbert(x) { return SEIS.hilbert(x); }
+    function correlation(a, b, i0, i1) {
+      let sa = 0, sb = 0, n = 0;
+      for (let i = i0; i <= i1; i++) { sa += a[i]; sb += b[i]; n++; }
+      const ma = sa / n, mb = sb / n;
+      let num = 0, va = 0, vb = 0;
+      for (let i = i0; i <= i1; i++) {
+        const da = a[i] - ma, db = b[i] - mb;
+        num += da * db; va += da * da; vb += db * db;
+      }
+      return (va > 0 && vb > 0) ? num / Math.sqrt(va * vb) : 0;
+    }
+    return { runningRMS, runningStd, agc, envelope, hilbert, correlation };
+  })();
+
+  const T = (function () {
+    const out = Object.assign({}, LOCALT);
+    const shared = (typeof TRACE !== 'undefined') ? TRACE : null;
+    if (shared) for (const k in shared) if (typeof shared[k] === 'function') out[k] = shared[k];
+    return out;
+  })();
+
+  /* =====================================================================
+     THE EARTH
+
+     Reflection coefficients on a low-relief anticline, convolved with a
+     Ricker wavelet. Everything the module says about the data has to be
+     true of this model, so the features are deliberate:
+
+       0.140  a strong isolated marker             (a clean single event)
+       0.232  a weaker trough
+       0.330  a wedge, 40 ms thinning to 2 ms      (interference, tuning)
+       0.470  a gas sand, brine-filled along strike(bright and low frequency)
+       0.600  seven weak interbeds                 (low envelope)
+       0.770  a reflector that dims laterally      (the phase argument)
+       0.885  a deep marker
+     ===================================================================== */
+
+  const NX = 96, NT = 500, DT = 0.002;
+  const TV0 = 0.08, TV1 = 0.96;               // the time window every panel draws
+  const GASF = 0.62;                          // gas window wavelet, as a fraction of f
+  const WEDGE = 0.330, SANDT = 0.470, SANDB = 0.520, DIMT = 0.770, MARK = 0.140;
+  const GASTRACE = 66, BRINETRACE = 20, DIMTRACE = 62, BRIGHTTRACE = 8;
+
+  const step3 = (x) => { const u = clamp(x, 0, 1); return u * u * (3 - 2 * u); };
+  const tShift = (ix) => -0.028 * Math.exp(-0.5 * Math.pow((ix - 30) / 13, 2))
+    + 0.016 * Math.exp(-0.5 * Math.pow((ix - 70) / 12, 2))
+    + 0.00022 * (ix - 48);
+  const wedgeGap = (ix) => 0.040 - 0.038 * clamp((ix - 8) / 80, 0, 1);
+  const gasWin = (ix) => Math.min(step3((ix - 46) / 8), 1 - step3((ix - 82) / 8));
+  const dimFac = (ix) => 1 - 0.90 * Math.exp(-0.5 * Math.pow((ix - DIMTRACE) / 13, 2));
+
+  function spikesFor(ix) {
+    const s = tShift(ix), g = clamp(gasWin(ix), 0, 1);
+    const norm = [], atten = [];
+    // a spike above the gas goes through the normal wavelet; below the gas it
+    // is split, the part under the gas window losing its high frequencies and
+    // some amplitude on the way through
+    const below = (t, r) => {
+      norm.push({ t: t, r: r * (1 - g) });
+      atten.push({ t: t, r: r * g * 0.72 });
+    };
+    norm.push({ t: MARK + s, r: 0.130 });
+    norm.push({ t: 0.232 + s, r: -0.075 });
+    norm.push({ t: WEDGE + s, r: 0.085 });
+    norm.push({ t: WEDGE + wedgeGap(ix) + s, r: -0.085 });
+    // the sand: soft, so the top is a negative reflection coefficient
+    atten.push({ t: SANDT + s, r: -0.115 * g });
+    atten.push({ t: SANDB + s, r: 0.115 * g });
+    norm.push({ t: SANDT + s, r: -0.035 * (1 - g) });
+    norm.push({ t: SANDB + s, r: 0.035 * (1 - g) });
+    for (let k = 0; k < 7; k++) below(0.600 + 0.015 * k + s, (k % 2 ? -1 : 1) * 0.022);
+    below(DIMT + s, 0.095 * dimFac(ix));
+    below(0.885 + s, -0.075);
+    return { norm: norm, atten: atten };
+  }
+
+  function wavelets(freq, phase) {
+    let w = SEIS.makeWavelet({ f: freq });
+    let wl = SEIS.makeWavelet({ f: Math.max(6, freq * GASF) });
+    if (phase) { w = SEIS.phaseRotate(w, phase); wl = SEIS.phaseRotate(wl, phase); }
+    return { w: w, wl: wl };
+  }
+
+  function rawSection(freq, phase) {
+    const W = wavelets(freq, phase);
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikesFor(ix);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) f[ix * NT + it] = a[it] + b[it];
+    }
+    return f;
+  }
+
+  /* One fixed normalization constant, taken once from the default settings.
+     Normalizing by the current peak instead would rescale the display every
+     time a slider moved, which is the quickest way to hide the effect the
+     slider is meant to demonstrate. */
+  const NORM = (function () {
+    const f = rawSection(25, 0);
+    let p = 0;
+    for (let i = 0; i < f.length; i++) p = Math.max(p, Math.abs(f[i]));
+    return p || 1;
+  })();
+
+  /* =====================================================================
+     STATE
+
+     NX, NT, DT, TV0, TV1, MARK, SANDT, SANDB, GASTRACE and BRINETRACE all
+     come from the earth block above, which is shared verbatim with modules
+     01 and 03.
+     ===================================================================== */
+
+  const DEEPT = 0.885;                         // the deep marker step 2 measures
+  const WFMS = 40;                             // waveform comparison half-window
+
+  const DEF = {
+    win: 120, cmp: 30, decay: 14, freq: 25, noise: 0,
+    tr: GASTRACE, ts: 0.500, tab: 'p1',
+  };
+  let S = SEIS.readState(DEF);
+  S.tr = clamp(Math.round(S.tr), 0, NX - 1);
+  S.ts = clamp(S.ts, TV0, TV1);
+
+  const CAN_LINK = location.protocol !== 'file:';
+  const saveState = () => {
+    if (!CAN_LINK) return;
+    try { SEIS.writeState(S, DEF); } catch (e) { /* nothing shareable */ }
+  };
+
+  let FIELD = null;        // the section as recorded
+  let GAINED = null;       // the same section after AGC at the header window
+  let CUR = null;          // everything about the selected trace
+  let NOISE = { f: -1, field: null };
+
+  function noiseField(freq) {
+    if (NOISE.f !== freq) {
+      NOISE.f = freq;
+      NOISE.field = SEIS.bandLimitedNoise(NX, NT, DT, SEIS.makeWavelet({ f: freq }), 7, 3);
+    }
+    return NOISE.field;
+  }
+
+  function recompute() {
+    const raw = rawSection(S.freq, 0);
+    const f = new Float32Array(NX * NT);
+    let s2 = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) {
+        const g = Math.pow(10, -S.decay * (it * DT) / 20);
+        const v = raw[ix * NT + it] * g / NORM;
+        f[ix * NT + it] = v;
+        s2 += v * v;
+      }
+    }
+    if (S.noise > 0) {
+      const rms = Math.sqrt(s2 / (NX * NT)) || 1;
+      const nf = noiseField(S.freq);
+      const amp = (S.noise / 100) * rms;
+      for (let i = 0; i < f.length; i++) f[i] += amp * nf[i];
+    }
+    FIELD = f;
+
+    const K = kOf(S.win);
+    GAINED = new Float32Array(NX * NT);
+    let floored = 0;
+    const u = new Float32Array(NT);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) u[it] = f[ix * NT + it];
+      const a = T.agc(u, K);
+      floored += a.floored;
+      for (let it = 0; it < NT; it++) GAINED[ix * NT + it] = a.out[it];
+    }
+    FLOORED = floored;
+    computeTrace();
+  }
+
+  let FLOORED = 0;
+
+  function traceAt(ix, arr) {
+    const u = new Float32Array(NT);
+    for (let it = 0; it < NT; it++) u[it] = arr[ix * NT + it];
+    return u;
+  }
+
+  function computeTrace() {
+    const ix = S.tr;
+    const u = traceAt(ix, FIELD);
+    const a = T.agc(u, kOf(S.win));
+    const b = T.agc(u, kOf(S.cmp));
+    const shortA = T.agc(u, kOf(15));
+    const longA = T.agc(u, kOf(250));
+    CUR = {
+      ix: ix, u: u, rms: a.rms, agc: a.out, floor: a.floor, floored: a.floored,
+      cmp: b.out, cmpRms: b.rms,
+      shortA: shortA.out, longA: longA.out,
+      env: T.envelope(u, T.hilbert(u)),
+      envA: T.envelope(a.out, T.hilbert(a.out)),
+    };
+  }
+
+  /* =====================================================================
+     MEASUREMENT, the parts particular to this module
+     ===================================================================== */
+
+  /** Peak absolute amplitude of an event, in a window that follows structure. */
+  function eventAmp(arr, ix, t0, t1) {
+    const s = tShift(ix);
+    return maxAbsIn2(arr, t0 + s, t1 + s);
+  }
+  function maxAbsIn2(arr, t0, t1) {
+    let v = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) v = Math.max(v, Math.abs(arr[i]));
+    return v;
+  }
+
+  /** The sand on one trace, before and after, at a given AGC window. */
+  function sandPair(ix, K) {
+    const u = traceAt(ix, FIELD);
+    const g = T.agc(u, K).out;
+    return {
+      before: eventAmp(u, ix, SANDT - 0.012, SANDB + 0.012),
+      after: eventAmp(g, ix, SANDT - 0.012, SANDB + 0.012),
+    };
+  }
+
+  /** Gas against brine, before and after AGC, at a given window. */
+  function contrast(K) {
+    const gas = sandPair(GASTRACE, K), brine = sandPair(BRINETRACE, K);
+    return {
+      before: gas.before / (brine.before || 1e-9),
+      after: gas.after / (brine.after || 1e-9),
+      gas: gas, brine: brine,
+    };
+  }
+
+  /** Shallow against deep on the selected trace, before and after. */
+  function depthPair() {
+    const s = tShift(S.tr);
+    const sh = maxAbsIn2(CUR.u, MARK + s - 0.03, MARK + s + 0.03);
+    const dp = maxAbsIn2(CUR.u, DEEPT + s - 0.03, DEEPT + s + 0.03);
+    const shA = maxAbsIn2(CUR.agc, MARK + s - 0.03, MARK + s + 0.03);
+    const dpA = maxAbsIn2(CUR.agc, DEEPT + s - 0.03, DEEPT + s + 0.03);
+    return {
+      sh: sh, dp: dp, ratio: sh / (dp || 1e-9),
+      shA: shA, dpA: dpA, ratioA: shA / (dpA || 1e-9),
+    };
+  }
+
+  /**
+   * Has the waveform survived? Correlate the shallow marker before and after,
+   * each scaled to its own peak, so this measures shape and not size.
+   */
+  function waveformKept(gained) {
+    const s = tShift(S.tr);
+    const i0 = iOf(MARK + s - WFMS / 1000), i1 = iOf(MARK + s + WFMS / 1000);
+    return T.correlation(CUR.u, gained, i0, i1);
+  }
+
+  /** What the envelope, phase and frequency make of the two versions. */
+  function downstream() {
+    const K = kOf(S.win);
+    const gasU = traceAt(GASTRACE, FIELD), brineU = traceAt(BRINETRACE, FIELD);
+    const gasG = T.agc(gasU, K).out, brineG = T.agc(brineU, K).out;
+    const envOf = (x) => T.envelope(x, T.hilbert(x));
+    const eGas = envOf(gasU), eBrine = envOf(brineU);
+    const eGasG = envOf(gasG), eBrineG = envOf(brineG);
+    const win = (ix) => [SANDT + tShift(ix) - 0.012, SANDB + tShift(ix) + 0.012];
+    const pk = (arr, w) => { let v = 0; for (let i = iOf(w[0]); i <= iOf(w[1]); i++) v = Math.max(v, arr[i]); return v; };
+    const before = pk(eGas, win(GASTRACE)) / (pk(eBrine, win(BRINETRACE)) || 1e-9);
+    const after = pk(eGasG, win(GASTRACE)) / (pk(eBrineG, win(BRINETRACE)) || 1e-9);
+
+    // phase and frequency, computed both ways on the selected trace
+    const u = CUR.u, g = CUR.agc;
+    const uh = T.hilbert(u), gh = T.hilbert(g);
+    const cosU = cosPhaseOf(u, uh), cosG = cosPhaseOf(g, gh);
+    const fU = instFreqOf(u, uh), fG = instFreqOf(g, gh);
+    const i0 = iOf(TV0 + 0.05), i1 = iOf(TV1 - 0.05);
+    /* Compare the frequencies only where there is energy to have a frequency.
+       Module 01 spent a whole step on why instantaneous frequency is meaningless
+       between events; including those samples here would measure that
+       instability rather than the effect of the gain, and the number would sit
+       near 0.4 for reasons that have nothing to do with AGC. */
+    const e = CUR.env;
+    let em = 0;
+    for (let i = i0; i <= i1; i++) em = Math.max(em, e[i]);
+    const mask = (i) => e[i] > 0.1 * em;
+    return {
+      envBefore: before, envAfter: after,
+      phase: maskedCorrelation(cosU, cosG, i0, i1, mask),
+      freq: maskedCorrelation(fU, fG, i0, i1, mask),
+      kept: countMask(i0, i1, mask),
+      total: i1 - i0 + 1,
+    };
+  }
+
+  function countMask(i0, i1, mask) {
+    let n = 0;
+    for (let i = i0; i <= i1; i++) if (mask(i)) n++;
+    return n;
+  }
+
+  /** Pearson correlation over the samples a mask lets through. */
+  function maskedCorrelation(a, b, i0, i1, mask) {
+    let sa = 0, sb = 0, n = 0;
+    for (let i = i0; i <= i1; i++) { if (!mask(i)) continue; sa += a[i]; sb += b[i]; n++; }
+    if (n < 3) return 0;
+    const ma = sa / n, mb = sb / n;
+    let num = 0, va = 0, vb = 0;
+    for (let i = i0; i <= i1; i++) {
+      if (!mask(i)) continue;
+      const da = a[i] - ma, db = b[i] - mb;
+      num += da * db; va += da * da; vb += db * db;
+    }
+    return (va > 0 && vb > 0) ? num / Math.sqrt(va * vb) : 0;
+  }
+
+  function cosPhaseOf(u, uh) {
+    const n = u.length, o = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const e = Math.sqrt(u[i] * u[i] + uh[i] * uh[i]);
+      o[i] = e > 1e-30 ? u[i] / e : 0;
+    }
+    return o;
+  }
+  function instFreqOf(u, uh) {
+    // a plain difference of the unwrapped phase is enough for a correlation
+    const n = u.length, ph = new Float32Array(n), o = new Float32Array(n);
+    for (let i = 0; i < n; i++) ph[i] = Math.atan2(uh[i], u[i]);
+    for (let i = 1; i < n; i++) {
+      let d = ph[i] - ph[i - 1];
+      while (d > Math.PI) d -= 2 * Math.PI;
+      while (d < -Math.PI) d += 2 * Math.PI;
+      o[i] = d / (2 * Math.PI * DT);
+    }
+    o[0] = o[1];
+    return o;
+  }
+
+  /* =====================================================================
+     DRAWING, the panels particular to this module
+     ===================================================================== */
+
+  const ALO = -1.15, AHI = 1.15;               // fixed amplitude axis
+  const GLO = -3.2, GHI = 3.2;                 // fixed axis for the gained trace
+  const RHI = 0.85;                            // fixed RMS axis
+
+  function windowBand(ctx, R, t0, t1, color) {
+    const y0 = yT(R, clamp(t0, TV0, TV1)), y1 = yT(R, clamp(t1, TV0, TV1));
+    ctx.save();
+    ctx.fillStyle = color || 'rgba(11,114,133,.12)';
+    ctx.fillRect(R.x, Math.min(y0, y1), R.w, Math.abs(y1 - y0));
+    ctx.restore();
+  }
+
+  function drawStep1() {
+    const el = $('c1a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 20);
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], 0, RHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], GLO, GHI, (v) => v.toFixed(0), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI); zeroLine(ctx, P[2], GLO, GHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], CUR.rms, 0, RHI, CRIM, { width: 1.6, fillTo: 0, fill: 'rgba(132,22,23,.14)' });
+    series(ctx, P[2], CUR.agc, GLO, GHI, TEAL, { fillPositive: true, width: 1.1,
+      fill: 'rgba(11,114,133,.6)' });
+    panelTitle(ctx, P[0], 'the trace, as recorded', INK);
+    panelTitle(ctx, P[1], '\u03c3, the divisor', CRIM);
+    panelTitle(ctx, P[2], 'trace \u00f7 \u03c3', TEAL);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
+  }
+
+  function drawStep2() {
+    const el = $('c2a');
+    if (!el) return;
+    const w = rowWidth('row2', 2);
+    const h = clamp(Math.round(w * 0.95), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const Q = panels(w, h - 16, 2, 18);
+    let gp = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = iOf(TV0); it <= iOf(TV1); it++) {
+        gp = Math.max(gp, Math.abs(GAINED[ix * NT + it]));
+      }
+    }
+    sectionPanel(ctx, Q[0], FIELD, { clip: 1, timeAxis: true, label: null });
+    sectionPanel(ctx, Q[1], GAINED, { clip: gp || 1, label: null });
+    panelTitle(ctx, Q[0], 'as recorded', SLATE);
+    panelTitle(ctx, Q[1], 'after AGC, \u00b1' + S.win + ' ms', SLATE);
+    bar(ctx, { x: Q[0].x, y: Q[0].y + Q[0].h + 26, w: Q[0].w, h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+    bar(ctx, { x: Q[1].x, y: Q[1].y + Q[1].h + 26, w: Q[1].w, h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+
+    const el2 = $('c2b');
+    if (!el2) return;
+    const w2 = rowWidth('row2', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const P = panels(w2, h2, 2, 18);
+    panelBox(c2, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(c2, P[1], GLO, GHI, (v) => v.toFixed(0), 3);
+    SEIS.axisLeft(c2, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(c2, P[0], ALO, AHI); zeroLine(c2, P[1], GLO, GHI);
+    series(c2, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(c2, P[1], CUR.agc, GLO, GHI, TEAL, { fillPositive: true, width: 1.1,
+      fill: 'rgba(11,114,133,.6)' });
+    panelTitle(c2, P[0], 'as recorded', INK);
+    panelTitle(c2, P[1], 'after AGC', TEAL);
+    const s = tShift(S.tr);
+    [[MARK + s, 'shallow'], [DEEPT + s, 'deep']].forEach((m) => {
+      [P[0], P[1]].forEach((R) => {
+        const y = yT(R, m[0]);
+        SEIS.dashedLine(c2, R.x, y, R.x + R.w, y, 'rgba(132,22,23,.6)', [4, 3], 1.2);
+      });
+      SEIS.tag(c2, P[0].x + 5, clamp(yT(P[0], m[0]) - 10, P[0].y + 8, P[0].y + P[0].h - 8),
+        m[1], CRIM);
+    });
+    cursorLine(c2, P[0]); cursorLine(c2, P[1]);
+  }
+
+  function drawStep3() {
+    const el = $('c3a');
+    if (!el) return;
+    const w = rowWidth('row3', 2);
+    const h = clamp(Math.round(w * 0.95), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const Q = panels(w, h - 16, 2, 18);
+    let gp = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = iOf(TV0); it <= iOf(TV1); it++) {
+        gp = Math.max(gp, Math.abs(GAINED[ix * NT + it]));
+      }
+    }
+    sectionPanel(ctx, Q[0], FIELD, { clip: 0.55, timeAxis: true, label: null });
+    sectionPanel(ctx, Q[1], GAINED, { clip: (gp || 1) * 0.55, label: null });
+    panelTitle(ctx, Q[0], 'as recorded', SLATE);
+    panelTitle(ctx, Q[1], 'after AGC', SLATE);
+    [Q[0], Q[1]].forEach((R) => {
+      const y0 = yT(R, SANDT + tShift(48)), y1 = yT(R, SANDB + tShift(48));
+      ctx.save();
+      ctx.strokeStyle = 'rgba(132,22,23,.75)'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(R.x, y0); ctx.lineTo(R.x + R.w, y0);
+      ctx.moveTo(R.x, y1); ctx.lineTo(R.x + R.w, y1); ctx.stroke();
+      ctx.restore();
+    });
+    bar(ctx, { x: Q[0].x, y: Q[0].y + Q[0].h + 26, w: Q[0].w, h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+    bar(ctx, { x: Q[1].x, y: Q[1].y + Q[1].h + 26, w: Q[1].w, h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+
+    // amplitude of the sand along the line, both ways
+    const el2 = $('c3b');
+    if (!el2) return;
+    const w2 = rowWidth('row3', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const R = { x: M.l, y: M.t + 10, w: w2 - M.l - M.r, h: h2 - M.t - M.b - 40 };
+    const K = kOf(S.win);
+    const before = new Float32Array(NX), after = new Float32Array(NX);
+    for (let ix = 0; ix < NX; ix++) {
+      const p = sandPair(ix, K);
+      before[ix] = p.before; after[ix] = p.after;
+    }
+    let mb = 1e-9, ma = 1e-9;
+    for (let ix = 0; ix < NX; ix++) { mb = Math.max(mb, before[ix]); ma = Math.max(ma, after[ix]); }
+    ctx0(c2, R);
+    const plot = (arr, mx, color, wdt) => {
+      c2.save();
+      c2.beginPath();
+      for (let ix = 0; ix < NX; ix++) {
+        const x = R.x + (ix / (NX - 1)) * R.w;
+        const y = R.y + R.h - (arr[ix] / mx) * R.h;
+        ix === 0 ? c2.moveTo(x, y) : c2.lineTo(x, y);
+      }
+      c2.strokeStyle = color; c2.lineWidth = wdt; c2.stroke();
+      c2.restore();
+    };
+    plot(before, mb, INK, 1.8);
+    plot(after, ma, TEAL, 1.8);
+    SEIS.frame(c2, R);
+    SEIS.axisBottom(c2, R, 0, NX - 1, 'trace', (v) => v.toFixed(0), { ticks: 5 });
+    c2.save();
+    c2.font = '10.5px "IBM Plex Mono", monospace';
+    c2.fillStyle = SLATE; c2.textAlign = 'left';
+    c2.fillText('sand amplitude along the line, each scaled to its own peak', R.x, R.y - 8);
+    c2.restore();
+    SEIS.tag(c2, R.x + 8, R.y + 16, 'as recorded', INK);
+    SEIS.tag(c2, R.x + 8, R.y + 34, 'after AGC', TEAL);
+    const gx = R.x + (GASTRACE / (NX - 1)) * R.w;
+    SEIS.dashedLine(c2, gx, R.y, gx, R.y + R.h, 'rgba(132,22,23,.6)', [4, 3], 1.2);
+    const bx = R.x + (BRINETRACE / (NX - 1)) * R.w;
+    SEIS.dashedLine(c2, bx, R.y, bx, R.y + R.h, 'rgba(132,22,23,.6)', [4, 3], 1.2);
+  }
+
+  function ctx0(c, R) {
+    c.save(); c.fillStyle = '#fff'; c.fillRect(R.x, R.y, R.w, R.h); c.restore();
+  }
+
+  function drawStep4() {
+    const el = $('c4a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 20);
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], GLO, GHI, (v) => v.toFixed(0), 3);
+    panelBox(ctx, P[2], GLO, GHI, (v) => v.toFixed(0), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI); zeroLine(ctx, P[1], GLO, GHI); zeroLine(ctx, P[2], GLO, GHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], CUR.agc, GLO, GHI, TEAL, { fillPositive: true, width: 1.1,
+      fill: 'rgba(11,114,133,.55)' });
+    series(ctx, P[2], CUR.cmp, GLO, GHI, CRIM, { fillPositive: true, width: 1.1,
+      fill: 'rgba(132,22,23,.5)' });
+    panelTitle(ctx, P[0], 'as recorded', INK);
+    panelTitle(ctx, P[1], 'AGC \u00b1' + S.win + ' ms', TEAL);
+    panelTitle(ctx, P[2], 'AGC \u00b1' + S.cmp + ' ms', CRIM);
+    const s = tShift(S.tr);
+    [P[0], P[1], P[2]].forEach((R) => {
+      windowBand(ctx, R, SANDT + s - 0.012, SANDB + s + 0.012, 'rgba(132,22,23,.10)');
+    });
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
+  }
+
+  function drawStep5() {
+    const el = $('c5a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 20);
+    const K = kOf(S.win);
+    const envOf = (x) => T.envelope(x, T.hilbert(x));
+    const gasU = traceAt(GASTRACE, FIELD), brineU = traceAt(BRINETRACE, FIELD);
+    const eg = envOf(gasU), eb = envOf(brineU);
+    const egA = envOf(T.agc(gasU, K).out), ebA = envOf(T.agc(brineU, K).out);
+    let m1 = 1e-9, m2 = 1e-9;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) {
+      m1 = Math.max(m1, eg[i], eb[i]);
+      m2 = Math.max(m2, egA[i], ebA[i]);
+    }
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], 0, m1 * 1.1, (v) => v.toFixed(2), 3);
+    panelBox(ctx, P[2], 0, m2 * 1.1, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], eb, 0, m1 * 1.1, SLATE, { width: 1.3 });
+    series(ctx, P[1], eg, 0, m1 * 1.1, CRIM, { width: 1.8 });
+    series(ctx, P[2], ebA, 0, m2 * 1.1, SLATE, { width: 1.3 });
+    series(ctx, P[2], egA, 0, m2 * 1.1, CRIM, { width: 1.8 });
+    panelTitle(ctx, P[0], 'the selected trace', INK);
+    panelTitle(ctx, P[1], 'envelope: gas red, brine gray', CRIM);
+    panelTitle(ctx, P[2], 'the same, after AGC', CRIM);
+    [P[1], P[2]].forEach((R) => {
+      windowBand(ctx, R, SANDT + tShift(GASTRACE) - 0.012, SANDB + tShift(GASTRACE) + 0.012,
+        'rgba(132,22,23,.10)');
+    });
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
+  }
+
+  /* =====================================================================
+     READOUTS
+     ===================================================================== */
+
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+
+  function syncLabels() {
+    setText('winV', '\u00b1' + S.win + ' ms');
+    setText('cmpV', '\u00b1' + S.cmp + ' ms');
+    setText('decayV', S.decay === 0 ? 'none' : S.decay + ' dB/s');
+    setText('freqV', S.freq + ' Hz');
+    setText('noiseV', S.noise === 0 ? 'none' : S.noise + '% of RMS');
+  }
+
+  function syncStats() {
+    const i = iOf(S.ts);
+    const gain = 1 / Math.max(CUR.rms[i], CUR.floor);
+    setText('s1w', '\u00b1' + S.win + ' ms');
+    setText('s1u', fmt2(CUR.u[i]));
+    setText('s1r', fmt2(CUR.rms[i]));
+    setText('s1x', fmtX(gain));
+    setText('s1g', fmtX(gain));
+    setText('s1a', fmt2(CUR.agc[i]));
+
+    const d = depthPair();
+    setText('s2a', fmt2(d.sh));
+    setText('s2b', fmt2(d.dp));
+    setText('s2c', fmtX(d.ratio));
+    setText('s2d', fmt2(d.shA) + '  and  ' + fmt2(d.dpA));
+    setText('s2e', fmtX(d.ratioA));
+    setText('s2r', fmtX(d.ratio));
+    setText('s2s', fmtX(d.ratioA));
+
+    const K = kOf(S.win);
+    const c = contrast(K);
+    setText('s3c', fmt2(c.gas.before));
+    setText('s3d', fmt2(c.brine.before));
+    setText('s3e', fmtX(c.before));
+    setText('s3f', fmt2(c.gas.after) + '  and  ' + fmt2(c.brine.after));
+    setText('s3g', fmtX(c.after));
+    setText('s3a', fmtX(c.before));
+    setText('s3b', fmtX(c.after));
+
+    const cc = contrast(kOf(S.cmp));
+    setText('s4w', '\u00b1' + S.win + ' ms');
+    setText('s4a', fmtX(c.after) + '  of \u00d7' + c.before.toFixed(1));
+    setText('s4b', fmtX(cc.after) + '  (\u00b1' + S.cmp + ' ms)');
+    setText('s4c', waveformKept(CUR.agc).toFixed(4));
+    setText('s4d', waveformKept(CUR.cmp).toFixed(4));
+
+    const ds = downstream();
+    setText('s5a', fmtX(ds.envBefore));
+    setText('s5b', fmtX(ds.envAfter));
+    setText('s5c', fmtX(ds.envBefore));
+    setText('s5d', fmtX(ds.envAfter));
+    setText('s5e', ds.phase.toFixed(4));
+    setText('s5f', ds.freq.toFixed(4));
+    setText('s5g', '\u00b1' + S.win + ' ms');
+  }
+
+  /* =====================================================================
+     TABS AND WIRING
+     ===================================================================== */
+
+  function drawAll() {
+    syncLabels();
+    if (!CUR) return;
+    const onStep = visible('p1') || visible('p2') || visible('p3')
+      || visible('p4') || visible('p5');
+    if (onStep) drawHeader();
+    if (visible('p1')) drawStep1();
+    if (visible('p2')) drawStep2();
+    if (visible('p3')) drawStep3();
+    if (visible('p4')) drawStep4();
+    if (visible('p5')) drawStep5();
+    syncStats();
+  }
+
+  const STEPNAMES = {
+    p1: 'Divide', p2: 'What it fixes', p3: 'What it costs', p4: 'Window',
+    p5: 'Downstream', pw: 'Why it matters', pe: 'Exercises',
+    pk: 'Key points', pm: 'Method',
+  };
+  const TIMECANVASES = ['c1a', 'c2b', 'c4a', 'c5a'];
+  const SECTIONCANVASES = ['c2a', 'c3a'];
+
+
+  /* =====================================================================
+     MEASUREMENT
+
+     Every number that appears in the prose or an exercise is read out of
+     these, never estimated.
+     ===================================================================== */
+
+  const iOf = (t) => clamp(Math.round(t / DT), 0, NT - 1);
+  const tOf = (i) => i * DT;
+  const kOf = (ms) => Math.max(1, Math.round((ms / 1000) / DT));
+
+  function argMaxIn(arr, t0, t1) {
+    let bi = iOf(t0), bv = -Infinity;
+    for (let i = iOf(t0); i <= iOf(t1); i++) if (arr[i] > bv) { bv = arr[i]; bi = i; }
+    return bi;
+  }
+  function maxAbsIn(arr, t0, t1) {
+    let v = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) v = Math.max(v, Math.abs(arr[i]));
+    return v;
+  }
+  function meanIn(arr, t0, t1) {
+    let s = 0, n = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) { s += arr[i]; n++; }
+    return n ? s / n : 0;
+  }
+  function rmsIn(arr, t0, t1) {
+    let s = 0, n = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) { s += arr[i] * arr[i]; n++; }
+    return n ? Math.sqrt(s / n) : 0;
+  }
+
+  const fmtT = (t) => (t * 1000).toFixed(0) + ' ms';
+  const fmt2 = (v) => (Math.abs(v) < 0.0005 ? '0.000' : v.toFixed(3));
+  const fmtX = (v) => '\u00d7' + (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+
+  /* =====================================================================
+     DRAWING
+     ===================================================================== */
+
+  const M = { l: 54, r: 14, t: 24, b: 34 };
+
+  function pw(el) {
+    const par = el && el.parentElement;
+    if (!par) return 900;
+    const cs = window.getComputedStyle(par);
+    const inner = par.clientWidth
+      - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+    return Math.max(240, Math.floor(inner));
+  }
+
+  function rowWidth(rowId, n) {
+    const row = $(rowId);
+    const total = row ? pw(row.firstElementChild || row) : 800;
+    const w = window.innerWidth <= 700
+      ? Math.max(240, total)
+      : Math.max(180, Math.floor((total - 10 * (n - 1)) / n));
+    if (row) {
+      row.querySelectorAll(':scope > .panel-col').forEach((el) => {
+        el.style.width = w + 'px'; el.style.maxWidth = w + 'px';
+      });
+    }
+    return w;
+  }
+
+  function panels(w, h, n, gap) {
+    const g = gap === undefined ? 16 : gap;
+    const inner = w - M.l - M.r - g * (n - 1);
+    const pwid = inner / n;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      out.push({ x: M.l + i * (pwid + g), y: M.t, w: pwid, h: h - M.t - M.b });
+    }
+    return out;
+  }
+
+  const yT = (R, t) => R.y + ((t - TV0) / (TV1 - TV0)) * R.h;
+  const tY = (R, y) => TV0 + ((y - R.y) / R.h) * (TV1 - TV0);
+  const xV = (R, v, lo, hi) => R.x + ((v - lo) / (hi - lo)) * R.w;
+
+  function panelTitle(ctx, R, text, color) {
+    ctx.save();
+    ctx.font = '10.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = color || SLATE;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(text, R.x, R.y - 8);
+    ctx.restore();
+  }
+
+  /** One curve, time down the page and value across. */
+  function series(ctx, R, arr, lo, hi, color, opts) {
+    const o = opts || {};
+    const i0 = iOf(TV0), i1 = iOf(TV1);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(R.x - 1, R.y, R.w + 2, R.h); ctx.clip();
+    if (o.fillPositive) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, 0, lo, hi), yT(R, tOf(i0)));
+      for (let i = i0; i <= i1; i++) {
+        ctx.lineTo(xV(R, Math.max(0, arr[i]), lo, hi), yT(R, tOf(i)));
+      }
+      ctx.lineTo(xV(R, 0, lo, hi), yT(R, tOf(i1)));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(22,25,28,.72)';
+      ctx.fill();
+    }
+    if (o.fillTo !== undefined) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i0)));
+      for (let i = i0; i <= i1; i++) ctx.lineTo(xV(R, arr[i], lo, hi), yT(R, tOf(i)));
+      ctx.lineTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i1)));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(11,114,133,.16)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    for (let i = i0; i <= i1; i++) {
+      const v = arr[i];
+      const x = xV(R, isFinite(v) ? clamp(v, lo - (hi - lo), hi + (hi - lo)) : lo, lo, hi);
+      const y = yT(R, tOf(i));
+      i === i0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = color; ctx.lineWidth = o.width || 1.3;
+    if (o.dash) ctx.setLineDash(o.dash);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function zeroLine(ctx, R, lo, hi, v) {
+    const x = xV(R, v === undefined ? 0 : v, lo, hi);
+    if (x < R.x - 1 || x > R.x + R.w + 1) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(92,102,112,.45)'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    ctx.restore();
+  }
+
+  function cursorLine(ctx, R) {
+    const y = yT(R, S.ts);
+    if (y < R.y || y > R.y + R.h) return;
+    SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(11,114,133,.85)', [4, 3], 1.4);
+  }
+
+  function panelBox(ctx, R, lo, hi, fmt, ticks) {
+    ctx.save(); ctx.fillStyle = '#fff'; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, lo, hi, null, fmt, { ticks: ticks || 3 });
+  }
+
+  /** Sequential or diverging color bar with numbers on it. */
+  function bar(ctx, rect, cmap, lo, hi, title, seq) {
+    const n = Math.max(2, Math.round(rect.w));
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1);
+      const c = cmap(seq ? u : (-1 + 2 * u) * 0.98);
+      ctx.fillStyle = 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+      ctx.fillRect(rect.x + i * (rect.w / n), rect.y, rect.w / n + 1, rect.h);
+    }
+    ctx.save();
+    ctx.strokeStyle = 'rgba(22,25,28,.45)'; ctx.lineWidth = 1;
+    ctx.strokeRect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h);
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText(lo, rect.x, rect.y + rect.h + 3);
+    ctx.textAlign = 'right'; ctx.fillText(hi, rect.x + rect.w, rect.y + rect.h + 3);
+    if (title) {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(title, rect.x + rect.w / 2, rect.y - 3);
+    }
+    ctx.restore();
+  }
+
+  /** A section panel: variable density, framed, with time and trace axes. */
+  function sectionPanel(ctx, R, data, opts) {
+    const o = opts || {};
+    const i0 = iOf(TV0), i1 = iOf(TV1), nsub = i1 - i0 + 1;
+    const sub = new Float32Array(NX * nsub);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < nsub; it++) sub[ix * nsub + it] = data[ix * NT + i0 + it];
+    }
+    SEIS.drawVarDensity(ctx, sub, NX, nsub, R, {
+      cmap: o.cmap || SEIS.COLORMAPS.gray, clip: o.clip, gain: o.gain || 1,
+    });
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, NX - 1, o.label === null ? null : (o.label || 'trace'),
+      (v) => v.toFixed(0), { ticks: 4 });
+    if (o.timeAxis) SEIS.axisLeft(ctx, R, TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 5 });
+    // where the analysis trace is
+    /* A crosshair, not just a trace marker. The vertical line says which trace
+       the curves belong to; the horizontal one lets a reader line the same
+       instant up across an amplitude panel and an attribute panel sitting side
+       by side, which is the comparison these paired sections exist to make. */
+    const x = R.x + (S.tr / (NX - 1)) * R.w;
+    const yc = yT(R, S.ts);
+    ctx.save();
+    ctx.strokeStyle = TEAL; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    if (yc >= R.y && yc <= R.y + R.h) {
+      ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(R.x, yc); ctx.lineTo(R.x + R.w, yc); ctx.stroke();
+      // a small open square where they cross, so the point itself is readable
+      // against both a bright and a dark background
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = 'rgba(255,255,255,.9)';
+      ctx.strokeRect(x - 4.5, yc - 4.5, 9, 9);
+      ctx.strokeStyle = TEAL;
+      ctx.strokeRect(x - 3.5, yc - 3.5, 7, 7);
+    }
+    ctx.restore();
+  }
+
+  /* ------------------------------ the header --------------------------- */
+  function drawHeader() {
+    const el = $('cMap');
+    if (!el || !el.parentElement || !el.parentElement.clientWidth) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.56), 230, 330);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    // 56 px at the foot rather than M.b: the trace axis label takes 34 of it
+    // and the color bar with its end labels needs the rest
+    const R = { x: M.l, y: M.t, w: w - M.l - M.r - 74, h: h - M.t - 56 };
+    sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
+    SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
+      R.y + 12, 'trace ' + S.tr, TEAL);
+    // and the time, labelled where the horizontal line leaves the panel, so the
+    // crosshair reads as a coordinate rather than as decoration
+    const yc = yT(R, S.ts);
+    if (yc >= R.y && yc <= R.y + R.h) {
+      SEIS.tag(ctx, R.x + R.w - 4, clamp(yc - 10, R.y + 8, R.y + R.h - 8),
+        fmtT(S.ts), TEAL, 'right');
+    }
+    // the features, labeled once, on the right
+    ctx.save();
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const s = tShift(NX - 1);
+    [[MARK + s, 'marker'], [WEDGE + 0.01 + s, 'wedge'], [SANDT + 0.025 + s, 'sand'],
+     [0.645 + s, 'interbeds'], [DIMT + s, 'dims out']].forEach((f) => {
+      const yy = yT(R, f[0]);
+      if (yy < R.y || yy > R.y + R.h) return;
+      ctx.strokeStyle = 'rgba(92,102,112,.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(R.x + R.w, yy); ctx.lineTo(R.x + R.w + 6, yy); ctx.stroke();
+      ctx.fillText(f[1], R.x + R.w + 9, yy);
+    });
+    ctx.restore();
+    bar(ctx, { x: R.x, y: R.y + R.h + 36, w: Math.min(180, R.w * 0.4), h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212 trough', '+ peak', null, false);
+  }
+
+  /* ------------------------------- step 1 ------------------------------ */
+
+  const PANES = ['p1', 'p2', 'p3', 'p4', 'p5', 'pw', 'pe', 'pk', 'pm'];
+
+  function buildStepNav() {
+    PANES.forEach((id, i) => {
+      const pane = $(id);
+      if (!pane || pane.querySelector('.stepnav')) return;
+      const prev = PANES[i - 1], next = PANES[i + 1];
+      const nav = document.createElement('div');
+      nav.className = 'stepnav';
+      const mk = (target, text, ghost) => {
+        const bt = document.createElement('button');
+        bt.type = 'button';
+        bt.className = 'btn' + (ghost ? ' ghost' : '') + ' small';
+        bt.textContent = text;
+        bt.addEventListener('click', () => {
+          showTab(target);
+          const t = document.querySelector('.tabhint');
+          if (t && t.scrollIntoView) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return bt;
+      };
+      nav.appendChild(prev ? mk(prev, '\u2190 ' + STEPNAMES[prev], true)
+                           : document.createElement('span'));
+      const where = document.createElement('span');
+      where.className = 'where';
+      where.textContent = i < 5 ? 'step ' + (i + 1) + ' of 5' : STEPNAMES[id];
+      nav.appendChild(where);
+      nav.appendChild(next ? mk(next, STEPNAMES[next] + ' \u2192')
+                           : document.createElement('span'));
+      pane.appendChild(nav);
+    });
+  }
+
+  function showTab(id) {
+    PANES.forEach((q) => { const el = $(q); if (el) el.hidden = q !== id; });
+    document.querySelectorAll('#tabs button').forEach((b) => {
+      b.setAttribute('aria-selected', b.dataset.tab === id);
+    });
+    const lab = document.querySelector('.labhead');
+    if (lab) lab.hidden = (id === 'pw' || id === 'pe' || id === 'pk' || id === 'pm');
+    const last = (id === 'pk' || id === 'pm');
+    if ($('nextup')) $('nextup').hidden = !last;
+    if ($('pager')) $('pager').hidden = !last;
+    S.tab = id;
+    drawAll();
+    saveState();
+  }
+  document.querySelectorAll('#tabs button').forEach((b) => {
+    b.addEventListener('click', () => showTab(b.dataset.tab));
+  });
+
+  document.addEventListener('input', (ev) => {
+    const key = ev.target && ev.target.dataset && ev.target.dataset.key;
+    if (!key) return;
+    S[key] = parseFloat(ev.target.value);
+    recompute();
+    drawAll();
+    saveState();
+  });
+
+  function attachSection(canvasId, getRect) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = getRect(r.width, r.height, ev.clientX - r.left);
+      S.tr = clamp(Math.round(((ev.clientX - r.left - R.x) / R.w) * (NX - 1)), 0, NX - 1);
+      S.ts = clamp(TV0 + ((ev.clientY - r.top - R.y) / R.h) * (TV1 - TV0), TV0, TV1);
+      computeTrace();
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  function attachTime(canvasId) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = { x: M.l, y: M.t, w: r.width - M.l - M.r, h: r.height - M.t - M.b };
+      S.ts = clamp(tY(R, ev.clientY - r.top), TV0, TV1);
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  attachSection('cMap', (w, h) => ({ x: M.l, y: M.t, w: w - M.l - M.r - 74, h: h - M.t - 56 }));
+  TIMECANVASES.forEach(attachTime);
+  SECTIONCANVASES.forEach((id) => attachSection(id, (w, h, x) => {
+    const Q = panels(w, h - 16, 2, 18);
+    return (x !== undefined && x > Q[1].x - 9) ? Q[1] : Q[0];
+  }));
+
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawAll, 140); });
+
+  recompute();
+  buildStepNav();
+  showTab(PANES.indexOf(S.tab) >= 0 ? S.tab : 'p1');
+  document.fonts && document.fonts.ready.then(drawAll);
+
+
+  // exposed for the headless harness only
+  window.__MOD = {
+    state: () => S, cur: () => CUR, field: () => FIELD, gained: () => GAINED,
+    set: (k, v) => { S[k] = v; recompute(); },
+    T: T, LOCALT: LOCALT, traceAt: traceAt, tShift: tShift, DT: DT, NT: NT, NX: NX,
+    iOf: iOf, tOf: tOf, kOf: kOf, showTab: showTab, drawAll: drawAll,
+    contrast: contrast, depthPair: depthPair, waveformKept: waveformKept,
+    downstream: downstream, rawSection: rawSection, floored: () => FLOORED,
+  };
+})();
+</script>
+</body>
+</html>
