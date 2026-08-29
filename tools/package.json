@@ -1,0 +1,12 @@
+{
+  "name": "single-trace-tools",
+  "private": true,
+  "description": "Verification and measurement harness for the single-trace attribute modules",
+  "scripts": {
+    "verify": "node verify_trace.js",
+    "harness": "node harness.js",
+    "measure": "node measure.js",
+    "thumbs": "node gen_thumbs.js"
+  },
+  "devDependencies": { "jsdom": "^24.0.0" }
+}
