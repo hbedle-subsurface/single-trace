@@ -1,114 +1,99 @@
 # How Single-Trace Attributes Actually Work
 
-Interactive teaching modules on single-trace seismic attributes, built for
-beginners: undergraduates meeting the topic for the first time, graduate
-students whose research depends on tools they did not build, and professionals
-who arrived in an interpretation role from an adjacent discipline.
+Interactive teaching modules on the seismic attributes computed from one trace
+at a time. Free to use, nothing to install, and everything on the screen is
+computed live in the browser while you change it.
 
-Companion to *How Geometric Attributes Actually Work* and to the seismic
-resolution module set. Everything runs in the browser from static files. No
-server, no account, no analytics, no data leaves the machine.
+**[Open the modules →](https://hbedle-subsurface.github.io/single-trace/)**
 
 Heather Bedle, School of Geosciences, University of Oklahoma, with the
 [AASPI](https://www.ou.edu/mcee/labs/aaspi) consortium.
+
+---
+
+## Why this exists
+
+Most people who use seismic attributes were never taught the machinery inside
+them. They know the rules — envelope is reflection strength, phase is good for
+following weak reflectors, sweetness finds sands — and they apply those rules
+where they remember them and nowhere else. What they have never done is *watch
+the thing happen*: change the wavelet and see the frequency map change, turn the
+gain up and watch a bright spot appear where there is no bright spot.
+
+A rule that has been read is fragile. A limit that has been watched arising is
+available in situations the rule never named.
+
+The gap is practical rather than conceptual. These models are small and run
+perfectly well in a browser. What has been missing is somewhere to open them up
+and push on them. An interpretation package computes attributes but will not
+show you the calculation; a notebook will show you the calculation but needs an
+installation, a language, and an afternoon. Neither is a reasonable ask for a
+two-hour undergraduate session.
+
+## Who it is for
+
+- **Undergraduates** meeting attributes for the first time, who need the
+  pictures before the equations.
+- **Graduate students** in geology, structural geology or sedimentology whose
+  research depends on tools they did not build and cannot easily inspect.
+- **Professionals** who arrived in an interpretation role from an adjacent
+  discipline and are expected to be productive in weeks.
+- **Instructors**, who are welcome to use any of this in a course. Module state
+  is encoded in the URL, so a specific configuration can be handed out as a link
+  and every student opens the same picture.
+
+## How the modules are built
+
+Five principles, each applied against a real temptation:
+
+1. **Compute, don't illustrate.** Every panel is generated from the parameters
+   on screen. There are no stored images and no curves drawn to look plausible.
+   That is a hard constraint, because it means the tool can be wrong — and
+   several times it was, which is the point. A drawing cannot disagree with
+   theory.
+2. **Say what has been left out.** Every module carries a Method section listing
+   its simplifications and naming where the implementation differs from
+   production software. That is teaching content, not a disclaimer.
+3. **Open on the problem, not the solution.** The defaults show the difficulty
+   before the fix.
+4. **Aim the interaction at a question.** Sliders on their own produce aimless
+   clicking. Every module ends with exercises that say what to change, what to
+   watch, and what to conclude, with the answers behind a toggle.
+5. **Measure, never estimate.** Every number in the prose and in the exercise
+   answers is read out of the running page by a test harness. Where a
+   measurement contradicts the teaching text, the text is what changes.
 
 ## The through-line
 
 Every attribute in this set is computed from **one trace, with no reference to
 its neighbors**. That restriction is the spine of the whole set, and it is why
-none of these attributes knows anything about structure.
+none of these attributes knows anything about structure: they cannot tell a
+fault from a flat spot, because they never look at the trace next door.
 
-Two pieces of machinery produce nearly all of them:
+Two pieces of machinery produce nearly all of them. The **complex trace** — the
+trace read together with its Hilbert transform as a rotating arrow — gives
+envelope, phase and frequency. A **running window** gives RMS amplitude and AGC.
+Everything else is a combination of those two ideas rather than a new one.
 
-- the **complex (analytic) trace** — the trace read together with its Hilbert
-  transform as a rotating arrow, giving envelope, phase and frequency;
-- the **running window** — RMS amplitude, AGC, and the attributes built on top
-  of them.
+The companion set, *How Geometric Attributes Actually Work*, covers the
+attributes that do look sideways: dip, coherence, curvature.
 
-## Modules
+## The modules
 
-| # | File | Subject | Status |
-|---|------|---------|--------|
-| 01 | `modules/instantaneous.html` | Hilbert transform, complex trace, envelope, phase, cosine of phase, instantaneous frequency, wavelet and averaged frequency, sweetness | **finished** |
-| 02 | `modules/impedance.html` | Relative acoustic impedance — trace integration and the Ormsby filter | planned |
-| 03 | `modules/rms.html` | RMS amplitude in a running window | planned |
-| 04 | `modules/agc.html` | AGC — the trace divided by its own RMS | planned |
-| 05 | `modules/avt.html` | Amplitude volume transform | planned |
-| 06 | `modules/teager.html` | Teager-Kaiser energy and its variational form | planned |
+| # | Subject | The question it answers | Status |
+|---|---------|-------------------------|--------|
+| 01 | [Instantaneous attributes](modules/instantaneous.html) | Why does my frequency volume go negative? | **ready** |
+| 02 | Relative acoustic impedance | Is this inversion? No — but why not? | planned |
+| 03 | RMS amplitude | How long should my window be? | planned |
+| 04 | AGC | Why did my bright spot disappear? | planned |
+| 05 | Amplitude volume transform | What am I actually looking at on an AVT slice? | planned |
+| 06 | Teager-Kaiser energy | How is this different from the envelope? | planned |
 
-Each module is a **single self-contained HTML file**. It links only to
-`assets/style.css`, `assets/seismic.js` and `assets/trace.js`, and it carries a
-local fallback copy of the attribute math it needs, so it still draws if
-`assets/` is stale or missing. A module can be copied, emailed or opened from
-disk and it will work.
+Algorithms follow the AASPI program documentation and the original papers. Where
+a source is ambiguous or contradicts itself, the module says so rather than
+quietly picking one.
 
-## Layout
-
-```
-index.html                 landing page; thumbnails are computed, not drawn
-assets/style.css           the visual identity, shared with the other sets
-assets/seismic.js          wavelets, FFT, Hilbert, color maps, canvas helpers
-assets/trace.js            the single-trace attribute library for this set
-modules/instantaneous.html module 01
-tools/                     the verification and measurement harness
-```
-
-`assets/style.css` and `assets/seismic.js` are copies of the files in the
-geometric-attributes repository and should be kept in step with it.
-
-## assets/trace.js
-
-The shared attribute library. Everything works on one trace at a time.
-
-| Function | What it does |
-|---|---|
-| `hilbert(x)` | Hilbert transform via the analytic signal |
-| `deriv(x, dt)` | time derivative through the Fourier transform |
-| `envelope(u, uh)` | `sqrt(u² + uH²)` |
-| `instPhase(u, uh)` | `atan2(uH, u)`, radians |
-| `cosPhase(u, uh)` | cosine of the phase, continuous across the wrap |
-| `instFreq(u, uh, dt)` | Taner chain-rule form, unstabilized on purpose |
-| `averageFrequency(env, freq, K)` | Barnes energy-weighted mean, RMS frequency, and bandwidth `2σ` |
-| `waveletAttributes(env, phase, freq)` | Bodine response attributes, held between envelope minima |
-| `sweetness(env, freq)` | `e / √f` |
-| `unwrapPhase(freq, dt)` | Vesnaver integration of `dφ/dt` |
-| `runningRMS(x, K)` | the window primitive for modules 03 to 05 |
-| `complexTrace(u, dt, {K})` | all of the above in one call |
-
-Sign convention, used everywhere: `uH = sin(ωt)` when `u = cos(ωt)`, so phase
-increases with time and a normal event has a positive frequency. Getting this
-backwards negates every frequency in a volume without changing the envelope,
-which is a hard error to notice later.
-
-## Verification
-
-Requires Node and `npm install jsdom` in `tools/`.
-
-```
-node tools/verify_trace.js     # trace.js against closed forms
-node tools/harness.js          # opens module 01, drives every control, prints every readout
-node tools/measure.js          # the measurements behind the exercise answers
-node tools/gen_thumbs.js       # regenerates the landing-page thumbnails
-```
-
-`verify_trace.js` checks the library against cases with a known answer: the
-Hilbert transform of a cosine, the Fourier derivative, the envelope of a
-Gaussian packet, the instantaneous frequency of a linear chirp, the running RMS
-of a sinusoid, and the slope of the unwrapped phase. The decisive one is the
-instantaneous frequency at the peak of a zero-phase Ricker, which must equal the
-mean frequency of the Ricker amplitude spectrum, `2f/√π`. It does, at every
-frequency tested, to five decimal places — which is where the claim in module 01
-step 4 comes from.
-
-`harness.js` also checks that the local fallback copy inside the module and the
-shared `trace.js` return identical numbers, so the two cannot drift apart
-unnoticed.
-
-**Every number in the prose and in the exercise answers is read out of the
-running page by these tools.** None is estimated. When a measurement contradicts
-the teaching text, the text is what changes.
-
-## License
+## Using it in your teaching
 
 Free to use for teaching, demonstration, and non-commercial study, provided the
 source is credited. Please do not republish or redistribute it, modified or
@@ -117,3 +102,37 @@ line and a link back are all that is asked.
 
 To cite: H. Bedle, *How Single-Trace Attributes Actually Work*, University of
 Oklahoma. SSRN: [article link to follow]
+
+A module is a single self-contained HTML file. It can be downloaded, emailed, or
+opened from a memory stick with no network at all and it will still work, which
+matters in a classroom with unreliable wifi.
+
+## What this is not
+
+This is not attribute software. The algorithms are implemented as the literature
+describes them, on small synthetic traces and in their plain form, so that the
+method can be read and watched rather than assumed. For production work on real
+volumes, use [AASPI](https://www.ou.edu/mcee/labs/aaspi) or your interpretation
+package. The numbers here describe the model on the screen, not your survey.
+
+## Privacy
+
+Nothing you do inside a module leaves your browser. No slider setting, no click,
+no computed trace is transmitted anywhere, and the modules make no network
+requests at all.
+
+The one thing recorded is that a page was opened. No cookie, no account,
+nothing about the person. That count exists so the modules people actually use
+are the ones that get improved, and so there is something to show the university
+when it asks whether anyone uses these.
+
+Counting is handled by [GoatCounter](https://www.goatcounter.com) — free for
+non-commercial use, cookieless, and requiring no consent banner. It is off for
+local copies and for anyone browsing with Do Not Track set, and it can be
+switched off entirely by deleting `assets/count.js` and the one `<script>` line
+that loads it. That file documents exactly what is sent.
+
+## For anyone maintaining this
+
+File layout, the shared attribute library, and the verification harness are
+documented in [`docs/MAINTAINING.md`](docs/MAINTAINING.md).
