@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relative acoustic impedance | How Single-Trace Attributes Actually Work</title>
+<meta name="description" content="Relative acoustic impedance for beginners: why seismic records boundaries instead of layers, what trace integration gives back, why the word relative is doing so much work, and where the method breaks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <a class="brand" href="../index.html"><span class="dot"></span>How single-trace attributes <b>actually</b> work</a>
+    <nav>
+      <a href="../index.html">All modules</a>
+      <a href="instantaneous.html">Module 01</a>
+      <a href="#notes">Method &amp; references</a>
+    </nav>
+  </header>
+
+  <div class="mod-head">
+    <p class="eyebrow">Module 02 &nbsp;·&nbsp; Single-trace attributes</p>
+    <h1>Relative acoustic impedance: turning edges back into layers</h1>
+    <p class="sub">A seismic trace does not record rock. It records the places where rock changes. That is
+      why a thick uniform sandstone shows up as two wiggles and nothing in between, and why a wiggle
+      display is such an awkward thing to hand a geologist. This module runs the change backward. One step
+      of arithmetic &mdash; adding the trace up as you go down it &mdash; turns a record of boundaries into
+      something shaped like a record of layers. The rest of the module is about what that step quietly
+      assumes.</p>
+  </div>
+
+  <div class="labhead">
+    <div class="labgrid">
+      <div>
+        <p class="cap">The seismic line <span>&mdash; click it to pick a trace and a time</span></p>
+        <canvas id="cMap" aria-label="Vertical seismic section, with the selected trace and time marked"></canvas>
+      </div>
+      <div>
+        <p class="cap">Change the data <span>&mdash; every panel updates as you drag</span></p>
+        <div class="controls" id="winControls">
+          <div class="ctl-col">
+            <h2>The rocks</h2>
+            <div class="ctl">
+              <label for="contrast">Impedance contrast <span class="val" id="contrastV">&times;1.0</span></label>
+              <input type="range" data-key="contrast" id="contrast" min="0.3" max="3" step="0.1" value="1">
+            </div>
+            <div class="ctl">
+              <label for="noise">Random noise <span class="val" id="noiseV">none</span></label>
+              <input type="range" data-key="noise" id="noise" min="0" max="40" step="2" value="0">
+            </div>
+          </div>
+          <div class="ctl-col">
+            <h2>The wavelet</h2>
+            <div class="ctl">
+              <label for="flow">Lowest frequency recorded <span class="val" id="flowV">8 Hz</span></label>
+              <input type="range" data-key="flow" id="flow" min="4" max="20" step="1" value="8">
+            </div>
+            <div class="ctl">
+              <label for="phase">Wavelet phase <span class="val" id="phaseV">0&deg;</span></label>
+              <input type="range" data-key="phase" id="phase" min="-180" max="180" step="15" value="0">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
+    Method and references are there when you want them.</p>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
+    <button role="tab" data-tab="p1" aria-selected="false">1 · Layers</button>
+    <button role="tab" data-tab="p2" aria-selected="false">2 · Integrate</button>
+    <button role="tab" data-tab="p3" aria-selected="false">3 · The shift</button>
+    <button role="tab" data-tab="p4" aria-selected="false">4 · Relative</button>
+    <button role="tab" data-tab="p5" aria-selected="false">5 · The filter</button>
+    <button role="tab" data-tab="pw" aria-selected="false">Why it matters</button>
+    <span class="gap"></span>
+    <button role="tab" data-tab="pe" aria-selected="false">Exercises</button>
+    <button role="tab" data-tab="pk" aria-selected="false">Key points</button>
+    <button role="tab" data-tab="pm" aria-selected="false">Method</button>
+  </nav>
+
+  <!-- =============================== STEP 1 =============================== -->
+  <section class="tabpane" id="p1" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">1</span>Seismic records edges, not layers</h3>
+      <span class="hint">Where the trace comes from in the first place</span>
+    </div>
+    <p class="lede">Start with the rock. <b>Acoustic impedance</b> is a property of a layer: its velocity
+      multiplied by its density. Every rock has one, and it stays the same all the way through a uniform
+      bed. The left-hand panel below is the impedance of the rocks under the trace you have selected. It
+      looks like a set of steps, because that is what layered rock is.</p>
+    <p class="lede">A seismic wave does not care about impedance. It cares about <em>changes</em> in
+      impedance. At every boundary a fraction of the wave bounces back, and that fraction is the
+      <b>reflection coefficient</b>:</p>
+    <p class="lede" style="text-align:center"><span class="k">r = (Z<sub>below</sub> &minus;
+      Z<sub>above</sub>) / (Z<sub>below</sub> + Z<sub>above</sub>)</span></p>
+    <p class="lede">The middle panel is that calculation applied to the log on the left. It is empty
+      wherever the rock is uniform, and it spikes at each boundary. Then the earth blurs those spikes with
+      a wavelet, and you get the trace on the right.</p>
+
+    <canvas id="c1a" aria-label="Impedance log, reflection coefficients and the resulting seismic trace"></canvas>
+
+
+    <p class="lede">Look at what happened to the thick limestone near the top. Two boundaries produced two
+      spikes and the trace shows two events. <b>The layer itself left no mark at all.</b> That is the whole
+      problem this module is about: a geologist wants to know about the layer, and the trace is telling
+      them about its edges.</p>
+    <div class="stats">
+      <div class="stat"><span>Impedance at the cursor</span><b id="s1z">—</b></div>
+      <div class="stat"><span>Nearest boundary</span><b id="s1b">—</b></div>
+      <div class="stat key"><span>Its reflection coefficient</span><b id="s1r">—</b></div>
+      <div class="stat"><span>Largest r on this trace</span><b id="s1m">—</b></div>
+      <div class="stat"><span>Trace value at the cursor</span><b id="s1u">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The impedance numbers here are in the usual units of 10<sup>6</sup> kg m<sup>&minus;2</sup>
+        s<sup>&minus;1</sup>, which is velocity times density, and typical sedimentary rocks land between
+        about 4 and 15. Notice the slow rise in the background level with depth. That is compaction: rocks
+        get faster and denser as you bury them. Hold on to it, because in step 4 it goes missing.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 2 =============================== -->
+  <section class="tabpane" id="p2" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">2</span>Run it backward</h3>
+      <span class="hint">Adding the trace up as you go down it</span>
+    </div>
+    <p class="lede">Going from the impedance log to the trace, the operation that mattered was
+      <em>differencing</em>: each spike came from the change across a boundary. The way back is the
+      opposite operation, <b>integration</b> &mdash; running down the trace and keeping a running total.
+      Every time the trace has a positive bump the total steps up and stays up. Between events the trace is
+      near zero, so the total holds still. Steps in, steps out.</p>
+    <p class="lede">There is a tidy piece of algebra underneath. For small reflection coefficients,</p>
+    <p class="lede" style="text-align:center"><span class="k">r &nbsp;&asymp;&nbsp; &frac12; &times; the
+      change in ln(Z)</span></p>
+    <p class="lede">so a trace of reflection coefficients is very nearly the derivative of &frac12;ln(Z),
+      and integrating it hands back &frac12;ln(Z) itself. That is what the middle panel is. The right-hand
+      panel is the true impedance log from step 1, put through the same filter the seismic went through, so
+      the two can be compared fairly.</p>
+
+    <div class="sec-row" id="row2">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> Trace in, impedance out
+          <span class="note">with the true log for comparison</span></p>
+        <canvas id="c2a" aria-label="The trace, the integrated trace, and the true band-limited log impedance"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> The whole line, both ways
+          <span class="note">the same data, displayed twice</span></p>
+        <canvas id="c2b" aria-label="Amplitude section beside a relative acoustic impedance section"></canvas>
+      </div>
+    </div>
+
+
+    <p class="lede">The readout below measures how close they are. On the default settings the two agree to
+      a correlation of <b id="s2c">—</b>, which is close enough that you can read the integrated trace as a
+      layer property rather than a boundary marker. That is all the attribute does.</p>
+    <div class="stats">
+      <div class="stat key"><span>Match with the true log, in band</span><b id="s2a">—</b></div>
+      <div class="stat"><span>Impedance value at the cursor</span><b id="s2z">—</b></div>
+      <div class="stat"><span>Trace value there</span><b id="s2u">—</b></div>
+      <div class="stat"><span>Boundaries on this trace</span><b id="s2n">—</b></div>
+      <div class="stat"><span>Layers on this trace</span><b id="s2e">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Compare the two sections on the right. The same information is in both, but they ask different
+        things of you. On the amplitude section you read the lines; on the impedance section you read the
+        blocks between them. For picking the top of a reservoir the amplitude display is better, because
+        the event is sharp. For seeing that the reservoir is thicker here than there, the impedance display
+        wins, because a thick low-impedance body looks like a thick low-impedance body.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 3 =============================== -->
+  <section class="tabpane" id="p3" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">3</span>Every frequency turns by a quarter of its own cycle</h3>
+      <span class="hint">The mistake that puts your pick in the wrong place</span>
+    </div>
+    <p class="lede">Integration does something to the wavelet that you have to know about before picking
+      anything. Dividing a spectrum by frequency rotates the phase by 90 degrees, which turns every
+      frequency in the wavelet by a quarter of its own period. That is not a delay: a delay would move
+      every frequency by the same number of milliseconds, and this does not. The wavelet changes shape, and
+      peaks stop being peaks. Where the trace had a bright peak at a boundary, the integrated version has a
+      <em>step</em> at that boundary, and its own maximum sits in the middle of the layer below.</p>
+    <p class="lede">The panels below zoom in on one event so you can see the two curves side by side. The
+      boundary is marked with a dashed line. The trace peaks on it. The integrated trace is climbing
+      through it, at its steepest, and does not reach its own maximum until <b id="s3d">—</b> later.</p>
+
+    <canvas id="c3a" aria-label="Zoomed comparison of the trace and the integrated trace at one boundary"></canvas>
+
+
+    <p class="lede">So the rule for reading these sections is different, and it catches people out
+      constantly. <b>On an amplitude section, the boundary is the bright line. On a relative impedance
+      section, the boundary is where the color changes.</b> Pick the bright part of an impedance display
+      and you have picked the middle of the layer.</p>
+    <div class="stats">
+      <div class="stat"><span>Boundary time</span><b id="s3b">—</b></div>
+      <div class="stat"><span>Where the trace peaks</span><b id="s3t">—</b></div>
+      <div class="stat key"><span>Where the impedance peaks</span><b id="s3r">—</b></div>
+      <div class="stat key"><span>Distance between them</span><b id="s3g">—</b></div>
+      <div class="stat"><span>A quarter cycle at this frequency</span><b id="s3q">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The last two readouts should be close to each other, and they move together when you change the
+        frequency content with the slider above. That is the check that a phase rotation is what is
+        happening: the offset scales with the period of the wavelet, which a fixed time delay would
+        not do.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 4 =============================== -->
+  <section class="tabpane" id="p4" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">4</span>What the word "relative" is doing</h3>
+      <span class="hint">The part of the answer that cannot come back</span>
+    </div>
+    <p class="lede">In step 1 the impedance log had a slow rise from top to bottom, the compaction trend.
+      Find it on the integrated trace below. It is not there.</p>
+    <p class="lede">This is not a flaw in the arithmetic, and no better algorithm would fix it. A slow trend
+      is a very low frequency, well under 1 Hz, and seismic data does not record frequencies that low. The
+      trend never made it into the trace, so integration has nothing to give back. The seismic simply never
+      knew.</p>
+    <p class="lede">The consequence is the whole reason for the word <b>relative</b> in the name:</p>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>There is no absolute scale.</b> The numbers on an impedance display are not impedance. You
+        cannot look one up and say the layer is 9.2. Values are only meaningful against their
+        neighbors.</li>
+      <li><b>You cannot compare things that are far apart.</b> Two beds of genuinely identical impedance,
+        one shallow and one deep, will read differently, because each is floating relative to whatever
+        surrounds it.</li>
+      <li><b>The zero level means nothing.</b> It is wherever the arithmetic left it.</li>
+    </ul>
+    <p class="lede">Move the low-frequency slider in the header and watch the third panel. As you let the
+      data record lower and lower frequencies, more of the trend comes back and the integrated version gets
+      closer to the truth. That slider is the most important control on this page. In real life you do not get a slider: the low end of your band is whatever the acquisition and the processing delivered.</p>
+
+    <canvas id="c4a" aria-label="True log impedance, the integrated trace, and the missing low-frequency trend"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>Lowest frequency recorded</span><b id="s4f">—</b></div>
+      <div class="stat key"><span>Match with the full impedance log</span><b id="s4a">—</b></div>
+      <div class="stat key"><span>Match once the trend is removed</span><b id="s4b">—</b></div>
+      <div class="stat"><span>True impedance, top vs bottom</span><b id="s4t">—</b></div>
+      <div class="stat"><span>Same comparison on the integrated trace</span><b id="s4r">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Those two match numbers are the argument in one line. Against the true log, including its
+        trend, the agreement is poor. Against the same log with the trend taken out, it is excellent.
+        Nothing about the attribute changed between the two numbers; only what it was asked to reproduce.
+        Real seismic inversion closes this gap by bringing the missing low frequencies in from somewhere
+        else, usually well logs and a velocity model. This attribute does not do that, which is what makes
+        it an attribute rather than an inversion.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 5 =============================== -->
+  <section class="tabpane" id="p5" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">5</span>The filter that stops it running away</h3>
+      <span class="hint">Why there is a bandpass at the end of the flow</span>
+    </div>
+    <p class="lede">Integration in the frequency domain means dividing by frequency. That is fine in the
+      middle of the seismic band. Near zero frequency it is not fine at all, because dividing by a number
+      approaching zero produces a number approaching infinity. Anything down there &mdash; a little noise, a
+      small offset left over from processing &mdash; gets multiplied enormously.</p>
+    <p class="lede">You can see it. The filter corner slider below sets the lowest frequency the attribute
+      is allowed to keep. Take it to 0 Hz, which switches the filter off, and turn the noise up in the
+      header. The result wanders off the scale in long slow swings that have nothing to do with geology.
+      This is why AASPI's <span class="k">relative_acoustic_impedance</span> applies a four-point Ormsby
+      bandpass after the integration, and why that filter is not optional.</p>
+
+    <div class="ctl" style="max-width:520px;margin-bottom:14px">
+      <label for="cut">Filter corner <span class="val" id="cutV">5 Hz</span></label>
+      <input type="range" data-key="cut" id="cut" min="0" max="12" step="1" value="5">
+    </div>
+
+    <canvas id="c5a" aria-label="Integrated trace with and without the Ormsby filter"></canvas>
+
+
+    <p class="lede">Setting the corner is a judgement call. Too low and the noise comes through. Too high
+      and you throw away the low frequencies that made the attribute worth computing, since the whole
+      point was to emphasize them. Somewhere just below the lowest frequency your data actually recorded is
+      the usual answer.</p>
+    <div class="stats">
+      <div class="stat"><span>Filter corner</span><b id="s5c">—</b></div>
+      <div class="stat key"><span>Largest excursion, filtered</span><b id="s5f">—</b></div>
+      <div class="stat key"><span>Largest excursion, unfiltered</span><b id="s5u">—</b></div>
+      <div class="stat"><span>How much bigger without it</span><b id="s5x">—</b></div>
+      <div class="stat"><span>Match with the true log, filtered</span><b id="s5m">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>One detail worth knowing if you are comparing this against AASPI. In this module the wavelet
+        has already band-limited the trace, so the filter is only removing what falls outside a band the
+        data never occupied. On real data the low end is full of ground roll, swell noise and residual
+        statics, and the filter is doing far more work than it appears to be doing here. The AASPI
+        documentation also recommends running spectral balancing first, so that the wavelet is closer to a
+        spike before any of this happens.</span>
+    </div>
+  </section>
+
+  <!-- ============================ WHY IT MATTERS ========================== -->
+  <section class="tabpane" id="pw" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">?</span>Why anyone bothers</h3>
+      <span class="hint">What it is good for, and what it is not</span>
+    </div>
+    <p class="lede">Trace integration is about as simple as a seismic attribute gets, and it survives
+      because it changes the question the display answers. An amplitude section asks you to interpret
+      lines. An impedance section asks you to interpret bodies. Geologists think in bodies.</p>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      What it is used for</h2>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>Seeing the shape of a body.</b> A channel, a bar, a reef or a sand package reads as a blob
+        with a top and a base rather than as two separate reflections you have to mentally join up.</li>
+      <li><b>Tying to wells.</b> An impedance log from sonic and density can be plotted straight onto an
+        impedance section. Comparing a log against a wiggle display is a much harder piece of visual
+        work.</li>
+      <li><b>Stratigraphic interpretation.</b> Onlap, downlap and truncation are easier to see when layers
+        look like layers, and the quarter-cycle rotation makes bed boundaries fall where the color
+        changes.</li>
+      <li><b>A first look before committing to inversion.</b> Proper inversion needs wells, a wavelet
+        estimate and a low-frequency model. This needs a button. If the relative version shows nothing,
+        the expensive version will probably not rescue it.</li>
+    </ul>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      The four ways it will mislead you</h2>
+    <p class="lede"><b>It is not inversion, and the difference is not a technicality.</b> Inversion brings
+      in the low frequencies that seismic never recorded, from wells and velocities, and removes the
+      wavelet. This does neither. It is the seismic trace with its phase rotated and its low end boosted.
+      Anyone who reads absolute rock properties off it is reading something that is not there.</p>
+    <p class="lede"><b>Bright is not the boundary.</b> The quarter-cycle rotation from step 3 moves every
+      event, and a pick made by habit on the bright part of the display lands in the middle of the layer
+      instead of on its top.</p>
+    <p class="lede"><b>It assumes the reflection coefficients are small.</b> The step from r to &frac12;
+      ln(Z) is an approximation that holds beautifully at a shale-on-shale contact and starts to slip at a
+      hard limestone or a salt boundary. Push the contrast slider to 3 and the integrated result under-reads
+      the true impedance by a measurable amount, always in the same direction.</p>
+    <p class="lede"><b>It assumes the wavelet is close to a spike.</b> The AASPI documentation says so
+      directly, and recommends spectral balancing first. Turn the phase slider in the header and watch the
+      match with the true log: 0.997 at zero phase, 0.884 at 30&deg;, 0.530 at 60&deg;, and 0.031 at
+      90&deg;, where the attribute and the rock have almost nothing left in common. At 180&deg; it reads
+      &minus;0.997. That is not a small error. An impedance display made from reverse-polarity data is a
+      near-perfect mirror of the truth, and every hard bed on it looks soft. Nothing on the screen tells
+      you this has happened.</p>
+    <div class="legend prose">
+      <span>Worth carrying: this attribute makes the data easier to look at without adding anything to it.
+        Everything on the impedance display was already in the trace. That is a genuine and useful thing to
+        do, and it is a smaller claim than the display makes it look.</span>
+    </div>
+  </section>
+
+  <!-- ============================== EXERCISES ============================= -->
+  <section class="tabpane" id="pe" role="tabpanel" hidden>
+    <div class="tryit" style="max-width:none">
+      <h3>Exercises</h3>
+      <ol>
+        <li><b>Count boundaries and count events.</b> In step 1, look at the thick limestone at the top of
+          the log and count how many boundaries it has, then count the events the trace shows there.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The limestone has two boundaries. Its top is at 158 ms, where impedance jumps
+            from 6.13 to 8.81 and r = +0.179. Its base is at 214 ms, where it drops back and r = &minus;0.177.
+            Two boundaries, two events, and 56 ms of rock between them that produced neither. The trace is
+            not quite flat in between &mdash; it reaches 0.39 there &mdash; but that is the tails of the two
+            wavelets overlapping, not a response from the limestone itself. Nothing about the inside of the
+            bed reached the recording, because nothing inside it changes. This is why a wiggle display is an
+            awkward thing to hand a geologist: they want to know about the 56 ms, and the trace is telling
+            them about its two edges.</span></details></li>
+        <li><b>Find the trend that went missing.</b> In step 4, read the true impedance at the top of the
+          section and at the bottom, then read the integrated trace at the same two places.
+          <details class="reveal"><summary>Hint</summary><span class="ans">True impedance runs from 5.99 at the top of the section to 9.95 at the bottom, a
+            factor of 1.66. At those same two places the attribute reads 0.121 and &minus;0.038, so it does
+            not merely miss the rise, it drifts the other way. Two numbers pin it down: matched against the
+            true log the correlation is 0.434, and matched against the same log with the trend removed it is
+            0.997. The attribute does a nearly perfect job of the part it can do and none at all of the part
+            it cannot. If you want the trend, you have to bring it from somewhere else, which is what
+            inversion does and this does not.</span></details></li>
+        <li><b>Buy the low frequencies back.</b> In step 4, move the lowest-recorded-frequency slider from
+          20 Hz down to 2 Hz, watching the two match numbers.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Reading the first number as you go: 20 Hz gives 0.245, then 0.270 at 16, 0.342 at
+            12, 0.434 at 8, 0.494 at 6 and 0.556 at 4. Every hertz recorded at the low end buys back a
+            little more of the trend, and it never gets close to 1 &mdash; you would have to record down to a
+            fraction of a hertz for that, and nobody does. Watch the second number as well. It sits near 0.99
+            most of the way and then falls to 0.948 at 4 Hz. That is not the attribute failing. That is the
+            filter from step 5, still sitting at 5 Hz, throwing away the 4 Hz signal you just paid to record.
+            The two settings have to be chosen with each other in mind.</span></details></li>
+        <li><b>Break the small-contrast assumption.</b> In step 2, set the impedance contrast to 0.3, note
+          the match with the true log, then take it to 3.0 and look again.
+          <details class="reveal"><summary>Hint</summary><span class="ans">At &times;0.3 the largest reflection coefficient on the trace is 0.055 and the integrated result recovers very close to 100% of the log impedance. At &times;1 the largest r is
+            0.179 and it recovers 99.4%. At &times;3, r reaches 0.494 and it recovers 94.1%. The shortfall
+            always goes the same way, because r = tanh(&frac12;&Delta;lnZ) is always slightly smaller than
+            &frac12;&Delta;lnZ, and integration returns the r it was given. Now watch the correlation while
+            you do it: 0.997 at every setting. The shape does not degrade at all; only the size is wrong.
+            That is a comfortable failure to live with while you are ranking layers against each other, and a
+            dangerous one if you start quoting numbers.</span></details></li>
+        <li><b>Switch the filter off.</b> In step 5, put the noise at 20% in the header, then take the
+          filter corner from 5 Hz down to 0.
+          <details class="reveal"><summary>Hint</summary><span class="ans">At 20% noise with the corner at 5 Hz the largest excursion on the attribute is
+            0.93 and the match with the true log is 0.992. Take the corner to 0 and the excursion doubles to
+            1.90 while the match collapses to 0.452. At 40% noise it is 3.15 and 0.234. That extra size is noise sitting below the seismic band, divided by a very small frequency. Then
+            try the opposite mistake and set the corner to 12 Hz. The drift is gone, but the match drops to
+            0.835, because now you are filtering out the low frequencies of the data itself. Both failures
+            look like a smooth, plausible section. Neither announces itself.</span></details></li>
+        <li><b>One low on the impedance display, several rocks.</b> A relative impedance section shows a
+          clear low across your reservoir interval. List at least three rocks or fluid conditions that
+          would produce it, and say what you would need in order to choose between them.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Impedance is velocity times
+            density, so anything that lowers either one lowers impedance. A porous brine sand is lower
+            impedance than the shale around it. The same sand with gas in it is lower still, because gas
+            drops both density and velocity. An overpressured shale is low impedance without being a
+            reservoir at all. Coal is very low impedance and is not a reservoir either. All four read as a
+            low, and the attribute cannot separate them, because it measures one number and four different
+            rocks can share it. Worse, this attribute is <em>relative</em>: step 4 showed that the values
+            float, so you cannot even compare the depth of the low against a value from a rock physics
+            table. Choosing between them needs information the seismic does not contain &mdash; a well tie,
+            a rock physics model of the local shales and sands, an AVO response, or the shape of the body
+            in map view. The impedance display narrows the list. It does not close it.</span></details></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================= KEY POINTS ============================= -->
+  <section class="tabpane" id="pk" role="tabpanel" hidden>
+    <div class="takeaway" style="max-width:none">
+      <h3>The main points</h3>
+      <ul>
+        <li><b>Seismic records boundaries; integration gives back layers.</b> Reflection coefficients are
+          close to the derivative of &frac12;ln(impedance), so adding the trace up as you go down it
+          returns something shaped like the impedance log.</li>
+        <li><b>Relative means relative.</b> The trend with depth is a frequency too low for seismic to
+          record, so it cannot come back. There is no absolute scale and no meaningful zero, and two
+          layers far apart cannot be compared.</li>
+        <li><b>Integration rotates the phase by 90 degrees.</b> Every frequency turns by a quarter of its
+          own cycle, which changes the shape of the wavelet rather than delaying it. Bed boundaries end up
+          where the color changes and not where the display is brightest, so picking by brightness puts you
+          in the middle of the layer.</li>
+        <li><b>The bandpass at the end is load-bearing.</b> Dividing by frequency amplifies whatever sits
+          near zero frequency without limit, and the filter is what stops the section drifting.</li>
+        <li><b>Two assumptions come with it.</b> Small reflection coefficients, and a wavelet close to a
+          spike. Both are stated in the AASPI documentation, and both are visible on the sliders here.</li>
+        <li><b>It is not inversion.</b> No wavelet has been removed and no low-frequency model has been
+          added. It is a re-display of the trace, and a good one.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =============================== METHOD ============================== -->
+  <section class="tabpane" id="pm" role="tabpanel" hidden>
+    <details class="notes" id="notes" open>
+      <summary>Method, sources, and what has been simplified</summary>
+      <p><b>The data.</b> The model is a set of impedance layers rather than a set of reflection
+        coefficients, which matters here because the module compares the attribute against a truth that has
+        to exist independently of it. Impedance is built as a compaction trend, rising from about
+        5.6 to 9.0 &times; 10<sup>6</sup> kg m<sup>&minus;2</sup> s<sup>&minus;1</sup> over one
+        second, with layers imposed on it as departures in ln(Z): a limestone, a soft shale, a thinning
+        hard bed, a sand that is gas-filled on one side of the line and brine-filled on the other, a
+        package of interbeds, a channel fill, and a deep hard streak, all draped over a low-relief
+        anticline. The contrast slider multiplies every departure in the log domain, which is what makes it
+        a clean test of the small-reflection-coefficient assumption.</p>
+      <p>Reflection coefficients come from the impedances by
+        <span class="k">r = (Z₂ &minus; Z₁)/(Z₂ + Z₁)</span> at each boundary, and the trace is those
+        coefficients convolved with an Ormsby wavelet whose low corner is the slider in the header and
+        whose high corner is fixed at 45 and 55 Hz. The compaction trend produces no reflection of its own,
+        which is not an omission: a gradient that slow is far below the seismic band, and a real survey
+        would not record it either. That is precisely why it cannot be recovered in step 4.</p>
+      <p><b>The attribute</b> follows AASPI's <span class="k">relative_acoustic_impedance</span>: the trace
+        is transformed, divided by <span class="k">iω</span>, multiplied by a four-point Ormsby filter, and
+        transformed back. The filter is a trapezoid, linear on its ramps, with its low corner set by the
+        slider in step 5 and its high corner well above the data. Zero frequency and Nyquist are set to
+        zero, the first because an integral cannot recover a constant and the second so the result stays
+        real.</p>
+      <p><b>What the truth panel shows.</b> The comparison curve is &frac12;ln(Z) of the model, filtered
+        with the same Ormsby response, so that the attribute is not blamed for frequencies the seismic
+        never had. Correlations quoted in the readouts are Pearson correlations over the drawn time window.
+        The integrated trace and the true log are drawn on separate axes rather than overlaid, because the
+        attribute carries the wavelet and the log does not, so their absolute sizes differ by a factor that
+        has nothing to teach anyone. What is comparable is the shape, and that is what the correlation
+        measures.</p>
+      <p><b>Where the approximation sits.</b> Exactly, <span class="k">r = tanh(&frac12; Δln Z)</span>, so
+        integrating reflection coefficients returns slightly less than &frac12;ln(Z), and the shortfall
+        grows with contrast. Measured on this model with the same code that draws the panels: at the
+        smallest contrast setting the integrated result is 100.0% of the true log impedance, at the default
+        99.4%, and at the largest 94.1%. The shape survives throughout &mdash; the correlation stays above
+        0.999 &mdash; so the error is one of size, not of position.</p>
+      <p><b>Simplifications, and where this departs from AASPI.</b> This is one dimension: normal incidence,
+        acoustic, no multiples, no transmission loss, no offset, and a wavelet that does not change with
+        depth. AASPI runs on a 3D volume and recommends <span class="k">spectral_balance</span> beforehand
+        to bring the wavelet closer to the spike the method assumes; there is no equivalent step here, and
+        the phase slider is the closest this module comes to showing what a non-ideal wavelet costs. The
+        Ormsby ramps here are linear in amplitude; production implementations often taper them, which
+        changes the ringing slightly and nothing else.</p>
+      <ul>
+        <li>Lindseth, R. O., 1979, Synthetic sonic logs — a process for stratigraphic interpretation:
+          <em>Geophysics</em>, 44, 3–26.</li>
+        <li>Waters, K. H., 1981, <em>Reflection Seismology: A Tool for Energy Resource Exploration</em>:
+          Wiley.</li>
+        <li>Chopra, S., and K. J. Marfurt, 2007, <em>Seismic Attributes for Prospect Identification and
+          Reservoir Characterization</em>: SEG Geophysical Development Series 11.</li>
+        <li>AASPI, <em>Single Trace Attributes: Program relative_acoustic_impedance</em>, University of
+          Oklahoma.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="nextup" id="nextup" hidden>
+    <p class="eyebrow">Next up</p>
+    <h3>03 · RMS amplitude</h3>
+    <p>A running window slid down the trace, and the average size of what is inside it. Simple enough to
+      write in one line, and the window length turns out to matter more than the geology does.</p>
+    <a class="btn ghost" href="../index.html">All modules</a>
+  </section>
+
+  <div class="pager" id="pager" hidden>
+    <a class="btn ghost" href="instantaneous.html">← Module 01: instantaneous attributes</a>
+    <a class="btn ghost" href="../index.html">All modules</a>
+  </div>
+
+  <footer>
+    <div class="foot-grid">
+      <div style="flex:1 1 330px;max-width:46ch">
+        <p>Built for teaching by Heather Bedle, School of Geosciences, University of Oklahoma, with the
+          <a href="https://www.ou.edu/mcee/labs/aaspi">AASPI</a> consortium.</p>
+        <p class="lic">To cite: H. Bedle, <i>How Single-Trace Attributes Actually Work</i>, University of
+          Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
+      </div>
+      <div style="flex:1 1 330px;max-width:52ch">
+        <p class="lic" style="margin-top:0">Free to use for teaching, demonstration and non-commercial
+          study, with credit. Please do not republish or redistribute it, modified or otherwise, without
+          permission.</p>
+        <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
+          the page was opened, so that I can show the university these are being used &mdash; no cookie, no
+          account, nothing about you.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="../assets/count.js"></script>
+<script src="../assets/seismic.js"></script>
+<script src="../assets/trace.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  if (typeof SEIS === 'undefined') {
+    const el = document.createElement('div');
+    el.setAttribute('style', 'background:#841617;color:#fff;padding:14px 18px;margin:16px 0;' +
+      'font:13px/1.6 ui-monospace,Menlo,monospace');
+    el.textContent = 'This module could not load assets/seismic.js. It expects it one directory up, ' +
+      'at ../assets/, and file names are case-sensitive on GitHub Pages.';
+    const w = document.querySelector('.wrap');
+    (w || document.body).insertBefore(el, w ? w.firstChild : null);
+    return;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const visible = (id) => { const el = $(id); return el && !el.hidden; };
+  const CRIM = '#841617', TEAL = '#0B7285', SLATE = '#5C6670', INK = '#16191C';
+  const TWOPI = 2 * Math.PI;
+
+  /* =====================================================================
+     LOCAL FALLBACK FOR trace.js
+
+     Deliberately duplicated, so a module that is emailed around, or served
+     from a directory whose assets/ is a version behind, still draws. The
+     shared library wins where it is present; the harness checks that the two
+     return the same numbers.
+     ===================================================================== */
+
+  const LOCALT = (function () {
+    function pow2(n) { let p = 1; while (p < n) p *= 2; return p; }
+    function ormsbyAmp(f, f1, f2, f3, f4) {
+      const a = Math.abs(f);
+      if (a <= f1 || a >= f4) return 0;
+      if (a < f2) return (a - f1) / (f2 - f1);
+      if (a <= f3) return 1;
+      return (f4 - a) / (f4 - f3);
+    }
+    function bandpass(x, dt, f1, f2, f3, f4) {
+      const n0 = x.length, n = pow2(2 * n0);
+      const re = new Float64Array(n), im = new Float64Array(n);
+      for (let i = 0; i < n0; i++) re[i] = x[i];
+      SEIS.fft(re, im, false);
+      for (let k = 0; k < n; k++) {
+        const kk = k <= n / 2 ? k : k - n;
+        const h = ormsbyAmp(kk / (n * dt), f1, f2, f3, f4);
+        re[k] *= h; im[k] *= h;
+      }
+      SEIS.fft(re, im, true);
+      const out = new Float32Array(n0);
+      for (let i = 0; i < n0; i++) out[i] = re[i];
+      return out;
+    }
+    function integrate(x, dt, filt) {
+      const n0 = x.length, n = pow2(2 * n0);
+      const re = new Float64Array(n), im = new Float64Array(n);
+      for (let i = 0; i < n0; i++) re[i] = x[i];
+      SEIS.fft(re, im, false);
+      for (let k = 0; k < n; k++) {
+        const kk = k <= n / 2 ? k : k - n;
+        const w = TWOPI * kk / (n * dt);
+        if (k === 0 || k === n / 2) { re[k] = 0; im[k] = 0; continue; }
+        const h = filt ? ormsbyAmp(kk / (n * dt), filt.f1, filt.f2, filt.f3, filt.f4) : 1;
+        const g = h / w;
+        const a = re[k], b = im[k];
+        re[k] = b * g; im[k] = -a * g;
+      }
+      SEIS.fft(re, im, true);
+      const out = new Float32Array(n0);
+      for (let i = 0; i < n0; i++) out[i] = re[i];
+      return out;
+    }
+    function rcFromZ(z1, z2) { return (z2 - z1) / (z2 + z1); }
+    function correlation(a, b, i0, i1) {
+      let sa = 0, sb = 0, n = 0;
+      for (let i = i0; i <= i1; i++) { sa += a[i]; sb += b[i]; n++; }
+      const ma = sa / n, mb = sb / n;
+      let num = 0, va = 0, vb = 0;
+      for (let i = i0; i <= i1; i++) {
+        const da = a[i] - ma, db = b[i] - mb;
+        num += da * db; va += da * da; vb += db * db;
+      }
+      return (va > 0 && vb > 0) ? num / Math.sqrt(va * vb) : 0;
+    }
+    return { ormsbyAmp, bandpass, integrate, rcFromZ, correlation };
+  })();
+
+  const T = (function () {
+    const out = Object.assign({}, LOCALT);
+    const shared = (typeof TRACE !== 'undefined') ? TRACE : null;
+    if (shared) for (const k in shared) if (typeof shared[k] === 'function') out[k] = shared[k];
+    return out;
+  })();
+
+  /* =====================================================================
+     THE EARTH
+
+     Impedance layers, not reflection coefficients. That distinction is the
+     point of the module: the truth has to exist independently of the
+     attribute, or there is nothing to check the attribute against.
+
+     Zbg(t) is the compaction trend. Layers are departures in ln(Z), so the
+     contrast slider scales them all in the domain where reflection
+     coefficients live.
+     ===================================================================== */
+
+  const NX = 96, NT = 500, DT = 0.002;
+  const TV0 = 0.06, TV1 = 0.96;
+  const ZTOP = 5.6, ZRATE = 3.4;                 // 10^6 kg m^-2 s^-1, and per second
+  const FHI3 = 45, FHI4 = 55;                    // fixed high end of the wavelet
+  const GASTRACE = 66, BRINETRACE = 20;
+  const LIMET = 0.140, LIMEB = 0.196;            // the isolated event step 3 measures
+  const SANDT = 0.470, SANDB = 0.520;
+  const WEDGE = 0.330, CHANT = 0.770, CHANB = 0.806;
+
+  const step3 = (x) => { const u = clamp(x, 0, 1); return u * u * (3 - 2 * u); };
+  const tShift = (ix) => -0.028 * Math.exp(-0.5 * Math.pow((ix - 30) / 13, 2))
+    + 0.016 * Math.exp(-0.5 * Math.pow((ix - 70) / 12, 2))
+    + 0.00022 * (ix - 48);
+  const wedgeGap = (ix) => 0.040 - 0.038 * clamp((ix - 8) / 80, 0, 1);
+  const gasWin = (ix) => clamp(Math.min(step3((ix - 46) / 8), 1 - step3((ix - 82) / 8)), 0, 1);
+  const chanWin = (ix) => clamp(Math.exp(-0.5 * Math.pow((ix - 58) / 15, 2)), 0, 1);
+
+  const zbg = (t) => ZTOP + ZRATE * t;
+
+  /** Every layer on this trace, as {top, base, d} with d a departure in ln Z. */
+  function layersAt(ix) {
+    const s = tShift(ix), g = gasWin(ix), c = chanWin(ix);
+    const L = [
+      { top: LIMET + s, base: LIMEB + s, d: 0.36 },                       // limestone
+      { top: 0.232 + s, base: 0.262 + s, d: -0.13 },                      // soft shale
+      { top: WEDGE + s, base: WEDGE + wedgeGap(ix) + s, d: 0.30 },        // thinning hard bed
+      { top: SANDT + s, base: SANDB + s, d: -0.11 - 0.23 * g },           // sand, gas-charged on the right
+    ];
+    for (let k = 0; k < 7; k++) {
+      L.push({ top: 0.600 + 0.0128 * k + s, base: 0.600 + 0.0128 * (k + 1) + s,
+               d: (k % 2 ? -0.07 : 0.07) });                              // interbeds
+    }
+    L.push({ top: CHANT + s, base: CHANB + s, d: -0.20 * c });            // channel fill
+    L.push({ top: 0.885 + s, base: 0.925 + s, d: 0.26 });                 // deep hard streak
+    return L;
+  }
+
+  /** The impedance log itself, sample by sample. */
+  function impedanceAt(ix, contrast) {
+    const L = layersAt(ix);
+    const z = new Float32Array(NT);
+    for (let it = 0; it < NT; it++) {
+      const t = it * DT;
+      let d = 0;
+      for (let k = 0; k < L.length; k++) if (t >= L[k].top && t < L[k].base) d += L[k].d;
+      z[it] = zbg(t) * Math.exp(contrast * d);
+    }
+    return z;
+  }
+
+  /** Boundaries, with the reflection coefficient each one produces. */
+  function boundariesAt(ix, contrast) {
+    const L = layersAt(ix);
+    const times = [];
+    L.forEach((l) => { times.push(l.top); times.push(l.base); });
+    times.sort((a, b) => a - b);
+    const out = [];
+    for (let i = 0; i < times.length; i++) {
+      const t = times[i];
+      if (t <= 0.004 || t >= (NT - 3) * DT) continue;
+      if (out.length && Math.abs(t - out[out.length - 1].t) < 0.5 * DT) continue;
+      const zAbove = zAt(ix, t - 0.0015, contrast);
+      const zBelow = zAt(ix, t + 0.0015, contrast);
+      const r = T.rcFromZ(zAbove, zBelow);
+      if (Math.abs(r) < 1e-6) continue;
+      out.push({ t: t, r: r, z1: zAbove, z2: zBelow });
+    }
+    return out;
+  }
+
+  function zAt(ix, t, contrast) {
+    const L = layersAt(ix);
+    let d = 0;
+    for (let k = 0; k < L.length; k++) if (t >= L[k].top && t < L[k].base) d += L[k].d;
+    return zbg(Math.max(0, t)) * Math.exp(contrast * d);
+  }
+
+  function wavelet(flow, phase) {
+    let w = SEIS.makeWavelet({ type: 'ormsby', f1: flow, f2: flow + 4, f3: FHI3, f4: FHI4 });
+    if (phase) w = SEIS.phaseRotate(w, phase);
+    return w;
+  }
+
+  function rawSection(flow, phase, contrast) {
+    const w = wavelet(flow, phase);
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = boundariesAt(ix, contrast);
+      const tr = SEIS.traceFromSpikes(sp, 0, DT, NT, w);
+      for (let it = 0; it < NT; it++) f[ix * NT + it] = tr[it];
+    }
+    return f;
+  }
+
+  /* Two fixed normalization constants, both taken once from the default
+     settings. Normalizing by the current peak instead would rescale the
+     display every time a slider moved, which is the quickest way to hide the
+     effect the slider is meant to demonstrate. */
+  const NORM = (function () {
+    const f = rawSection(8, 0, 1);
+    let p = 0;
+    for (let i = 0; i < f.length; i++) p = Math.max(p, Math.abs(f[i]));
+    return p || 1;
+  })();
+
+  /* =====================================================================
+     STATE
+     ===================================================================== */
+
+  const DEF = {
+    flow: 8, phase: 0, contrast: 1, noise: 0, cut: 5,
+    tr: GASTRACE, ts: 0.168, tab: 'p1',
+  };
+  let S = SEIS.readState(DEF);
+  S.tr = clamp(Math.round(S.tr), 0, NX - 1);
+  S.ts = clamp(S.ts, TV0, TV1);
+
+  const CAN_LINK = location.protocol !== 'file:';
+  const saveState = () => {
+    if (!CAN_LINK) return;
+    try { SEIS.writeState(S, DEF); } catch (e) { /* nothing shareable */ }
+  };
+
+  let FIELD = null;        // the seismic section, normalized
+  let RAI = null;          // the attribute, whole section
+  let RNORM = 1;           // fixed display scale for the attribute
+  let CUR = null;          // everything about the selected trace
+  /* Two noise fields. One inside the seismic band, which is what most people
+     picture when they hear noise, and one well below it — slow swells, residual
+     statics, whatever survived processing at the low end. Only the second one
+     matters in step 5: 1/omega amplifies what is near zero frequency, and if
+     there is nothing down there, there is nothing to amplify. Leaving it out
+     would have made the Ormsby filter look decorative. */
+  let NOISE = { f: -1, field: null, low: null };
+
+  const filt = () => (S.cut > 0 ? { f1: S.cut, f2: S.cut + 5, f3: 70, f4: 90 } : null);
+
+  function noiseField(flow) {
+    if (NOISE.f !== flow) {
+      NOISE.f = flow;
+      NOISE.field = SEIS.bandLimitedNoise(NX, NT, DT,
+        SEIS.makeWavelet({ type: 'ormsby', f1: flow, f2: flow + 4, f3: FHI3, f4: FHI4 }), 11, 3);
+    }
+    if (!NOISE.low) NOISE.low = buildLowNoise();
+    return NOISE;
+  }
+
+  /* Sub-band noise: a handful of components between 1 and 5 Hz, with a phase
+     that walks across the line so it is not the same wiggle on every trace.
+     Built directly rather than by filtering white noise, because a 1 Hz
+     operator is 5 seconds long and over a 1 second trace it comes out as
+     almost pure DC — which the integrator discards, leaving nothing to see. */
+  function buildLowNoise() {
+    const rnd = SEIS.mulberry32(29);
+    const comps = [];
+    for (let k = 0; k < 5; k++) {
+      comps.push({
+        f: 1.0 + 1.0 * k + 0.4 * rnd(),
+        ph: rnd() * TWOPI,
+        kx: (rnd() - 0.5) * 0.12,        // radians of phase per trace
+        a: 1 / (1 + k),                  // more energy at the low end, as in life
+      });
+    }
+    const out = new Float32Array(NX * NT);
+    let s2 = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) {
+        let v = 0;
+        for (let k = 0; k < comps.length; k++) {
+          const c = comps[k];
+          v += c.a * Math.sin(TWOPI * c.f * it * DT + c.ph + c.kx * ix);
+        }
+        out[ix * NT + it] = v;
+        s2 += v * v;
+      }
+    }
+    const rms = Math.sqrt(s2 / (NX * NT)) || 1;
+    for (let i = 0; i < out.length; i++) out[i] /= rms;
+    return out;
+  }
+
+  function recompute() {
+    const raw = rawSection(S.flow, S.phase, S.contrast);
+    const f = new Float32Array(NX * NT);
+    let s2 = 0;
+    for (let i = 0; i < raw.length; i++) { f[i] = raw[i] / NORM; s2 += f[i] * f[i]; }
+    if (S.noise > 0) {
+      const rms = Math.sqrt(s2 / (NX * NT)) || 1;
+      const N = noiseField(S.flow);
+      const amp = (S.noise / 100) * rms;
+      for (let i = 0; i < f.length; i++) {
+        f[i] += amp * (0.75 * N.field[i] + 0.60 * N.low[i]);
+      }
+    }
+    FIELD = f;
+
+    const F = filt();
+    RAI = new Float32Array(NX * NT);
+    const u = new Float32Array(NT);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) u[it] = f[ix * NT + it];
+      const z = T.integrate(u, DT, F);
+      for (let it = 0; it < NT; it++) RAI[ix * NT + it] = z[it];
+    }
+    computeTrace();
+  }
+
+  /* The attribute has units of trace amplitude times seconds, so its numbers
+     are small and mean nothing on their own. One fixed scale, measured once
+     at the defaults, keeps the axes still. */
+  function setRNorm() {
+    let p = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = iOf(TV0); it <= iOf(TV1); it++) p = Math.max(p, Math.abs(RAI[ix * NT + it]));
+    }
+    RNORM = p || 1;
+  }
+
+  function traceAt(ix, arr) {
+    const u = new Float32Array(NT);
+    for (let it = 0; it < NT; it++) u[it] = arr[ix * NT + it];
+    return u;
+  }
+
+  /* Band-limiting the true log needs care. The log has a compaction trend, so
+     it does not start or end near zero, and zero-padding it for the transform
+     invents a step at each end whose ringing lands right in the seismic band.
+     Extending the ends with their own values instead adds a constant, which has
+     no in-band content at all. Without this the comparison in step 2 gets worse
+     as the layers get quieter, which would be exactly backwards. */
+  const PAD = 256;
+  function bandLimitedTruth(half) {
+    const ext = new Float32Array(NT + 2 * PAD);
+    for (let i = 0; i < PAD; i++) ext[i] = half[0];
+    for (let i = 0; i < NT; i++) ext[PAD + i] = half[i];
+    for (let i = 0; i < PAD; i++) ext[PAD + NT + i] = half[NT - 1];
+    const b = T.bandpass(ext, DT, S.flow, S.flow + 4, FHI3, FHI4);
+    const out = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) out[i] = b[PAD + i];
+    return out;
+  }
+
+  function computeTrace() {
+    const ix = S.tr;
+    const u = traceAt(ix, FIELD);
+    const rai = traceAt(ix, RAI);
+    const z = impedanceAt(ix, S.contrast);
+    const half = new Float32Array(NT);
+    for (let it = 0; it < NT; it++) half[it] = 0.5 * Math.log(z[it]);
+    // the truth, filtered exactly as the seismic was, so the comparison is fair
+    const halfBand = bandLimitedTruth(half);
+    // and the same trace integrated without the Ormsby, for step 5
+    const raw = T.integrate(u, DT, null);
+    CUR = {
+      ix: ix, u: u, rai: rai, z: z, half: half, halfBand: halfBand, rawInt: raw,
+      bounds: boundariesAt(ix, S.contrast),
+    };
+  }
+
+  /* =====================================================================
+     MEASUREMENT
+     ===================================================================== */
+
+  const iOf = (t) => clamp(Math.round(t / DT), 0, NT - 1);
+  const tOf = (i) => i * DT;
+
+  function argMaxIn(arr, t0, t1) {
+    let bi = iOf(t0), bv = -Infinity;
+    for (let i = iOf(t0); i <= iOf(t1); i++) if (arr[i] > bv) { bv = arr[i]; bi = i; }
+    return bi;
+  }
+  function argMaxAbsIn(arr, t0, t1) {
+    let bi = iOf(t0), bv = -Infinity;
+    for (let i = iOf(t0); i <= iOf(t1); i++) {
+      if (Math.abs(arr[i]) > bv) { bv = Math.abs(arr[i]); bi = i; }
+    }
+    return bi;
+  }
+  function maxAbsIn(arr, t0, t1) {
+    let v = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) v = Math.max(v, Math.abs(arr[i]));
+    return v;
+  }
+
+  const corrWindow = () => [iOf(TV0 + 0.03), iOf(TV1 - 0.03)];
+
+  /** How well the attribute reproduces the truth, with and without the trend. */
+  function matchNumbers() {
+    const [i0, i1] = corrWindow();
+    return {
+      band: T.correlation(CUR.rai, CUR.halfBand, i0, i1),
+      full: T.correlation(CUR.rai, CUR.half, i0, i1),
+    };
+  }
+
+  /** The nearest impedance boundary to a given time on this trace. */
+  function nearestBoundary(t) {
+    let best = null, bd = Infinity;
+    CUR.bounds.forEach((b) => {
+      const d = Math.abs(b.t - t);
+      if (d < bd) { bd = d; best = b; }
+    });
+    return best;
+  }
+
+  /** Step 3: the limestone top, on the trace and on the attribute. */
+  function shiftNumbers() {
+    const s = tShift(S.tr);
+    const bt = LIMET + s;
+    const ip = argMaxAbsIn(CUR.u, bt - 0.030, bt + 0.030);
+    /* Search in the direction the boundary actually steps, and stop well short
+       of the base of the limestone. Looking for the largest absolute value
+       instead finds whichever side lobe happens to be biggest, which reported
+       a shift of minus four milliseconds on a boundary that steps up. */
+    const b = nearestBoundary(bt);
+    const sgn = (b && b.r < 0) ? -1 : 1;
+    const signed = new Float32Array(NT);
+    for (let k = 0; k < NT; k++) signed[k] = sgn * CUR.rai[k];
+    const ir = argMaxIn(signed, bt - 0.002, bt + 0.030);
+    const fdom = 0.5 * ((S.flow + 4) + FHI3);          // middle of the passband
+    return {
+      bt: bt, tp: tOf(ip), tr: tOf(ir),
+      gap: tOf(ir) - bt, quarter: 0.25 / fdom, fdom: fdom,
+    };
+  }
+
+  /** Step 4: the compaction trend, on the truth and on the attribute. */
+  function trendNumbers() {
+    const shallow = [0.10, 0.13], deep = [0.93, 0.96];
+    const mean = (a, w) => {
+      let s = 0, n = 0;
+      for (let i = iOf(w[0]); i <= iOf(w[1]); i++) { s += a[i]; n++; }
+      return s / n;
+    };
+    const zs = mean(CUR.z, shallow), zd = mean(CUR.z, deep);
+    return {
+      zTop: zs, zBot: zd, zRatio: zd / zs,
+      rTop: mean(CUR.rai, shallow) / RNORM, rBot: mean(CUR.rai, deep) / RNORM,
+    };
+  }
+
+  /** Step 5: what the filter is holding back. */
+  function driftNumbers() {
+    const f = maxAbsIn(CUR.rai, TV0, TV1) / RNORM;
+    const u = maxAbsIn(CUR.rawInt, TV0, TV1) / RNORM;
+    return { f: f, u: u, ratio: u / (f || 1e-9) };
+  }
+
+  const fmtT = (t) => (t * 1000).toFixed(0) + ' ms';
+  const fmt2 = (v) => (Math.abs(v) < 0.0005 ? '0.000' : v.toFixed(3));
+  const fmtC = (v) => v.toFixed(3);
+
+  /* =====================================================================
+     DRAWING
+     ===================================================================== */
+
+  const M = { l: 54, r: 14, t: 24, b: 34 };
+
+  function pw(el) {
+    const par = el && el.parentElement;
+    if (!par) return 900;
+    const cs = window.getComputedStyle(par);
+    const inner = par.clientWidth
+      - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+    return Math.max(240, Math.floor(inner));
+  }
+
+  function rowWidth(rowId, n) {
+    const row = $(rowId);
+    const total = row ? pw(row.firstElementChild || row) : 800;
+    const w = window.innerWidth <= 700
+      ? Math.max(240, total)
+      : Math.max(180, Math.floor((total - 10 * (n - 1)) / n));
+    if (row) {
+      row.querySelectorAll(':scope > .panel-col').forEach((el) => {
+        el.style.width = w + 'px'; el.style.maxWidth = w + 'px';
+      });
+    }
+    return w;
+  }
+
+  function panels(w, h, n, gap) {
+    const g = gap === undefined ? 16 : gap;
+    const inner = w - M.l - M.r - g * (n - 1);
+    const pwid = inner / n;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      out.push({ x: M.l + i * (pwid + g), y: M.t, w: pwid, h: h - M.t - M.b });
+    }
+    return out;
+  }
+
+  const yT = (R, t, a, b) => R.y + ((t - (a === undefined ? TV0 : a))
+    / ((b === undefined ? TV1 : b) - (a === undefined ? TV0 : a))) * R.h;
+  const tY = (R, y) => TV0 + ((y - R.y) / R.h) * (TV1 - TV0);
+  const xV = (R, v, lo, hi) => R.x + ((v - lo) / (hi - lo)) * R.w;
+
+  function panelTitle(ctx, R, text, color) {
+    ctx.save();
+    ctx.font = '10.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = color || SLATE;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(text, R.x, R.y - 8);
+    ctx.restore();
+  }
+
+  /** One curve, time down the page and value across. */
+  function series(ctx, R, arr, lo, hi, color, opts) {
+    const o = opts || {};
+    const a = o.t0 === undefined ? TV0 : o.t0, b = o.t1 === undefined ? TV1 : o.t1;
+    const i0 = iOf(a), i1 = iOf(b);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(R.x - 1, R.y, R.w + 2, R.h); ctx.clip();
+    if (o.fillPositive) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, 0, lo, hi), yT(R, tOf(i0), a, b));
+      for (let i = i0; i <= i1; i++) {
+        ctx.lineTo(xV(R, Math.max(0, arr[i]), lo, hi), yT(R, tOf(i), a, b));
+      }
+      ctx.lineTo(xV(R, 0, lo, hi), yT(R, tOf(i1), a, b));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(22,25,28,.72)';
+      ctx.fill();
+    }
+    if (o.fillTo !== undefined) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i0), a, b));
+      for (let i = i0; i <= i1; i++) ctx.lineTo(xV(R, arr[i], lo, hi), yT(R, tOf(i), a, b));
+      ctx.lineTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i1), a, b));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(11,114,133,.16)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    for (let i = i0; i <= i1; i++) {
+      const v = arr[i];
+      const x = xV(R, isFinite(v) ? clamp(v, lo - (hi - lo), hi + (hi - lo)) : lo, lo, hi);
+      const y = yT(R, tOf(i), a, b);
+      i === i0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = color; ctx.lineWidth = o.width || 1.3;
+    if (o.dash) ctx.setLineDash(o.dash);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Reflection coefficients drawn as what they are: spikes, not a curve. */
+  function spikes(ctx, R, bounds, lo, hi, color) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(R.x - 1, R.y, R.w + 2, R.h); ctx.clip();
+    const x0 = xV(R, 0, lo, hi);
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6;
+    bounds.forEach((b) => {
+      const y = yT(R, b.t);
+      ctx.beginPath();
+      ctx.moveTo(x0, y);
+      ctx.lineTo(xV(R, clamp(b.r, lo, hi), lo, hi), y);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function zeroLine(ctx, R, lo, hi, v) {
+    const x = xV(R, v === undefined ? 0 : v, lo, hi);
+    if (x < R.x - 1 || x > R.x + R.w + 1) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(92,102,112,.45)'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    ctx.restore();
+  }
+
+  function cursorLine(ctx, R, a, b) {
+    const y = yT(R, S.ts, a, b);
+    if (y < R.y || y > R.y + R.h) return;
+    SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(11,114,133,.85)', [4, 3], 1.4);
+  }
+
+  function panelBox(ctx, R, lo, hi, fmt, ticks) {
+    ctx.save(); ctx.fillStyle = '#fff'; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, lo, hi, null, fmt, { ticks: ticks || 3 });
+  }
+
+  function bar(ctx, rect, cmap, lo, hi, title, seq) {
+    const n = Math.max(2, Math.round(rect.w));
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1);
+      const c = cmap(seq ? u : (-1 + 2 * u) * 0.98);
+      ctx.fillStyle = 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+      ctx.fillRect(rect.x + i * (rect.w / n), rect.y, rect.w / n + 1, rect.h);
+    }
+    ctx.save();
+    ctx.strokeStyle = 'rgba(22,25,28,.45)'; ctx.lineWidth = 1;
+    ctx.strokeRect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h);
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText(lo, rect.x, rect.y + rect.h + 3);
+    ctx.textAlign = 'right'; ctx.fillText(hi, rect.x + rect.w, rect.y + rect.h + 3);
+    if (title) {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(title, rect.x + rect.w / 2, rect.y - 3);
+    }
+    ctx.restore();
+  }
+
+  function sectionPanel(ctx, R, data, opts) {
+    const o = opts || {};
+    const i0 = iOf(TV0), i1 = iOf(TV1), nsub = i1 - i0 + 1;
+    const sub = new Float32Array(NX * nsub);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < nsub; it++) sub[ix * nsub + it] = data[ix * NT + i0 + it];
+    }
+    SEIS.drawVarDensity(ctx, sub, NX, nsub, R, {
+      cmap: o.cmap || SEIS.COLORMAPS.gray, clip: o.clip, gain: o.gain || 1,
+    });
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, NX - 1, o.label === null ? null : (o.label || 'trace'),
+      (v) => v.toFixed(0), { ticks: 4 });
+    if (o.timeAxis) SEIS.axisLeft(ctx, R, TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 5 });
+    /* A crosshair, not just a trace marker. The vertical line says which trace
+       the curves belong to; the horizontal one lets a reader line the same
+       instant up across an amplitude panel and an attribute panel sitting side
+       by side, which is the comparison these paired sections exist to make. */
+    const x = R.x + (S.tr / (NX - 1)) * R.w;
+    const yc = yT(R, S.ts);
+    ctx.save();
+    ctx.strokeStyle = TEAL; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    if (yc >= R.y && yc <= R.y + R.h) {
+      ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(R.x, yc); ctx.lineTo(R.x + R.w, yc); ctx.stroke();
+      // a small open square where they cross, so the point itself is readable
+      // against both a bright and a dark background
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = 'rgba(255,255,255,.9)';
+      ctx.strokeRect(x - 4.5, yc - 4.5, 9, 9);
+      ctx.strokeStyle = TEAL;
+      ctx.strokeRect(x - 3.5, yc - 3.5, 7, 7);
+    }
+    ctx.restore();
+  }
+
+  /* ------------------------------ the header --------------------------- */
+
+  function drawHeader() {
+    const el = $('cMap');
+    if (!el || !el.parentElement || !el.parentElement.clientWidth) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.56), 230, 330);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const R = { x: M.l, y: M.t, w: w - M.l - M.r - 78, h: h - M.t - 56 };
+    sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
+    SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
+      R.y + 12, 'trace ' + S.tr, TEAL);
+    // and the time, labelled where the horizontal line leaves the panel, so the
+    // crosshair reads as a coordinate rather than as decoration
+    const yc = yT(R, S.ts);
+    if (yc >= R.y && yc <= R.y + R.h) {
+      SEIS.tag(ctx, R.x + R.w - 4, clamp(yc - 10, R.y + 8, R.y + R.h - 8),
+        fmtT(S.ts), TEAL, 'right');
+    }
+    ctx.save();
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const s = tShift(NX - 1);
+    [[LIMET + 0.028 + s, 'limestone'], [WEDGE + 0.01 + s, 'wedge'],
+     [SANDT + 0.025 + s, 'sand'], [0.645 + s, 'interbeds'],
+     [CHANT + 0.018 + s, 'channel']].forEach((f) => {
+      const yy = yT(R, f[0]);
+      if (yy < R.y || yy > R.y + R.h) return;
+      ctx.strokeStyle = 'rgba(92,102,112,.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(R.x + R.w, yy); ctx.lineTo(R.x + R.w + 6, yy); ctx.stroke();
+      ctx.fillText(f[1], R.x + R.w + 9, yy);
+    });
+    ctx.restore();
+    bar(ctx, { x: R.x, y: R.y + R.h + 36, w: Math.min(180, R.w * 0.4), h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212 trough', '+ peak', null, false);
+  }
+
+  /* ------------------------------- step 1 ------------------------------ */
+
+  const ZLO = 4.0, ZHI = 16.0;                 // fixed impedance axis
+  const RLO = -0.35, RHI = 0.35;               // fixed reflectivity axis
+  const ALO = -1.35, AHI = 1.35;               // fixed amplitude axis
+  const RAX = 1.6;                             // fixed axis for the attribute
+
+  function drawStep1() {
+    const el = $('c1a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.52), 320, 480);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 20);
+    panelBox(ctx, P[0], ZLO, ZHI, (v) => v.toFixed(0), 4);
+    panelBox(ctx, P[1], RLO, RHI, (v) => v.toFixed(2), 3);
+    panelBox(ctx, P[2], ALO, AHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    series(ctx, P[0], CUR.z, ZLO, ZHI, INK, { width: 1.6, fillTo: ZLO, fill: 'rgba(22,25,28,.08)' });
+    // the compaction trend, so it can be seen going missing later
+    const bg = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) bg[i] = zbg(i * DT);
+    series(ctx, P[0], bg, ZLO, ZHI, 'rgba(132,22,23,.75)', { width: 1.2, dash: [4, 3] });
+    zeroLine(ctx, P[1], RLO, RHI);
+    spikes(ctx, P[1], CUR.bounds, RLO, RHI, CRIM);
+    zeroLine(ctx, P[2], ALO, AHI);
+    series(ctx, P[2], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.2 });
+    panelTitle(ctx, P[0], 'impedance Z, and its trend', INK);
+    panelTitle(ctx, P[1], 'reflection coefficients r', CRIM);
+    panelTitle(ctx, P[2], 'the seismic trace', INK);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
+  }
+
+  /* ------------------------------- step 2 ------------------------------ */
+
+  function drawStep2() {
+    const el = $('c2a');
+    if (!el) return;
+    const w = rowWidth('row2', 2);
+    const h = clamp(Math.round(w * 0.95), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 12);
+    const RA = RAX;
+    const scaled = new Float32Array(NT), truth = new Float32Array(NT);
+    let hb = 1e-9;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) hb = Math.max(hb, Math.abs(CUR.halfBand[i]));
+    for (let i = 0; i < NT; i++) {
+      scaled[i] = CUR.rai[i] / RNORM;
+      truth[i] = CUR.halfBand[i] / HBNORM;
+    }
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], -RA, RA, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], -RA, RA, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI); zeroLine(ctx, P[1], -RA, RA); zeroLine(ctx, P[2], -RA, RA);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], scaled, -RA, RA, TEAL, { width: 1.6, fillTo: 0, fill: 'rgba(11,114,133,.14)' });
+    series(ctx, P[2], truth, -RA, RA, CRIM, { width: 1.6, fillTo: 0, fill: 'rgba(132,22,23,.12)' });
+    panelTitle(ctx, P[0], 'the trace', INK);
+    panelTitle(ctx, P[1], 'integrated: the attribute', TEAL);
+    panelTitle(ctx, P[2], 'true \u00bd ln Z, same filter', CRIM);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
+
+    const el2 = $('c2b');
+    if (!el2) return;
+    const w2 = rowWidth('row2', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const Q = panels(w2, h2 - 16, 2, 18);
+    sectionPanel(c2, Q[0], FIELD, { clip: 1, timeAxis: true, label: null });
+    sectionPanel(c2, Q[1], RAI, { cmap: SEIS.COLORMAPS.cbsafe, clip: RNORM, label: null });
+    panelTitle(c2, Q[0], 'amplitude', SLATE);
+    panelTitle(c2, Q[1], 'relative acoustic impedance', SLATE);
+    bar(c2, { x: Q[0].x, y: Q[0].y + Q[0].h + 26, w: Q[0].w, h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+    bar(c2, { x: Q[1].x, y: Q[1].y + Q[1].h + 26, w: Q[1].w, h: 8 },
+      SEIS.COLORMAPS.cbsafe, 'lower Z', 'higher Z', null, false);
+  }
+
+  /* ------------------------------- step 3 ------------------------------ */
+
+  function drawStep3() {
+    const el = $('c3a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.42), 280, 420);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 20);
+    const N = shiftNumbers();
+    const z0 = N.bt - 0.055, z1 = N.bt + 0.085;
+    const RA = RAX;
+    const scaled = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) scaled[i] = CUR.rai[i] / RNORM;
+    panelBox(ctx, P[0], ZLO, ZHI, (v) => v.toFixed(0), 3);
+    panelBox(ctx, P[1], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], -RA, RA, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], z0, z1, 'time (s)', (v) => v.toFixed(3), { ticks: 5 });
+    const opt = { t0: z0, t1: z1 };
+    series(ctx, P[0], CUR.z, ZLO, ZHI, INK, Object.assign({ width: 1.8 }, opt));
+    zeroLine(ctx, P[1], ALO, AHI);
+    series(ctx, P[1], CUR.u, ALO, AHI, INK, Object.assign({ width: 1.8 }, opt));
+    zeroLine(ctx, P[2], -RA, RA);
+    series(ctx, P[2], scaled, -RA, RA, TEAL, Object.assign({ width: 1.8 }, opt));
+    panelTitle(ctx, P[0], 'the true boundary', INK);
+    panelTitle(ctx, P[1], 'the trace peaks on it', INK);
+    panelTitle(ctx, P[2], 'the attribute is still climbing', TEAL);
+    // the boundary itself, on all three
+    [P[0], P[1], P[2]].forEach((R) => {
+      const y = yT(R, N.bt, z0, z1);
+      SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(132,22,23,.8)', [5, 4], 1.5);
+    });
+    SEIS.tag(ctx, P[0].x + 5, clamp(yT(P[0], N.bt, z0, z1) - 11, P[0].y + 8, P[0].y + P[0].h - 8),
+      'boundary', CRIM);
+    const yr = yT(P[2], N.tr, z0, z1);
+    if (yr > P[2].y && yr < P[2].y + P[2].h) {
+      SEIS.dashedLine(ctx, P[2].x, yr, P[2].x + P[2].w, yr, 'rgba(11,114,133,.85)', [3, 3], 1.4);
+      SEIS.tag(ctx, P[2].x + 5, clamp(yr + 11, P[2].y + 8, P[2].y + P[2].h - 8), 'its peak', TEAL);
+    }
+  }
+
+  /* ------------------------------- step 4 ------------------------------ */
+
+  function drawStep4() {
+    const el = $('c4a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.52), 320, 480);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 20);
+    const RA = RAX;
+    const scaled = new Float32Array(NT), truth = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) {
+      scaled[i] = CUR.rai[i] / RNORM;
+      truth[i] = CUR.halfBand[i] / HBNORM;
+    }
+    panelBox(ctx, P[0], ZLO, ZHI, (v) => v.toFixed(0), 4);
+    panelBox(ctx, P[1], -RA, RA, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], -RA, RA, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    series(ctx, P[0], CUR.z, ZLO, ZHI, INK, { width: 1.5, fillTo: ZLO, fill: 'rgba(22,25,28,.08)' });
+    const bg = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) bg[i] = zbg(i * DT);
+    series(ctx, P[0], bg, ZLO, ZHI, CRIM, { width: 1.6, dash: [4, 3] });
+    zeroLine(ctx, P[1], -RA, RA); zeroLine(ctx, P[2], -RA, RA);
+    series(ctx, P[1], scaled, -RA, RA, TEAL, { width: 1.5, fillTo: 0, fill: 'rgba(11,114,133,.14)' });
+    series(ctx, P[2], truth, -RA, RA, CRIM, { width: 1.4 });
+    series(ctx, P[2], scaled, -RA, RA, TEAL, { width: 1.4 });
+    panelTitle(ctx, P[0], 'the truth, trend and all', INK);
+    panelTitle(ctx, P[1], 'the attribute: no trend', TEAL);
+    panelTitle(ctx, P[2], 'the two, once the trend is gone', SLATE);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
+  }
+
+  /* ------------------------------- step 5 ------------------------------ */
+
+  function drawStep5() {
+    const el = $('c5a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.42), 300, 440);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 3, 20);
+    const RA = RAX, WA = 9.0;                  // the unfiltered panel needs headroom
+    const a = new Float32Array(NT), b = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) { a[i] = CUR.rai[i] / RNORM; b[i] = CUR.rawInt[i] / RNORM; }
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], -RA, RA, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[2], -WA, WA, (v) => v.toFixed(0), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI); zeroLine(ctx, P[1], -RA, RA); zeroLine(ctx, P[2], -WA, WA);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], a, -RA, RA, TEAL, { width: 1.5, fillTo: 0, fill: 'rgba(11,114,133,.14)' });
+    series(ctx, P[2], b, -WA, WA, CRIM, { width: 1.5 });
+    panelTitle(ctx, P[0], 'the trace', INK);
+    panelTitle(ctx, P[1], 'integrated, filtered', TEAL);
+    panelTitle(ctx, P[2], 'integrated, no filter', CRIM);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]); cursorLine(ctx, P[2]);
+    // the filtered curve drawn faintly on the unfiltered panel, same scale
+    series(ctx, P[2], a, -WA, WA, 'rgba(11,114,133,.55)', { width: 1.1 });
+  }
+
+  /* =====================================================================
+     READOUTS
+     ===================================================================== */
+
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+
+  function syncLabels() {
+    setText('flowV', S.flow + ' Hz');
+    setText('phaseV', S.phase + '\u00b0');
+    setText('contrastV', '\u00d7' + S.contrast.toFixed(1));
+    setText('noiseV', S.noise === 0 ? 'none' : S.noise + '% of RMS');
+    setText('cutV', S.cut === 0 ? 'off' : S.cut + ' Hz');
+  }
+
+  function syncStats() {
+    const i = iOf(S.ts);
+    const b = nearestBoundary(S.ts);
+    const m = matchNumbers();
+
+    setText('s1z', CUR.z[i].toFixed(2));
+    setText('s1b', b ? fmtT(b.t) : '\u2014');
+    setText('s1r', b ? (b.r >= 0 ? '+' : '') + fmt2(b.r)
+      + '   (Z ' + b.z1.toFixed(2) + ' \u2192 ' + b.z2.toFixed(2) + ')' : '\u2014');
+    let mr = 0;
+    CUR.bounds.forEach((q) => { mr = Math.max(mr, Math.abs(q.r)); });
+    setText('s1m', fmt2(mr));
+    setText('s1u', fmt2(CUR.u[i]));
+
+    setText('s2c', fmtC(m.band));
+    setText('s2a', fmtC(m.band));
+    setText('s2z', CUR.z[i].toFixed(2));
+    setText('s2u', fmt2(CUR.u[i]));
+    setText('s2n', String(CUR.bounds.length));
+    setText('s2e', String(layersAt(S.tr).length));
+
+    const N = shiftNumbers();
+    setText('s3b', fmtT(N.bt));
+    setText('s3t', fmtT(N.tp));
+    setText('s3r', fmtT(N.tr));
+    setText('s3d', fmtT(N.gap));
+    setText('s3g', fmtT(N.gap));
+    setText('s3q', fmtT(N.quarter) + '  (at ' + N.fdom.toFixed(0) + ' Hz)');
+
+    const R = trendNumbers();
+    setText('s4f', S.flow + ' Hz');
+    setText('s4a', fmtC(m.full));
+    setText('s4b', fmtC(m.band));
+    setText('s4t', R.zTop.toFixed(2) + ' \u2192 ' + R.zBot.toFixed(2)
+      + '   (\u00d7' + R.zRatio.toFixed(2) + ')');
+    setText('s4r', fmt2(R.rTop) + ' \u2192 ' + fmt2(R.rBot));
+
+    const D = driftNumbers();
+    setText('s5c', S.cut === 0 ? 'off' : S.cut + ' Hz');
+    setText('s5f', fmt2(D.f));
+    setText('s5u', fmt2(D.u));
+    setText('s5x', '\u00d7' + D.ratio.toFixed(1));
+    setText('s5m', fmtC(m.band));
+  }
+
+  /* =====================================================================
+     TABS, CONTROLS, WIRING
+     ===================================================================== */
+
+  function drawAll() {
+    syncLabels();
+    if (!CUR) return;
+    const onStep = visible('p1') || visible('p2') || visible('p3')
+      || visible('p4') || visible('p5');
+    if (onStep) drawHeader();
+    if (visible('p1')) drawStep1();
+    if (visible('p2')) drawStep2();
+    if (visible('p3')) drawStep3();
+    if (visible('p4')) drawStep4();
+    if (visible('p5')) drawStep5();
+    syncStats();
+  }
+
+  const PANES = ['p1', 'p2', 'p3', 'p4', 'p5', 'pw', 'pe', 'pk', 'pm'];
+  const STEPNAMES = {
+    p1: 'Layers', p2: 'Integrate', p3: 'The shift', p4: 'Relative',
+    p5: 'The filter', pw: 'Why it matters', pe: 'Exercises',
+    pk: 'Key points', pm: 'Method',
+  };
+
+  function buildStepNav() {
+    PANES.forEach((id, i) => {
+      const pane = $(id);
+      if (!pane || pane.querySelector('.stepnav')) return;
+      const prev = PANES[i - 1], next = PANES[i + 1];
+      const nav = document.createElement('div');
+      nav.className = 'stepnav';
+      const mk = (target, text, ghost) => {
+        const bt = document.createElement('button');
+        bt.type = 'button';
+        bt.className = 'btn' + (ghost ? ' ghost' : '') + ' small';
+        bt.textContent = text;
+        bt.addEventListener('click', () => {
+          showTab(target);
+          const t = document.querySelector('.tabhint');
+          if (t && t.scrollIntoView) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return bt;
+      };
+      nav.appendChild(prev ? mk(prev, '\u2190 ' + STEPNAMES[prev], true)
+                           : document.createElement('span'));
+      const where = document.createElement('span');
+      where.className = 'where';
+      where.textContent = i < 5 ? 'step ' + (i + 1) + ' of 5' : STEPNAMES[id];
+      nav.appendChild(where);
+      nav.appendChild(next ? mk(next, STEPNAMES[next] + ' \u2192')
+                           : document.createElement('span'));
+      pane.appendChild(nav);
+    });
+  }
+
+  function showTab(id) {
+    PANES.forEach((q) => { const el = $(q); if (el) el.hidden = q !== id; });
+    document.querySelectorAll('#tabs button').forEach((b) => {
+      b.setAttribute('aria-selected', b.dataset.tab === id);
+    });
+    const lab = document.querySelector('.labhead');
+    if (lab) lab.hidden = (id === 'pw' || id === 'pe' || id === 'pk' || id === 'pm');
+    const last = (id === 'pk' || id === 'pm');
+    if ($('nextup')) $('nextup').hidden = !last;
+    if ($('pager')) $('pager').hidden = !last;
+    S.tab = id;
+    drawAll();
+    saveState();
+  }
+  document.querySelectorAll('#tabs button').forEach((b) => {
+    b.addEventListener('click', () => showTab(b.dataset.tab));
+  });
+
+  document.addEventListener('input', (ev) => {
+    const key = ev.target && ev.target.dataset && ev.target.dataset.key;
+    if (!key) return;
+    S[key] = parseFloat(ev.target.value);
+    recompute();
+    drawAll();
+    saveState();
+  });
+
+  function attachSection(canvasId, getRect) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = getRect(r.width, r.height, ev.clientX - r.left);
+      S.tr = clamp(Math.round(((ev.clientX - r.left - R.x) / R.w) * (NX - 1)), 0, NX - 1);
+      S.ts = clamp(TV0 + ((ev.clientY - r.top - R.y) / R.h) * (TV1 - TV0), TV0, TV1);
+      computeTrace();
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  function attachTime(canvasId) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = { x: M.l, y: M.t, w: r.width - M.l - M.r, h: r.height - M.t - M.b };
+      S.ts = clamp(tY(R, ev.clientY - r.top), TV0, TV1);
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  attachSection('cMap', (w, h) => ({ x: M.l, y: M.t, w: w - M.l - M.r - 78, h: h - M.t - 56 }));
+  ['c1a', 'c2a', 'c4a', 'c5a'].forEach(attachTime);
+  attachSection('c2b', (w, h, x) => {
+    const Q = panels(w, h - 16, 2, 18);
+    return (x !== undefined && x > Q[1].x - 9) ? Q[1] : Q[0];
+  });
+
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawAll, 140); });
+
+  /* The truth panel needs its own fixed scale, for the same reason the
+     attribute does: it is a different quantity, and its size must not move
+     when a slider does. */
+  let HBNORM = 1;
+
+  recompute();
+  setRNorm();
+  (function () {
+    let p = 0;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) p = Math.max(p, Math.abs(CUR.halfBand[i]));
+    HBNORM = p || 1;
+  })();
+  buildStepNav();
+  showTab(PANES.indexOf(S.tab) >= 0 ? S.tab : 'p1');
+  document.fonts && document.fonts.ready.then(drawAll);
+
+  // exposed for the headless harness only
+  window.__MOD = {
+    state: () => S, cur: () => CUR, field: () => FIELD, rai: () => RAI,
+    match: matchNumbers, shift: shiftNumbers, trend: trendNumbers, drift: driftNumbers,
+    set: (k, v) => { S[k] = v; recompute(); },
+    T: T, LOCALT: LOCALT, traceAt: traceAt, tShift: tShift, DT: DT, NT: NT, NX: NX,
+    iOf: iOf, tOf: tOf, showTab: showTab, drawAll: drawAll,
+    impedanceAt: impedanceAt, boundariesAt: boundariesAt, zbg: zbg,
+    rnorm: () => RNORM,
+  };
+})();
+</script>
+</body>
+</html>

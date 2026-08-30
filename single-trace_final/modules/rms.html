@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMS amplitude | How Single-Trace Attributes Actually Work</title>
+<meta name="description" content="RMS amplitude for beginners: what a running window measures, why the window length is the attribute, how bright events smear, and why an RMS map of a quiet zone is a map of your noise.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <a class="brand" href="../index.html"><span class="dot"></span>How single-trace attributes <b>actually</b> work</a>
+    <nav>
+      <a href="../index.html">All modules</a>
+      <a href="instantaneous.html">Module 01</a>
+      <a href="#notes">Method &amp; references</a>
+    </nav>
+  </header>
+
+  <div class="mod-head">
+    <p class="eyebrow">Module 03 &nbsp;·&nbsp; Single-trace attributes</p>
+    <h1>RMS amplitude: how loud is it around here</h1>
+    <p class="sub">Modules 01 and 02 asked questions about a single instant. This one asks about a stretch
+      of time. Slide a window down the trace, and at every sample report the average size of what is inside
+      it. The arithmetic takes one line. The window length takes judgement, and it turns out to matter more
+      than almost anything in the geology.</p>
+  </div>
+
+  <div class="labhead">
+    <div class="labgrid">
+      <div>
+        <p class="cap">The seismic line <span>&mdash; click it to pick a trace and a time</span></p>
+        <canvas id="cMap" aria-label="Vertical seismic section, with the selected trace and time marked"></canvas>
+      </div>
+      <div>
+        <p class="cap">Change the data <span>&mdash; every panel updates as you drag</span></p>
+        <div class="controls" id="winControls">
+          <div class="ctl-col">
+            <h2>The window</h2>
+            <div class="ctl">
+              <label for="win">Window half-length <span class="val" id="winV">&plusmn;20 ms</span></label>
+              <input type="range" data-key="win" id="win" min="4" max="80" step="2" value="20">
+            </div>
+            <div class="ctl">
+              <label for="noise">Random noise <span class="val" id="noiseV">none</span></label>
+              <input type="range" data-key="noise" id="noise" min="0" max="40" step="2" value="0">
+            </div>
+          </div>
+          <div class="ctl-col">
+            <h2>The data</h2>
+            <div class="ctl">
+              <label for="decay">Amplitude decay <span class="val" id="decayV">8 dB/s</span></label>
+              <input type="range" data-key="decay" id="decay" min="0" max="24" step="2" value="8">
+            </div>
+            <div class="ctl">
+              <label for="freq">Dominant frequency <span class="val" id="freqV">25 Hz</span></label>
+              <input type="range" data-key="freq" id="freq" min="12" max="45" step="1" value="25">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
+    Method and references are there when you want them.</p>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
+    <button role="tab" data-tab="p1" aria-selected="false">1 · The window</button>
+    <button role="tab" data-tab="p2" aria-selected="false">2 · Length</button>
+    <button role="tab" data-tab="p3" aria-selected="false">3 · Sections</button>
+    <button role="tab" data-tab="p4" aria-selected="false">4 · Smearing</button>
+    <button role="tab" data-tab="p5" aria-selected="false">5 · Noise</button>
+    <button role="tab" data-tab="p6" aria-selected="false">6 · Map view</button>
+    <button role="tab" data-tab="pw" aria-selected="false">Why it matters</button>
+    <span class="gap"></span>
+    <button role="tab" data-tab="pe" aria-selected="false">Exercises</button>
+    <button role="tab" data-tab="pk" aria-selected="false">Key points</button>
+    <button role="tab" data-tab="pm" aria-selected="false">Method</button>
+  </nav>
+
+  <!-- =============================== STEP 1 =============================== -->
+  <section class="tabpane" id="p1" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">1</span>A window, slid down the trace</h3>
+      <span class="hint">Square, average, square root</span>
+    </div>
+    <p class="lede">Put a box around the cursor. Take every sample inside it, square each one, average the
+      squares, and take the square root of the answer. That number is the <b>RMS amplitude</b> at the
+      cursor. Move the box down one sample and do it again:</p>
+    <p class="lede" style="text-align:center"><span class="k">RMS = &radic;( average of d&sup2; inside the
+      window )</span></p>
+    <p class="lede">The squaring is doing two jobs. It makes everything positive, so a trough counts as
+      much as a peak and the answer never cancels itself out. And it weights the big samples much more
+      heavily than the small ones, so RMS is really a measure of <b>energy</b>, not of average size.</p>
+    <p class="lede">The shaded box on the left panel is the window at the cursor. Drag the cursor, or the
+      half-length slider in the header, and watch the box and the number change together.</p>
+
+    <canvas id="c1a" aria-label="The trace with the analysis window drawn on it, and the RMS curve beside it"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>Window</span><b id="s1w">—</b></div>
+      <div class="stat"><span>Samples inside it</span><b id="s1n">—</b></div>
+      <div class="stat key"><span>RMS at the cursor</span><b id="s1r">—</b></div>
+      <div class="stat"><span>Largest sample in the window</span><b id="s1m">—</b></div>
+      <div class="stat"><span>Trace value at the cursor</span><b id="s1u">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Compare the last two numbers. RMS is always smaller than the largest sample in the window and
+        always bigger than zero, no matter where the cursor sits. It cannot be negative, it has no phase
+        and it has no polarity: a peak and a trough of the same size give exactly the same answer. That is
+        useful when you want to know how much is happening, and useless when you want to know what.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 2 =============================== -->
+  <section class="tabpane" id="p2" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">2</span>The window length is the attribute</h3>
+      <span class="hint">Same trace, three different answers</span>
+    </div>
+    <p class="lede">Nothing about the data changes between the three curves below. Only the length of the
+      box does, and the three answers are not versions of one measurement &mdash; they are measurements of
+      different things.</p>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>A short window</b>, a fraction of a wavelet, tracks each event individually. It rises and
+        falls with the wiggle and looks a great deal like the envelope from module 01. That is not a
+        coincidence: for a single event the two are the same shape, and the RMS reads about
+        <b id="s2k">—</b> of the envelope, because a sine wave's RMS is its peak over &radic;2.</li>
+      <li><b>A window of a few wavelets</b> stops resolving events and starts measuring packages. This is
+        the setting most interval attribute maps are made with.</li>
+      <li><b>A long window</b> flattens the whole trace into a slow trend. Useful for gain and for
+        comparing one part of a survey against another, useless for anything stratigraphic.</li>
+    </ul>
+    <p class="lede">There is no correct choice here, only a choice that matches your question. What is not
+      allowed is picking one and forgetting you picked it, because the map you produce is a map of your
+      window as much as of the rock.</p>
+
+    <canvas id="c2a" aria-label="The trace with its envelope, and RMS computed at three window lengths"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>Short window</span><b id="s2a">—</b></div>
+      <div class="stat"><span>Medium, the header setting</span><b id="s2b">—</b></div>
+      <div class="stat"><span>Long window</span><b id="s2c">—</b></div>
+      <div class="stat key"><span>Short-window RMS vs the envelope</span><b id="s2d">—</b></div>
+      <div class="stat key"><span>Their shapes, correlated</span><b id="s2e">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The last two readouts are the connection back to module 01. A short-window RMS is a clumsier,
+        cheaper envelope: the same shape, correlated above 0.9, scaled by roughly 1/&radic;2 and blunter at
+        the peaks. If you have both attributes in a volume and cannot see why they look so alike, this is
+        why. It also means running both and calling them independent evidence is a mistake.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 3 =============================== -->
+  <section class="tabpane" id="p3" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">3</span>What it looks like on a section</h3>
+      <span class="hint">Where RMS is genuinely easier to read</span>
+    </div>
+    <p class="lede">On the amplitude section you are looking at lines, and your eye has to judge how bright
+      each one is against the ones around it. On the RMS section you are looking at zones. The gas sand on
+      the right becomes a blob you can outline with a pencil, which is exactly the job most people are
+      doing when they reach for this attribute.</p>
+    <p class="lede">In real work this is usually run between two horizons rather than over a fixed window,
+      producing one number per trace and a map rather than a section. The arithmetic is the same; the
+      window is just cut to follow the geology instead of the clock.</p>
+    <p class="lede">Look carefully at the vertical size of the bright zone in each display, though. On the
+      amplitude section the sand response is <b id="s3a">—</b> tall. On the RMS section the same feature is
+      <b id="s3b">—</b> tall. Nothing grew. The window did that, and step 4 is about how.</p>
+
+    <div class="sec-row" id="row3">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> Amplitude and RMS
+          <span class="note">the same line, displayed twice</span></p>
+        <canvas id="c3a" aria-label="Amplitude section beside an RMS amplitude section"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> The selected trace
+          <span class="note">both curves, lined up with the sections</span></p>
+        <canvas id="c3b" aria-label="The trace and its RMS, plotted against time"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat key"><span>Gas sand, peak RMS</span><b id="s3c">—</b></div>
+      <div class="stat key"><span>Brine sand, peak RMS</span><b id="s3d">—</b></div>
+      <div class="stat"><span>Ratio between them</span><b id="s3e">—</b></div>
+      <div class="stat"><span>Same ratio on the raw amplitude</span><b id="s3f">—</b></div>
+      <div class="stat"><span>Window</span><b id="s3g">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The two ratios are close but not equal, and which is larger depends on the window. RMS is an energy average over a stretch of time, so it rewards a feature that is bright <em>and</em> long over one that is brighter but brief. It is not a neutral summary of amplitude. A thin, very bright
+        bed can lose to a thicker, duller one.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 4 =============================== -->
+  <section class="tabpane" id="p4" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">4</span>Bright events smear</h3>
+      <span class="hint">The anomaly is taller than the thing that made it</span>
+    </div>
+    <p class="lede">A window centered anywhere within half a window-length of a bright event still
+      contains that event, so it still reports a high value. The consequence is unavoidable: <b>an RMS
+      anomaly is taller than the feature that made it, and it grows with the window</b>. The sand here is
+      50 ms thick and never changes. Measured where the anomaly falls to half its peak, it comes out
+      24 ms tall at &plusmn;4 ms, 106 ms at &plusmn;20, and 540 ms at &plusmn;80 &mdash; ten times the
+      sand, from a window four times longer than the sand itself.</p>
+    <p class="lede">The panel below reads the RMS at a fixed time <b id="s4t">—</b> above the top of the gas
+      sand, where there is no sand and nothing bright at all. Watch that number as you change the window
+      length in the header.</p>
+
+    <canvas id="c4a" aria-label="RMS at three window lengths around the gas sand, showing the smear"></canvas>
+
+
+    <p class="lede">This is also why an interval RMS map straddling a strong reflector is so often
+      disappointing. If the window catches the same bright event everywhere, the map is flat, and the flat
+      map is the window talking rather than the geology.</p>
+    <div class="stats">
+      <div class="stat"><span>Window</span><b id="s4w">—</b></div>
+      <div class="stat key"><span>RMS above the sand, current window</span><b id="s4a">—</b></div>
+      <div class="stat"><span>Same place, &plusmn;8 ms window</span><b id="s4b">—</b></div>
+      <div class="stat"><span>Same place, &plusmn;60 ms window</span><b id="s4c">—</b></div>
+      <div class="stat key"><span>Height of the RMS anomaly</span><b id="s4d">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>The last readout measures how tall the RMS anomaly around the sand is, taken where it falls
+        to half its peak. Compare it against the sand, which is 50 ms thick whatever the slider says. The
+        growth is not a simple sum &mdash; at a long window the value never falls back far enough to
+        register an edge at all, so the anomaly runs away &mdash; but the direction is reliable, and the
+        useful habit is this: whatever you are looking at on an RMS display is taller than the thing that
+        made it, and you cannot tell by how much unless you know the window.</span>
+    </div>
+  </section>
+
+  <!-- =============================== STEP 5 =============================== -->
+  <section class="tabpane" id="p5" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">5</span>RMS never reaches zero</h3>
+      <span class="hint">In a quiet zone you are measuring your own noise</span>
+    </div>
+    <p class="lede">Squaring makes everything positive, so nothing in the window can cancel anything else
+      out. Signal and noise both contribute, and they combine the way the sides of a right triangle do:</p>
+    <p class="lede" style="text-align:center"><span class="k">RMS&sup2; = signal&sup2; + noise&sup2;</span></p>
+    <p class="lede">Two things follow. In a loud zone the noise is almost invisible, because adding a small
+      number in quadrature to a large one changes it very little. In a quiet zone there is nothing else, so
+      <b>the RMS value is your noise level and nothing more</b>. The attribute cannot tell you it has run
+      out of signal. It just keeps returning a positive number.</p>
+    <p class="lede">The readouts below check the arithmetic live, on the quiet stretch of this trace.
+      The model is computed twice, once with the noise and once without, so the signal and the noise can be
+      measured separately and then compared against what the triangle predicts. Turn the noise slider up
+      and watch the prediction track the measurement.</p>
+
+    <canvas id="c5a" aria-label="The trace and its RMS with the quiet window marked, showing the noise floor"></canvas>
+
+    <div class="stats">
+      <div class="stat"><span>Quiet window, centered at</span><b id="s5t">—</b></div>
+      <div class="stat"><span>Signal there, noise removed</span><b id="s5s">—</b></div>
+      <div class="stat"><span>Noise there, on its own</span><b id="s5n">—</b></div>
+      <div class="stat key"><span>Measured RMS</span><b id="s5m">—</b></div>
+      <div class="stat key"><span>Predicted from the triangle</span><b id="s5p">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>This is the reason RMS values cannot be compared between two surveys, or between two vintages
+        of the same survey, without knowing what the noise is doing in each. A quiet area that looks less
+        prospective may simply have been shot better. It is also why an RMS map made below the deepest good
+        data will look perfectly convincing and mean nothing at all.</span>
+    </div>
+  </section>
+
+
+  <!-- =============================== STEP 6 =============================== -->
+  <section class="tabpane" id="p6" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">6</span>Where this attribute actually gets used</h3>
+      <span class="hint">One line is not a survey</span>
+    </div>
+    <p class="lede">Everything so far has been a section, because that is how you learn what an attribute
+      does. It is not how anyone uses this one. An RMS amplitude is nearly always extracted in a window
+      that follows a horizon, one number per trace, and displayed as a <b>map</b>. That is the deliverable,
+      and it changes what you can see.</p>
+    <p class="lede">The line you have been working on is one crossline out of a small volume. Below on the
+      left is a map of RMS amplitude in a window below the top of the sand. On the right is a section
+      through the volume at whichever crossline you choose, with the extraction window drawn on it.</p>
+    <p class="lede">Set the window top to about 80 ms and its length to 40 ms, and a <b>channel</b> appears.
+      It has been in the data the whole time. It is <b id="s6a">—</b> crosslines away from the line every
+      other step in this module has been showing, so no section you have looked at has come anywhere near
+      it. That is the case for map view in one picture: a section tells you about a line, and geology is
+      not arranged in lines.</p>
+
+    <div class="controls" style="max-width:none;margin-bottom:16px">
+      <div class="ctl-col">
+        <div class="ctl">
+          <label for="mtop">Window starts below the horizon <span class="val" id="mtopV">0 ms</span></label>
+          <input type="range" data-key="mtop" id="mtop" min="0" max="150" step="5" value="0">
+        </div>
+        <div class="ctl">
+          <label for="mlen">Window length <span class="val" id="mlenV">60 ms</span></label>
+          <input type="range" data-key="mlen" id="mlen" min="10" max="120" step="5" value="60">
+        </div>
+      </div>
+      <div class="ctl-col">
+        <div class="ctl">
+          <label for="my">Crossline shown on the section <span class="val" id="myV">12</span></label>
+          <input type="range" data-key="my" id="my" min="0" max="47" step="1" value="12">
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-row" id="row6">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> The map
+          <span class="note">RMS in the window, one value per trace</span></p>
+        <canvas id="c6a" aria-label="Map of RMS amplitude extracted in a window below the horizon"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> A section through the volume
+          <span class="note">move the crossline and go find it</span></p>
+        <canvas id="c6b" aria-label="Section at the selected crossline, with the extraction window marked"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Window</span><b id="s6b">—</b></div>
+      <div class="stat key"><span>On the channel</span><b id="s6c">—</b></div>
+      <div class="stat key"><span>Beside it</span><b id="s6d">—</b></div>
+      <div class="stat"><span>Contrast</span><b id="s6e">—</b></div>
+      <div class="stat"><span>Closest the channel comes to the line above</span><b id="s6f">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Move the window top back to 0 ms and the channel vanishes, replaced by the sand. Both maps are
+        correct; they are maps of different intervals, and neither of them announces which. This is the
+        single most common way an amplitude map goes wrong &mdash; not bad arithmetic, but a window sitting
+        20 ms from where the interpreter thought it was. On a map with no section beside it there is
+        nothing to catch that.</span>
+    </div>
+  </section>
+
+  <!-- ============================ WHY IT MATTERS ========================== -->
+  <section class="tabpane" id="pw" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">?</span>Why this one is everywhere</h3>
+      <span class="hint">The most-used attribute in interpretation, and the most abused</span>
+    </div>
+    <p class="lede">If you only ever see one attribute map in your career it will be an RMS amplitude map.
+      It is on every system, it takes seconds, and the picture it makes is easy to explain to someone who
+      does not do this for a living. All of that is true, and none of it makes the map mean what people
+      usually take it to mean.</p>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      What it is used for</h2>
+    <ul class="lede" style="padding-left:20px">
+      <li><b>Interval amplitude maps.</b> A window between two horizons, one number per trace, contoured.
+        The standard first-pass look at where a reservoir interval is bright.</li>
+      <li><b>Direct hydrocarbon indicators.</b> Bright spots, flat spots and gas-charged sands, screened
+        quickly before anything more careful.</li>
+      <li><b>Stratigraphic shapes.</b> Channels, fans and bars often show as coherent bright zones in an
+        interval, and the map reads as a picture of the depositional system.</li>
+      <li><b>Quality control.</b> An RMS section is a fast way to see gain problems, acquisition footprint &mdash; a pattern left in the data by the shape of the survey rather than by the geology &mdash; and where the data stops being usable with depth.</li>
+      <li><b>As the divisor in AGC</b>, which is the whole of module 04.</li>
+    </ul>
+
+    <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
+      The four ways it will mislead you</h2>
+    <p class="lede"><b>The window is an interpretation.</b> Not a setting, not a default. A short window
+      maps events and a long one maps packages, and the same data honestly gives both. Whatever you chose
+      has to travel with the map, because nothing in the picture says what it was.</p>
+    <p class="lede"><b>Everything is taller than it looks.</b> A 50 ms sand produces an anomaly of 106 ms
+      at a &plusmn;20 ms window and 540 ms at &plusmn;80 ms, without changing at all. Two thin beds closer
+      together than the window merge into one, and no amount of looking at the display will separate
+      them.</p>
+    <p class="lede"><b>It has no floor and no polarity.</b> RMS in an empty zone returns your noise level,
+      and it cannot distinguish a hard bed from a soft one. A bright RMS anomaly says something is
+      happening, not what.</p>
+    <p class="lede"><b>It is only as good as the amplitudes going in.</b> Any gain applied upstream changes
+      it everywhere. This is the trap module 04 is entirely about: RMS of AGC'd data is close to constant
+      by construction, because AGC is defined as dividing by exactly this number.</p>
+    <div class="legend prose">
+      <span>The habit worth building: before believing an amplitude map, find out the window length, the
+        processing vintage, and whether any gain was applied. If nobody can tell you all three, the map is
+        a picture rather than a measurement.</span>
+    </div>
+  </section>
+
+  <!-- ============================== EXERCISES ============================= -->
+  <section class="tabpane" id="pe" role="tabpanel" hidden>
+    <div class="tryit" style="max-width:none">
+      <h3>Exercises</h3>
+      <ol>
+        <li><b>Find the factor between RMS and the envelope.</b> In step 2, read the ratio and the
+          correlation between the short-window RMS and the envelope from module 01.
+          <details class="reveal"><summary>Hint</summary><span class="ans">On the default trace the short-window RMS is 0.689 of the envelope, with a
+            correlation of 0.957 between their shapes. The number to compare that against is 1/&radic;2 =
+            0.707, which is the ratio for a pure sine wave: RMS is the peak divided by root two. The
+            agreement is not exact because a seismic trace is not a sine wave and the window covers a bit
+            more than one cycle, and it drifts when you change the frequency &mdash; 0.727 at 40 Hz,
+            0.681 at 15 Hz, because the same 6 ms window covers a different fraction of a cycle each time.
+            The exact number matters less than what it means: a short-window RMS and an envelope are two calculations of nearly the same thing, so having both in a volume does not give you two pieces of evidence.</span></details></li>
+        <li><b>Measure the smear.</b> In step 4, read the RMS at the fixed point above the sand with the
+          window at &plusmn;8 ms, then at &plusmn;40 ms, then at &plusmn;80 ms.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The point being measured is 60 ms above the top of the sand, where the model has no reflector at all and the trace is nearly flat. At &plusmn;8 ms the RMS reads 0.005, which
+            is honest. At &plusmn;20 it reads 0.026. At &plusmn;40, 0.104. At &plusmn;60, 0.178. At
+            &plusmn;80, 0.264. Nothing was ever there. Every one of those numbers is the sand leaking
+            upward into a window long enough to reach it, and on a map that leak is indistinguishable from
+            a real anomaly at that level. This is the mechanism behind almost every disappointing interval
+            amplitude map: the window caught something bright just outside the interval.</span></details></li>
+        <li><b>Grow an anomaly without touching the geology.</b> In step 4, watch the height of the RMS
+          anomaly around the sand as you take the window from &plusmn;4 to &plusmn;80 ms.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The sand stays 50 ms thick throughout, and the envelope anomaly stays 50 ms with it.
+            The RMS anomaly does not: 24 ms at &plusmn;4, 30 ms at &plusmn;8, 106 ms at &plusmn;20, 138 ms
+            at &plusmn;40, 328 ms at &plusmn;60 and 540 ms at &plusmn;80. At the short end it is narrower
+            than the sand, because a short window resolves the individual peaks and troughs inside the
+            event and the half-height crossing lands between them. At the long end it runs away, because
+            the RMS never falls far enough between features to register an edge at all. Neither extreme
+            is measuring the sand. Somewhere in the middle the number is useful, and nothing in the
+            display tells you where that is.</span></details></li>
+        <li><b>Watch the noise floor appear.</b> In step 5, put the noise at 0, then 20%, then 40%, reading
+          the measured RMS and the prediction each time.
+          <details class="reveal"><summary>Hint</summary><span class="ans">In the quiet window at 828 ms the signal on its own reads 0.0088 and never changes.
+            The noise reads 0.0000, 0.0100, 0.0200, 0.0300, 0.0400 as you turn the slider. The measured RMS
+            goes 0.0088, 0.0139, 0.0225, 0.0320, 0.0417, and the triangle predicts 0.0088, 0.0133, 0.0219,
+            0.0313, 0.0409 &mdash; within about 3% every time, the residual being the cross term between
+            signal and noise that only vanishes over an infinitely long window. Two things to take away.
+            The attribute is measuring the noise almost entirely by 20%, and it looks exactly as
+            respectable doing that as it does over the sand. And the value it reports can be pushed
+            anywhere you like by reprocessing, without a single rock moving.</span></details></li>
+        <li><b>Separate two sands that are not separate.</b> In step 3, compare the gas and brine ratios on
+          RMS and on raw amplitude, at a short window and a long one.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The raw amplitude ratio between the gas sand and the brine sand is &times;3.3 at every
+            window, because the window has nothing to do with it. The RMS ratio is &times;3.6 at
+            &plusmn;4 ms, &times;3.9 at &plusmn;20, &times;3.8 at &plusmn;40 and &times;3.5 at
+            &plusmn;80. It peaks in the middle. A short window resolves the individual lobes and loses some
+            of the contrast between them; a long window dilutes the sand with the quiet rock above and
+            below it. Between those, the window is roughly the length of the feature and the contrast is
+            best. That is a real and useful effect, and it is also a warning: the number you report depends
+            on a setting you chose, so the ratio is not a property of the rocks.</span></details></li>
+        <li><b>Find something no section showed you.</b> In step 6, walk the extraction window down from
+          0 ms below the horizon to 110 ms, in 20 ms steps, watching the map and the contrast readout.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The contrast between the
+            channel and the rock beside it goes &times;0.8 at 0 to 60 ms, &times;1.3 at 40 to 80,
+            &times;2.7 at 60 to 100, &times;3.7 at 70 to 110, &times;4.5 at 80 to 120, and then back down
+            to &times;2.4 at 90 to 130. The channel is 78 ms below the horizon and 30 ms thick, so the best
+            window is the one sitting on it and the worst are the ones that are not. Look at the first
+            number: below &times;1, meaning the channel reads slightly <em>darker</em> than its
+            surroundings at that window. You are mapping the gas lobe there and the channel is not in the
+            picture at all. Two things follow. Every map you make is a map of an interval, and that
+            interval is a decision someone made. And a map that shows nothing may be a map of the wrong
+            40 milliseconds rather than a map of nothing, which is why the section beside it is not
+            optional.</span></details></li>
+        <li><b>One bright RMS map, four causes.</b> An interval RMS map shows a bright zone across part
+          of your survey. Name at least three things that could produce it, only one of which is a change
+          in the rock, and say how you would test each.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Genuinely higher reflection
+            coefficients &mdash; a gas sand, a hard streak, a change in lithology &mdash; is the answer
+            everyone reaches for. Tuning is the second: step 3 showed the gas and brine sands separated by
+            &times;3.9 on RMS but the wedge on this same line changes its envelope by a factor of nearly
+            five with the reflection coefficients held fixed, purely through interference. The third is
+            the window: step 4 showed a point with nothing in it reading 0.005 at &plusmn;8 ms and 0.264 at
+            &plusmn;80 ms, because a long window reaches a bright event 60 ms away. The fourth is
+            processing gain, which module 04 is about, and it can brighten a zone without anything in the
+            ground changing at all. Testing them: shorten the window and see whether the anomaly survives,
+            which separates the window effect from the rest. Look at the interval thickness, since a
+            tuning brightness tracks thickness and a fluid effect does not. Check the amplitude section
+            underneath the map, since a real contrast has a coherent event and a gain artifact often does
+            not. And find out what was done to the amplitudes before you got them.</span></details></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================= KEY POINTS ============================= -->
+  <section class="tabpane" id="pk" role="tabpanel" hidden>
+    <div class="takeaway" style="max-width:none">
+      <h3>The main points</h3>
+      <ul>
+        <li><b>RMS is an energy average over a window.</b> Square, average, square root. Always positive,
+          never zero, no polarity and no phase.</li>
+        <li><b>The window length decides what the attribute measures.</b> Short windows map events, long
+          windows map packages, and the same trace gives both honestly.</li>
+        <li><b>A short-window RMS is very nearly the envelope</b>, scaled by about 1/&radic;2. They are not
+          independent measurements of anything.</li>
+        <li><b>Every anomaly is at least a window taller than the feature that made it.</b> Bright events
+          smear into their neighborhood, and nearby beds merge.</li>
+        <li><b>In a quiet zone RMS reports your noise.</b> Signal and noise add in quadrature, so the
+          attribute has a floor it can never go below and never announces.</li>
+        <li><b>It inherits every gain decision made upstream.</b> Which makes it powerful, cheap, and the
+          easiest attribute in the set to misread.</li>
+        <li><b>It is a map attribute.</b> Sections teach you what it does; interval maps are what it is
+          for. A feature that no section happens to cross stays invisible until somebody makes one.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =============================== METHOD ============================== -->
+  <section class="tabpane" id="pm" role="tabpanel" hidden>
+    <details class="notes" id="notes" open>
+      <summary>Method, sources, and what has been simplified</summary>
+      <p><b>The data</b> is the same synthetic line as module 01, deliberately: the wedge, the gas sand and
+        its brine equivalent, the interbeds and the reflector that dims are all in the same places, so a
+        reader who has met them once does not have to meet a new section here. 96 traces of 500
+        samples at 2 ms, reflection coefficients convolved with a Ricker wavelet, an amplitude decay
+        in dB per second, and band-limited noise expressed as a percentage of the section's RMS. The one
+        difference from module 01 is the default decay, which is set higher here because gain with depth is
+        what makes this attribute and the next one worth having.</p>
+      <p><b>The attribute</b> is AASPI's <span class="k">rms_amplitude</span> as its documentation gives it:
+        a boxcar window of 2K+1 samples centered on each sample, squared, averaged, square-rooted. The
+        window is shortened rather than padded at the ends of the trace, so the first and last samples are
+        not biased toward zero. AASPI notes that a long window is better computed with an add-and-drop
+        running sum in double precision; this implementation is the plain form, which is slower and easier
+        to read, and gives the same answer on a trace this short.</p>
+      <p><b>A note on the name.</b> The AASPI documentation calls this quantity the standard deviation of
+        the data in the window, and then gives the formula for the root mean square, which does not remove
+        the mean. On seismic data the two agree closely, because a trace has almost no mean. They are not
+        the same quantity, and they separate as soon as anything puts a bias in the data. Both are
+        implemented in this site's shared library so the difference can be looked at rather than argued
+        about; the displays here use the RMS form, which is what the equation says and what the program
+        computes.</p>
+      <p><b>The noise-floor demonstration in step 5</b> computes the model twice, once with noise and once
+        without, and measures the signal and the noise separately in the same window. That is a luxury only
+        a synthetic allows, and it is the point: on real data you can never separate the two, which is
+        exactly why the floor is invisible. The quiet window is found by searching the noise-free trace for
+        the 60 ms window with the least energy in it, so it moves when the geology moves.</p>
+      <p><b>The volume, for step 6.</b> The first five steps use one line. Step 6 needs a map, so the
+        model is extended to 48 crosslines &mdash; and extended so that crossline 12 is exactly the line
+        the other steps show. The cross-dip is zero there and the channel never comes closer than six
+        crosslines, so nothing measured in steps 1 to 5 changes; the harness checks that the volume and the
+        line agree sample for sample. The channel is a soft, meandering fill about 30 ms thick sitting
+        78 ms below the top of the sand. The horizon used for the extraction is the top of the sand taken
+        straight from the model rather than picked, so it carries no picking error &mdash; on real data a
+        horizon wanders a few milliseconds and the window wanders with it, which is one more reason a map
+        and a section belong side by side. To keep the volume quick to build, only the times a horizon
+        window can reach are computed, and the band-limited noise field is reused across crosslines with an
+        offset rather than generated independently for each.</p>
+      <p><b>Simplifications.</b> One dimension for the first five steps, normal incidence, acoustic, no
+        multiples and no transmission losses. The decay is applied as a gain function rather than modeled from spherical
+        divergence and absorption, so it is a stand-in for the real thing rather than a simulation of it.
+        AASPI runs on a 3D volume and can take its window between interpreted horizons, which is how most
+        interval amplitude maps are actually made; there are no horizons here, so the window is a fixed
+        length in time.</p>
+      <ul>
+        <li>Brown, A. R., 2011, <em>Interpretation of Three-Dimensional Seismic Data</em>, 7th edition: AAPG
+          Memoir 42 / SEG Investigations in Geophysics 9.</li>
+        <li>Chopra, S., and K. J. Marfurt, 2007, <em>Seismic Attributes for Prospect Identification and
+          Reservoir Characterization</em>: SEG Geophysical Development Series 11.</li>
+        <li>Barnes, A. E., 2016, <em>Handbook of Poststack Seismic Attributes</em>: SEG Geophysical
+          References Series 21.</li>
+        <li>AASPI, <em>Single Trace Attributes: Program rms_amplitude</em>, University of Oklahoma.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="nextup" id="nextup" hidden>
+    <p class="eyebrow">Next up</p>
+    <h3>04 · AGC</h3>
+    <p>Take the number you just computed and divide the trace by it. Every event becomes about equally
+      bright, the deep data becomes visible, and the amplitude interpretation you were about to do becomes
+      impossible.</p>
+    <a class="btn ghost" href="agc.html">Go to module 04 →</a>
+  </section>
+
+  <div class="pager" id="pager" hidden>
+    <a class="btn ghost" href="impedance.html">← Module 02: relative acoustic impedance</a>
+    <a class="btn ghost" href="agc.html">Module 04: AGC →</a>
+  </div>
+
+  <footer>
+    <div class="foot-grid">
+      <div style="flex:1 1 330px;max-width:46ch">
+        <p>Built for teaching by Heather Bedle, School of Geosciences, University of Oklahoma, with the
+          <a href="https://www.ou.edu/mcee/labs/aaspi">AASPI</a> consortium.</p>
+        <p class="lic">To cite: H. Bedle, <i>How Single-Trace Attributes Actually Work</i>, University of
+          Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
+      </div>
+      <div style="flex:1 1 330px;max-width:52ch">
+        <p class="lic" style="margin-top:0">Free to use for teaching, demonstration and non-commercial
+          study, with credit. Please do not republish or redistribute it, modified or otherwise, without
+          permission.</p>
+        <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
+          the page was opened, so that I can show the university these are being used &mdash; no cookie, no
+          account, nothing about you.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="../assets/count.js"></script>
+<script src="../assets/seismic.js"></script>
+<script src="../assets/trace.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  if (typeof SEIS === 'undefined') {
+    const el = document.createElement('div');
+    el.setAttribute('style', 'background:#841617;color:#fff;padding:14px 18px;margin:16px 0;' +
+      'font:13px/1.6 ui-monospace,Menlo,monospace');
+    el.textContent = 'This module could not load assets/seismic.js. It expects it one directory up, ' +
+      'at ../assets/, and file names are case-sensitive on GitHub Pages.';
+    const w = document.querySelector('.wrap');
+    (w || document.body).insertBefore(el, w ? w.firstChild : null);
+    return;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const visible = (id) => { const el = $(id); return el && !el.hidden; };
+  const CRIM = '#841617', TEAL = '#0B7285', SLATE = '#5C6670', INK = '#16191C';
+  const TWOPI = 2 * Math.PI;
+
+
+  /* =====================================================================
+     LOCAL FALLBACK FOR trace.js
+
+     Deliberately duplicated, so a module that is emailed around, or served
+     from a directory whose assets/ is a version behind, still draws. Anything
+     the shared library provides wins; the harness checks the two agree.
+     ===================================================================== */
+
+  const LOCALT = (function () {
+    function runningRMS(x, K) {
+      const n = x.length, out = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        let s = 0, c = 0;
+        for (let k = -K; k <= K; k++) {
+          const j = i + k;
+          if (j < 0 || j >= n) continue;
+          s += x[j] * x[j]; c++;
+        }
+        out[i] = c ? Math.sqrt(s / c) : 0;
+      }
+      return out;
+    }
+    function runningStd(x, K) {
+      const n = x.length, out = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        let s = 0, s2 = 0, c = 0;
+        for (let k = -K; k <= K; k++) {
+          const j = i + k;
+          if (j < 0 || j >= n) continue;
+          s += x[j]; s2 += x[j] * x[j]; c++;
+        }
+        if (!c) { out[i] = 0; continue; }
+        const m = s / c;
+        out[i] = Math.sqrt(Math.max(0, s2 / c - m * m));
+      }
+      return out;
+    }
+    function agc(x, K, floorFrac) {
+      const rms = runningRMS(x, K);
+      const n = x.length;
+      let mx = 0;
+      for (let i = 0; i < n; i++) mx = Math.max(mx, rms[i]);
+      const floor = (floorFrac === undefined ? 0.02 : floorFrac) * mx;
+      const out = new Float32Array(n);
+      let floored = 0;
+      for (let i = 0; i < n; i++) {
+        const d = rms[i];
+        if (d < floor) floored++;
+        out[i] = x[i] / Math.max(d, floor || 1e-30);
+      }
+      return { out: out, rms: rms, floored: floored, floor: floor };
+    }
+    function envelope(u, uh) {
+      const n = u.length, o = new Float32Array(n);
+      for (let i = 0; i < n; i++) o[i] = Math.sqrt(u[i] * u[i] + uh[i] * uh[i]);
+      return o;
+    }
+    function hilbert(x) { return SEIS.hilbert(x); }
+    function correlation(a, b, i0, i1) {
+      let sa = 0, sb = 0, n = 0;
+      for (let i = i0; i <= i1; i++) { sa += a[i]; sb += b[i]; n++; }
+      const ma = sa / n, mb = sb / n;
+      let num = 0, va = 0, vb = 0;
+      for (let i = i0; i <= i1; i++) {
+        const da = a[i] - ma, db = b[i] - mb;
+        num += da * db; va += da * da; vb += db * db;
+      }
+      return (va > 0 && vb > 0) ? num / Math.sqrt(va * vb) : 0;
+    }
+    return { runningRMS, runningStd, agc, envelope, hilbert, correlation };
+  })();
+
+  const T = (function () {
+    const out = Object.assign({}, LOCALT);
+    const shared = (typeof TRACE !== 'undefined') ? TRACE : null;
+    if (shared) for (const k in shared) if (typeof shared[k] === 'function') out[k] = shared[k];
+    return out;
+  })();
+
+  /* =====================================================================
+     THE EARTH
+
+     Reflection coefficients on a low-relief anticline, convolved with a
+     Ricker wavelet. Everything the module says about the data has to be
+     true of this model, so the features are deliberate:
+
+       0.140  a strong isolated marker             (a clean single event)
+       0.232  a weaker trough
+       0.330  a wedge, 40 ms thinning to 2 ms      (interference, tuning)
+       0.470  a gas sand, brine-filled along strike(bright and low frequency)
+       0.600  seven weak interbeds                 (low envelope)
+       0.770  a reflector that dims laterally      (the phase argument)
+       0.885  a deep marker
+     ===================================================================== */
+
+  const NX = 96, NT = 500, DT = 0.002;
+  const TV0 = 0.08, TV1 = 0.96;               // the time window every panel draws
+  const GASF = 0.62;                          // gas window wavelet, as a fraction of f
+  const WEDGE = 0.330, SANDT = 0.470, SANDB = 0.520, DIMT = 0.770, MARK = 0.140;
+  const GASTRACE = 66, BRINETRACE = 20, DIMTRACE = 62, BRIGHTTRACE = 8;
+
+  const step3 = (x) => { const u = clamp(x, 0, 1); return u * u * (3 - 2 * u); };
+  const tShift = (ix) => -0.028 * Math.exp(-0.5 * Math.pow((ix - 30) / 13, 2))
+    + 0.016 * Math.exp(-0.5 * Math.pow((ix - 70) / 12, 2))
+    + 0.00022 * (ix - 48);
+  const wedgeGap = (ix) => 0.040 - 0.038 * clamp((ix - 8) / 80, 0, 1);
+  const gasWin = (ix) => Math.min(step3((ix - 46) / 8), 1 - step3((ix - 82) / 8));
+  const dimFac = (ix) => 1 - 0.90 * Math.exp(-0.5 * Math.pow((ix - DIMTRACE) / 13, 2));
+
+  function spikesFor(ix) {
+    const s = tShift(ix), g = clamp(gasWin(ix), 0, 1);
+    const norm = [], atten = [];
+    // a spike above the gas goes through the normal wavelet; below the gas it
+    // is split, the part under the gas window losing its high frequencies and
+    // some amplitude on the way through
+    const below = (t, r) => {
+      norm.push({ t: t, r: r * (1 - g) });
+      atten.push({ t: t, r: r * g * 0.72 });
+    };
+    norm.push({ t: MARK + s, r: 0.130 });
+    norm.push({ t: 0.232 + s, r: -0.075 });
+    norm.push({ t: WEDGE + s, r: 0.085 });
+    norm.push({ t: WEDGE + wedgeGap(ix) + s, r: -0.085 });
+    // the sand: soft, so the top is a negative reflection coefficient
+    atten.push({ t: SANDT + s, r: -0.115 * g });
+    atten.push({ t: SANDB + s, r: 0.115 * g });
+    norm.push({ t: SANDT + s, r: -0.035 * (1 - g) });
+    norm.push({ t: SANDB + s, r: 0.035 * (1 - g) });
+    for (let k = 0; k < 7; k++) below(0.600 + 0.015 * k + s, (k % 2 ? -1 : 1) * 0.022);
+    below(DIMT + s, 0.095 * dimFac(ix));
+    below(0.885 + s, -0.075);
+    return { norm: norm, atten: atten };
+  }
+
+  function wavelets(freq, phase) {
+    let w = SEIS.makeWavelet({ f: freq });
+    let wl = SEIS.makeWavelet({ f: Math.max(6, freq * GASF) });
+    if (phase) { w = SEIS.phaseRotate(w, phase); wl = SEIS.phaseRotate(wl, phase); }
+    return { w: w, wl: wl };
+  }
+
+  function rawSection(freq, phase) {
+    const W = wavelets(freq, phase);
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikesFor(ix);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) f[ix * NT + it] = a[it] + b[it];
+    }
+    return f;
+  }
+
+  /* One fixed normalization constant, taken once from the default settings.
+     Normalizing by the current peak instead would rescale the display every
+     time a slider moved, which is the quickest way to hide the effect the
+     slider is meant to demonstrate. */
+  const NORM = (function () {
+    const f = rawSection(25, 0);
+    let p = 0;
+    for (let i = 0; i < f.length; i++) p = Math.max(p, Math.abs(f[i]));
+    return p || 1;
+  })();
+
+  /* =====================================================================
+     STATE
+     ===================================================================== */
+
+  /* NX, NT, DT, TV0, TV1, SANDT, SANDB, GASTRACE and BRINETRACE all come from
+     the earth block above, which is shared verbatim with modules 01 and 04. */
+  const SHORTMS = 6, LONGMS = 70;              // the two fixed comparison windows
+  const ABOVEMS = 60;                          // how far above the sand step 4 probes
+
+  const DEF = {
+    win: 20, decay: 8, freq: 25, noise: 0,
+    mtop: 0, mlen: 60, my: 12,
+    tr: GASTRACE, ts: 0.500, tab: 'p1',
+  };
+  let S = SEIS.readState(DEF);
+  S.tr = clamp(Math.round(S.tr), 0, NX - 1);
+  S.ts = clamp(S.ts, TV0, TV1);
+
+  const CAN_LINK = location.protocol !== 'file:';
+  const saveState = () => {
+    if (!CAN_LINK) return;
+    try { SEIS.writeState(S, DEF); } catch (e) { /* nothing shareable */ }
+  };
+
+  let FIELD = null;        // the section, with noise
+  let CLEAN = null;        // the same section without it, for step 5
+  let RMSF = null;         // RMS of the section at the current window
+  let CUR = null;          // everything about the selected trace
+  let NOISE = { f: -1, field: null };
+
+  function noiseField(freq) {
+    if (NOISE.f !== freq) {
+      NOISE.f = freq;
+      NOISE.field = SEIS.bandLimitedNoise(NX, NT, DT, SEIS.makeWavelet({ f: freq }), 7, 3);
+    }
+    return NOISE.field;
+  }
+
+  function recompute() {
+    const raw = rawSection(S.freq, 0);
+    const c = new Float32Array(NX * NT);
+    let s2 = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) {
+        const g = Math.pow(10, -S.decay * (it * DT) / 20);
+        const v = raw[ix * NT + it] * g / NORM;
+        c[ix * NT + it] = v;
+        s2 += v * v;
+      }
+    }
+    CLEAN = c;
+    const f = Float32Array.from(c);
+    if (S.noise > 0) {
+      const rms = Math.sqrt(s2 / (NX * NT)) || 1;
+      const nf = noiseField(S.freq);
+      const amp = (S.noise / 100) * rms;
+      for (let i = 0; i < f.length; i++) f[i] += amp * nf[i];
+    }
+    FIELD = f;
+
+    const K = kOf(S.win);
+    RMSF = new Float32Array(NX * NT);
+    const u = new Float32Array(NT);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < NT; it++) u[it] = f[ix * NT + it];
+      const r = T.runningRMS(u, K);
+      for (let it = 0; it < NT; it++) RMSF[ix * NT + it] = r[it];
+    }
+    computeTrace();
+  }
+
+  function traceAt(ix, arr) {
+    const u = new Float32Array(NT);
+    for (let it = 0; it < NT; it++) u[it] = arr[ix * NT + it];
+    return u;
+  }
+
+  function computeTrace() {
+    const ix = S.tr;
+    const u = traceAt(ix, FIELD);
+    const clean = traceAt(ix, CLEAN);
+    const noiseOnly = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) noiseOnly[i] = u[i] - clean[i];
+    CUR = {
+      ix: ix, u: u, clean: clean, noiseOnly: noiseOnly,
+      rms: T.runningRMS(u, kOf(S.win)),
+      rmsShort: T.runningRMS(u, kOf(SHORTMS)),
+      rmsLong: T.runningRMS(u, kOf(LONGMS)),
+      rms8: T.runningRMS(u, kOf(8)),
+      rms60: T.runningRMS(u, kOf(60)),
+      env: T.envelope(u, T.hilbert(u)),
+    };
+  }
+
+  /* =====================================================================
+     MEASUREMENT, the parts particular to this module
+     ===================================================================== */
+
+  /** Where the sand sits on a given trace, and what it does there. */
+  function sandWindow(ix) {
+    const s = tShift(ix);
+    return [SANDT + s - 0.010, SANDB + s + 0.010];
+  }
+
+  function sandRMS(ix) {
+    const w = sandWindow(ix);
+    const u = traceAt(ix, FIELD);
+    const r = T.runningRMS(u, kOf(S.win));
+    return { rms: r[argMaxIn(r, w[0], w[1])], amp: maxAbsIn(u, w[0], w[1]) };
+  }
+
+  /** A fixed point above the sand, where there is nothing at all. */
+  function aboveSand() {
+    const t = SANDT + tShift(S.tr) - ABOVEMS / 1000;
+    return { t: t, i: iOf(t) };
+  }
+
+  /** How tall an anomaly around the sand is, taken where it falls to half its
+      peak. The same rule is applied to the envelope and to the RMS so the two
+      heights can be compared without arguing about the criterion. */
+  function anomalyHeight(arr) {
+    const a0 = arr || CUR.rms;
+    const s = tShift(S.tr);
+    const pk = argMaxIn(a0, SANDT + s - 0.02, SANDB + s + 0.02);
+    const half = a0[pk] / 2;
+    let a = pk, b = pk;
+    while (a > iOf(TV0) && a0[a] > half) a--;
+    while (b < iOf(TV1) && a0[b] > half) b++;
+    return { top: tOf(a), base: tOf(b), h: tOf(b) - tOf(a), peak: a0[pk], at: tOf(pk) };
+  }
+
+  /** The quietest 60 ms of the noise-free trace: where the floor shows. */
+  function quietWindow() {
+    const half = 0.030;
+    let bi = iOf(TV0 + half), bv = Infinity;
+    for (let i = iOf(TV0 + half); i <= iOf(TV1 - half); i++) {
+      const v = rmsIn(CUR.clean, tOf(i) - half, tOf(i) + half);
+      if (v < bv) { bv = v; bi = i; }
+    }
+    const t = tOf(bi);
+    const sig = rmsIn(CUR.clean, t - half, t + half);
+    const noi = rmsIn(CUR.noiseOnly, t - half, t + half);
+    const meas = rmsIn(CUR.u, t - half, t + half);
+    return { t: t, sig: sig, noi: noi, meas: meas, pred: Math.sqrt(sig * sig + noi * noi) };
+  }
+
+  /** Step 2: the envelope against a short-window RMS. */
+  function envelopeCompare() {
+    const i0 = iOf(TV0 + 0.03), i1 = iOf(TV1 - 0.03);
+    let sa = 0, sb = 0;
+    for (let i = i0; i <= i1; i++) { sa += CUR.rmsShort[i]; sb += CUR.env[i]; }
+    return {
+      ratio: sb > 0 ? sa / sb : 0,
+      corr: T.correlation(CUR.rmsShort, CUR.env, i0, i1),
+    };
+  }
+
+  /* =====================================================================
+     DRAWING, the panels particular to this module
+     ===================================================================== */
+
+  const ALO = -1.15, AHI = 1.15;               // fixed amplitude axis
+  const RHI = 0.85;                            // fixed RMS axis
+
+  function windowBand(ctx, R, t0, t1, color) {
+    const y0 = yT(R, clamp(t0, TV0, TV1)), y1 = yT(R, clamp(t1, TV0, TV1));
+    ctx.save();
+    ctx.fillStyle = color || 'rgba(11,114,133,.12)';
+    ctx.fillRect(R.x, Math.min(y0, y1), R.w, Math.abs(y1 - y0));
+    ctx.strokeStyle = 'rgba(11,114,133,.55)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(R.x, y0); ctx.lineTo(R.x + R.w, y0);
+    ctx.moveTo(R.x, y1); ctx.lineTo(R.x + R.w, y1); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawStep1() {
+    const el = $('c1a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 2, 24);
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], 0, RHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    const T0 = S.ts - S.win / 1000, T1 = S.ts + S.win / 1000;
+    windowBand(ctx, P[0], T0, T1);
+    zeroLine(ctx, P[0], ALO, AHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], CUR.rms, 0, RHI, CRIM, { width: 1.6, fillTo: 0, fill: 'rgba(132,22,23,.14)' });
+    panelTitle(ctx, P[0], 'the trace, with the window on it', INK);
+    panelTitle(ctx, P[1], 'RMS amplitude', CRIM);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]);
+    SEIS.tag(ctx, P[0].x + 6, clamp(yT(P[0], T0) - 10, P[0].y + 8, P[0].y + P[0].h - 8),
+      '\u00b1' + S.win + ' ms', TEAL);
+  }
+
+  function drawStep2() {
+    const el = $('c2a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 2, 24);
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], 0, RHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[0], CUR.env, ALO, AHI, 'rgba(132,22,23,.75)', { width: 1.3 });
+    series(ctx, P[1], CUR.rmsLong, 0, RHI, SLATE, { width: 2.2 });
+    series(ctx, P[1], CUR.rms, 0, RHI, CRIM, { width: 1.6 });
+    series(ctx, P[1], CUR.rmsShort, 0, RHI, TEAL, { width: 1.1 });
+    panelTitle(ctx, P[0], 'trace, with the envelope over it', INK);
+    panelTitle(ctx, P[1], '\u00b1' + SHORTMS + ' teal   \u00b1' + S.win + ' red   \u00b1'
+      + LONGMS + ' gray', CRIM);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]);
+  }
+
+  function drawStep3() {
+    const el = $('c3a');
+    if (!el) return;
+    const w = rowWidth('row3', 2);
+    const h = clamp(Math.round(w * 0.95), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const Q = panels(w, h - 16, 2, 18);
+    let peak = 0;
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = iOf(TV0); it <= iOf(TV1); it++) peak = Math.max(peak, RMSF[ix * NT + it]);
+    }
+    sectionPanel(ctx, Q[0], FIELD, { clip: 1, timeAxis: true, label: null });
+    sectionPanel(ctx, Q[1], RMSF, { cmap: SEIS.SEQMAPS.warm, clip: peak || 1, label: null });
+    panelTitle(ctx, Q[0], 'amplitude', SLATE);
+    panelTitle(ctx, Q[1], 'RMS, \u00b1' + S.win + ' ms', SLATE);
+    bar(ctx, { x: Q[0].x, y: Q[0].y + Q[0].h + 26, w: Q[0].w, h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+    bar(ctx, { x: Q[1].x, y: Q[1].y + Q[1].h + 26, w: Q[1].w, h: 8 },
+      SEIS.SEQMAPS.warm, '0', (peak || 1).toFixed(2), null, true);
+
+    const el2 = $('c3b');
+    if (!el2) return;
+    const w2 = rowWidth('row3', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const P = panels(w2, h2, 2, 18);
+    panelBox(c2, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(c2, P[1], 0, RHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(c2, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(c2, P[0], ALO, AHI);
+    series(c2, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(c2, P[1], CUR.rms, 0, RHI, CRIM, { width: 1.6, fillTo: 0, fill: 'rgba(132,22,23,.14)' });
+    panelTitle(c2, P[0], 'amplitude', INK);
+    panelTitle(c2, P[1], 'RMS', CRIM);
+    const sw = sandWindow(S.tr);
+    windowBand(c2, P[0], sw[0], sw[1], 'rgba(132,22,23,.10)');
+    windowBand(c2, P[1], sw[0], sw[1], 'rgba(132,22,23,.10)');
+    cursorLine(c2, P[0]); cursorLine(c2, P[1]);
+  }
+
+  function drawStep4() {
+    const el = $('c4a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 2, 24);
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], 0, RHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI);
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { fillPositive: true, width: 1.1 });
+    series(ctx, P[1], CUR.rms60, 0, RHI, SLATE, { width: 2.2 });
+    series(ctx, P[1], CUR.rms, 0, RHI, CRIM, { width: 1.6 });
+    series(ctx, P[1], CUR.rms8, 0, RHI, TEAL, { width: 1.1 });
+    panelTitle(ctx, P[0], 'the trace', INK);
+    panelTitle(ctx, P[1], '\u00b18 teal   \u00b1' + S.win + ' red   \u00b160 gray', CRIM);
+    // the sand, and the empty place above it that step 4 measures
+    const sw = sandWindow(S.tr);
+    [P[0], P[1]].forEach((R) => windowBand(ctx, R, sw[0], sw[1], 'rgba(132,22,23,.10)'));
+    const ab = aboveSand();
+    [P[0], P[1]].forEach((R) => {
+      const y = yT(R, ab.t);
+      SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(11,114,133,.85)', [5, 4], 1.5);
+    });
+    SEIS.tag(ctx, P[1].x + 6, clamp(yT(P[1], ab.t) - 10, P[1].y + 8, P[1].y + P[1].h - 8),
+      'nothing here', TEAL);
+    const an = anomalyHeight();
+    [P[1]].forEach((R) => {
+      const y0 = yT(R, an.top), y1 = yT(R, an.base);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(132,22,23,.7)'; ctx.lineWidth = 1.4;
+      const x = R.x + R.w - 14;
+      ctx.beginPath();
+      ctx.moveTo(x, y0); ctx.lineTo(x, y1);
+      ctx.moveTo(x - 4, y0); ctx.lineTo(x + 4, y0);
+      ctx.moveTo(x - 4, y1); ctx.lineTo(x + 4, y1);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  function drawStep5() {
+    const el = $('c5a');
+    if (!el) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.46), 300, 460);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 2, 24);
+    const q = quietWindow();
+    panelBox(ctx, P[0], ALO, AHI, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], 0, RHI, (v) => v.toFixed(1), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    zeroLine(ctx, P[0], ALO, AHI);
+    series(ctx, P[0], CUR.clean, ALO, AHI, 'rgba(92,102,112,.55)', { width: 1 });
+    series(ctx, P[0], CUR.u, ALO, AHI, INK, { width: 1.2 });
+    series(ctx, P[1], CUR.rms, 0, RHI, CRIM, { width: 1.6, fillTo: 0, fill: 'rgba(132,22,23,.14)' });
+    panelTitle(ctx, P[0], 'trace, and the same trace without noise', INK);
+    panelTitle(ctx, P[1], 'RMS', CRIM);
+    [P[0], P[1]].forEach((R) => windowBand(ctx, R, q.t - 0.030, q.t + 0.030));
+    SEIS.tag(ctx, P[1].x + 6, clamp(yT(P[1], q.t) - 10, P[1].y + 8, P[1].y + P[1].h - 8),
+      'quietest 60 ms', TEAL);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]);
+  }
+
+
+  /* =====================================================================
+     THE THIRD DIMENSION
+
+     Everything above this point is one line. A map needs a volume, so the
+     model is extended sideways here — and extended so that the line itself is
+     untouched, because five modules quote numbers measured on it.
+
+     The rule: at crossline IY0 the volume is EXACTLY the section the other
+     steps show. The cross-dip is zero there, the gas lobe still covers it, and
+     the channel never reaches it. Each module's harness checks that by
+     rebuilding the reference crossline out of the volume and comparing it
+     against the section, sample by sample.
+
+     Two features only exist in map view:
+
+       the gas lobe    the sand's gas fill pinches out against a wavy edge in
+                       the crossline direction, which on a section looks like
+                       nothing at all and in map view looks like a lobe
+       the channel     a soft meandering fill 78 ms below the sand, which never
+                       crosses the reference line
+
+     This block is identical in every module that has a map tab. If you change
+     it, change it everywhere.
+     ===================================================================== */
+
+  const NY = 48, IY0 = 12;                     // crosslines, and the reference one
+  const CROSSDIP = 0.00020;                    // s per crossline, zero at IY0
+  const CHANT = 0.548, CHANTHICK = 0.030;      // the channel, just below the sand
+  const SLAB0 = 0.38, SLAB1 = 0.78;            // the only times a map ever needs
+
+  const tShift3 = (ix, iy) => tShift(ix) + CROSSDIP * (iy - IY0);
+
+  /** Where the channel axis runs, in crosslines, as a function of inline. */
+  const chanAxis = (ix) => IY0 + 15 + 9 * Math.sin(TWOPI * ix / 62 + 0.6);
+
+  /** How much channel there is at (ix, iy): 1 on the axis, 0 outside it. */
+  function chanMask(ix, iy) {
+    const d = Math.abs(iy - chanAxis(ix)) / 3.4;
+    if (d >= 1) return 0;
+    return Math.pow(Math.cos(0.5 * Math.PI * d), 2);
+  }
+
+  /** The gas lobe's edge, in crosslines, and how much gas there is at (ix, iy).
+      The edge never comes below crossline 24, so the reference line at 12 is
+      always fully inside the lobe and the section it shows is unchanged. */
+  const lobeEdge = (ix) => 29 + 5 * Math.sin(TWOPI * ix / 78 + 1.1);
+  function lobeMask(ix, iy) {
+    const u = clamp((lobeEdge(ix) - iy) / 5, 0, 1);
+    return u * u * (3 - 2 * u);
+  }
+
+  /**
+   * Reflection coefficients at (ix, iy). This is the earth model above, written
+   * out again with a crossline argument, rather than the two-dimensional
+   * version with something bolted on: the gas fraction now varies in both
+   * directions and everything below the sand follows it. Setting iy = IY0 must
+   * reproduce spikesFor(ix) exactly, and the harness checks that it does.
+   */
+  function spikes3(ix, iy) {
+    const s = tShift3(ix, iy);
+    const g = clamp(gasWin(ix) * lobeMask(ix, iy), 0, 1);
+    const norm = [], atten = [];
+    const below = (t, r) => {
+      norm.push({ t: t, r: r * (1 - g) });
+      atten.push({ t: t, r: r * g * 0.72 });
+    };
+    norm.push({ t: MARK + s, r: 0.130 });
+    norm.push({ t: 0.232 + s, r: -0.075 });
+    norm.push({ t: WEDGE + s, r: 0.085 });
+    norm.push({ t: WEDGE + wedgeGap(ix) + s, r: -0.085 });
+    atten.push({ t: SANDT + s, r: -0.115 * g });
+    atten.push({ t: SANDB + s, r: 0.115 * g });
+    norm.push({ t: SANDT + s, r: -0.035 * (1 - g) });
+    norm.push({ t: SANDB + s, r: 0.035 * (1 - g) });
+    for (let k = 0; k < 7; k++) below(0.600 + 0.015 * k + s, (k % 2 ? -1 : 1) * 0.022);
+    below(DIMT + s, 0.095 * dimFac(ix));
+    below(0.885 + s, -0.075);
+    // and the channel, which exists only here
+    const c = chanMask(ix, iy);
+    if (c > 0.001) {
+      const thick = CHANTHICK * (0.72 + 0.5 * c);
+      norm.push({ t: CHANT + s, r: -0.085 * c });
+      norm.push({ t: CHANT + thick + s, r: 0.085 * c });
+    }
+    return { norm: norm, atten: atten };
+  }
+
+  /* The slab: only the times a horizon window can reach. Building the whole
+     volume would be 4608 traces of 500 samples and several seconds of work for
+     data no panel ever draws. */
+  const SI0 = Math.round(SLAB0 / DT), SI1 = Math.round(SLAB1 / DT), NS = SI1 - SI0 + 1;
+  let SLAB = null;
+  let SLABKEY = '';
+
+  function slabKey() { return [S.freq, S.decay === undefined ? 0 : S.decay, S.noise].join('|'); }
+
+  function buildSlab() {
+    if (SLAB && SLABKEY === slabKey()) return SLAB;
+    const W = wavelets(S.freq, 0);
+    const out = new Float32Array(NX * NY * NS);
+    const tmp = new Float32Array(NS);
+    const dec = S.decay === undefined ? 0 : S.decay;
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const sp = spikes3(ix, iy);
+        for (let k = 0; k < NS; k++) tmp[k] = 0;
+        [[sp.norm, W.w], [sp.atten, W.wl]].forEach((pair) => {
+          const list = pair[0], wav = pair[1], half = wav.halfLength;
+          for (let q = 0; q < list.length; q++) {
+            const c = list[q];
+            if (!c.r) continue;
+            const a = Math.max(SI0, Math.ceil((c.t - half) / DT));
+            const b = Math.min(SI1, Math.floor((c.t + half) / DT));
+            for (let i = a; i <= b; i++) tmp[i - SI0] += c.r * wav.fn(i * DT - c.t);
+          }
+        });
+        const o = (ix * NY + iy) * NS;
+        for (let k = 0; k < NS; k++) {
+          out[o + k] = tmp[k] * Math.pow(10, -dec * ((SI0 + k) * DT) / 20) / NORM;
+        }
+      }
+    }
+    if (S.noise > 0) {
+      /* One band-limited field, reused across crosslines with a shift so no two
+         lines carry the same noise. Generating an independent field for every
+         crossline is the honest thing and costs about a second and a half; at
+         this scale the shift is indistinguishable, and the Method section says
+         so rather than leaving it to be discovered. */
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < out.length; i++) s2 += out[i] * out[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / out.length) || 1);
+      for (let iy = 0; iy < NY; iy++) {
+        for (let ix = 0; ix < NX; ix++) {
+          const o = (ix * NY + iy) * NS;
+          for (let k = 0; k < NS; k++) {
+            out[o + k] += amp * nf[ix * NT + ((SI0 + k + 7 * iy) % NT)];
+          }
+        }
+      }
+    }
+    SLAB = out; SLABKEY = slabKey();
+    return SLAB;
+  }
+
+  /** One trace out of the slab. */
+  function slabTrace(ix, iy, into) {
+    const slab = buildSlab();
+    const o = (ix * NY + iy) * NS;
+    const out = into || new Float32Array(NS);
+    for (let k = 0; k < NS; k++) out[k] = slab[o + k];
+    return out;
+  }
+
+  /** One crossline out of the volume, full length, for a section panel. */
+  function crosslineSection(iy) {
+    const W = wavelets(S.freq, 0);
+    const dec = S.decay === undefined ? 0 : S.decay;
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikes3(ix, iy);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) {
+        f[ix * NT + it] = (a[it] + b[it]) * Math.pow(10, -dec * (it * DT) / 20) / NORM;
+      }
+    }
+    if (S.noise > 0) {
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < f.length; i++) s2 += f[i] * f[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / f.length) || 1);
+      for (let ix = 0; ix < NX; ix++) {
+        for (let it = 0; it < NT; it++) {
+          f[ix * NT + it] += amp * nf[ix * NT + ((it + 7 * iy) % NT)];
+        }
+      }
+    }
+    return f;
+  }
+
+  /** The horizon every map extraction hangs from: the top of the sand. */
+  const horizonAt = (ix, iy) => SANDT + tShift3(ix, iy);
+
+  /** How close the channel ever comes to the line the other steps show. */
+  function channelReach() {
+    let closest = 1e9;
+    for (let ix = 0; ix < NX; ix++) closest = Math.min(closest, Math.abs(chanAxis(ix) - IY0));
+    return closest;
+  }
+
+  /** Mean of a map on the channel axis, and well away from it. */
+  function onOffChannel(map, absolute) {
+    let on = 0, non = 0, off = 0, noff = 0;
+    for (let ix = 8; ix < NX - 8; ix++) {
+      const yc = chanAxis(ix);
+      for (let iy = 0; iy < NY; iy++) {
+        const v = absolute ? Math.abs(map[ix * NY + iy]) : map[ix * NY + iy];
+        const d = Math.abs(iy - yc);
+        if (d < 2) { on += v; non++; } else if (d > 8 && d < 16) { off += v; noff++; }
+      }
+    }
+    const a = non ? on / non : 0, b = noff ? off / noff : 0;
+    return { on: a, off: b, ratio: b > 0 ? a / b : 0 };
+  }
+
+  /** Mean of a map inside the gas lobe, and outside it. */
+  function inOutLobe(map) {
+    let a = 0, na = 0, b = 0, nb = 0;
+    for (let ix = 8; ix < NX - 8; ix++) {
+      if (gasWin(ix) < 0.9) continue;                 // only where the sand is gas-charged at all
+      for (let iy = 0; iy < NY; iy++) {
+        const v = map[ix * NY + iy];
+        const m = lobeMask(ix, iy);
+        if (m > 0.9) { a += v; na++; } else if (m < 0.1) { b += v; nb++; }
+      }
+    }
+    const x = na ? a / na : 0, y = nb ? b / nb : 0;
+    return { inside: x, outside: y, ratio: y > 0 ? x / y : 0 };
+  }
+
+  /** A map panel, drawn into a box whose shape matches the grid.
+      Maps are stored inline-major, map[ix * NY + iy], because that is how
+      SEIS.drawVarDensity reads its data. Storing them crossline-major and
+      passing (NX, NY) makes it read the array with the wrong stride, which
+      does not fail — it draws a plausible-looking map covered in vertical
+      stripes. */
+  function mapPanel(ctx, R, map, opts) {
+    const o = opts || {};
+    SEIS.drawVarDensity(ctx, map, NX, NY, R, {
+      cmap: o.cmap || SEIS.SEQMAPS.warm, clip: o.clip, gain: 1,
+    });
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, NX - 1, o.label === null ? null : 'inline',
+      (v) => v.toFixed(0), { ticks: 5 });
+    if (o.timeAxis) {
+      SEIS.axisLeft(ctx, R, 0, NY - 1, 'crossline', (v) => v.toFixed(0), { ticks: 4 });
+    }
+    if (o.markLine !== undefined) {
+      const y = R.y + (o.markLine / (NY - 1)) * R.h;
+      SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(255,255,255,.9)', [6, 4], 1.6);
+    }
+  }
+
+  /** 96 inlines by 48 crosslines with equal spacing: the box has to be 2:1, or
+      every shape and direction read off it is wrong. */
+  function mapBox(w, h, x0, footer) {
+    const availW = w - x0 - M.r, availH = h - M.t - (footer === undefined ? 46 : footer);
+    let bw = availW, bh = bw * (NY / NX);
+    if (bh > availH) { bh = availH; bw = bh * (NX / NY); }
+    return { x: x0, y: M.t + (availH - bh) / 2, w: bw, h: bh };
+  }
+
+  /** RMS of the slab between horizon+top and horizon+top+length, per trace. */
+  function extractMap() {
+    const slab = buildSlab();
+    const map = new Float32Array(NX * NY);
+    const t0 = S.mtop / 1000, len = S.mlen / 1000;
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const h = horizonAt(ix, iy);
+        const a = Math.max(SI0, Math.round((h + t0) / DT));
+        const b = Math.min(SI1, Math.round((h + t0 + len) / DT));
+        const o = (ix * NY + iy) * NS;
+        let s = 0, n = 0;
+        for (let i = a; i <= b; i++) { const v = slab[o + i - SI0]; s += v * v; n++; }
+        map[ix * NY + iy] = n ? Math.sqrt(s / n) : 0;
+      }
+    }
+    return map;
+  }
+
+  /** One crossline out of the volume, full length, for the section panel. */
+  function crosslineSection(iy) {
+    const W = wavelets(S.freq, 0);
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikes3(ix, iy);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) {
+        const g = Math.pow(10, -S.decay * (it * DT) / 20);
+        f[ix * NT + it] = (a[it] + b[it]) * g / NORM;
+      }
+    }
+    if (S.noise > 0) {
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < f.length; i++) s2 += f[i] * f[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / f.length) || 1);
+      for (let ix = 0; ix < NX; ix++) {
+        for (let it = 0; it < NT; it++) {
+          f[ix * NT + it] += amp * nf[ix * NT + ((it + 7 * iy) % NT)];
+        }
+      }
+    }
+    return f;
+  }
+
+  /** On the channel against beside it, at the current window. */
+  function channelContrast() { return onOffChannel(extractMap(), false); }
+
+  function drawStep6() {
+    const el = $('c6a');
+    if (!el) return;
+    const w = rowWidth('row6', 2);
+    const h = clamp(Math.round(w * 0.62), 240, 420);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const map = extractMap();
+    let pk = 1e-12;
+    for (let i = 0; i < map.length; i++) pk = Math.max(pk, map[i]);
+    const R = mapBox(w, h, M.l);
+    mapPanel(ctx, R, map, { cmap: SEIS.SEQMAPS.warm, clip: pk, timeAxis: true, markLine: IY0 });
+    const yOf = (iy) => R.y + (iy / (NY - 1)) * R.h;
+    SEIS.dashedLine(ctx, R.x, yOf(S.my), R.x + R.w, yOf(S.my), TEAL, [4, 3], 1.8);
+    SEIS.tag(ctx, R.x + 6, clamp(yOf(IY0) - 10, R.y + 8, R.y + R.h - 8), 'the line above', SLATE);
+    SEIS.tag(ctx, R.x + 6, clamp(yOf(S.my) + 12, R.y + 8, R.y + R.h - 8),
+      'crossline ' + S.my, TEAL);
+    bar(ctx, { x: R.x, y: R.y + R.h + 34, w: Math.min(200, R.w * 0.5), h: 8 },
+      SEIS.SEQMAPS.warm, '0', pk.toFixed(2), null, true);
+
+    const el2 = $('c6b');
+    if (!el2) return;
+    const w2 = rowWidth('row6', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const sec = crosslineSection(S.my);
+    const Rs = { x: M.l, y: M.t, w: w2 - M.l - M.r, h: h2 - M.t - 46 };
+    const i0 = iOf(TV0), i1 = iOf(TV1), nsub = i1 - i0 + 1;
+    const sub = new Float32Array(NX * nsub);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < nsub; it++) sub[ix * nsub + it] = sec[ix * NT + i0 + it];
+    }
+    SEIS.drawVarDensity(c2, sub, NX, nsub, Rs, { cmap: SEIS.COLORMAPS.gray, clip: 1 });
+    SEIS.frame(c2, Rs);
+    SEIS.axisBottom(c2, Rs, 0, NX - 1, 'inline', (v) => v.toFixed(0), { ticks: 5 });
+    SEIS.axisLeft(c2, Rs, TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 5 });
+    const mid = Math.round(NX / 2);
+    const hz = horizonAt(mid, S.my);
+    [[hz + S.mtop / 1000, 1], [hz + (S.mtop + S.mlen) / 1000, 0]].forEach((q) => {
+      const y = Rs.y + ((q[0] - TV0) / (TV1 - TV0)) * Rs.h;
+      if (y < Rs.y || y > Rs.y + Rs.h) return;
+      SEIS.dashedLine(c2, Rs.x, y, Rs.x + Rs.w, y, 'rgba(11,114,133,.9)', [5, 4], 1.5);
+      if (q[1]) SEIS.tag(c2, Rs.x + 6, clamp(y - 10, Rs.y + 8, Rs.y + Rs.h - 8),
+        'extraction window', TEAL);
+    });
+    bar(c2, { x: Rs.x, y: Rs.y + Rs.h + 34, w: Math.min(200, Rs.w * 0.5), h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+  }
+
+  /* =====================================================================
+     READOUTS
+     ===================================================================== */
+
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+
+  function syncLabels() {
+    setText('winV', '\u00b1' + S.win + ' ms');
+    setText('decayV', S.decay === 0 ? 'none' : S.decay + ' dB/s');
+    setText('freqV', S.freq + ' Hz');
+    setText('noiseV', S.noise === 0 ? 'none' : S.noise + '% of RMS');
+    setText('mtopV', S.mtop + ' ms');
+    setText('mlenV', S.mlen + ' ms');
+    setText('myV', String(S.my));
+  }
+
+  function syncStats() {
+    const i = iOf(S.ts), K = kOf(S.win);
+    setText('s1w', '\u00b1' + S.win + ' ms');
+    setText('s1n', String(2 * K + 1));
+    setText('s1r', fmt2(CUR.rms[i]));
+    setText('s1m', fmt2(maxAbsIn(CUR.u, S.ts - S.win / 1000, S.ts + S.win / 1000)));
+    setText('s1u', fmt2(CUR.u[i]));
+
+    const ec = envelopeCompare();
+    setText('s2a', fmt2(CUR.rmsShort[i]) + '  (\u00b1' + SHORTMS + ' ms)');
+    setText('s2b', fmt2(CUR.rms[i]) + '  (\u00b1' + S.win + ' ms)');
+    setText('s2c', fmt2(CUR.rmsLong[i]) + '  (\u00b1' + LONGMS + ' ms)');
+    setText('s2d', ec.ratio.toFixed(3) + ' of it');
+    setText('s2e', ec.corr.toFixed(3));
+    setText('s2k', ec.ratio.toFixed(2));
+
+    const gas = sandRMS(GASTRACE), brine = sandRMS(BRINETRACE);
+    const an = anomalyHeight();
+    const ae = anomalyHeight(CUR.env);
+    setText('s3a', fmtT(ae.h) + '  (the sand is 50 ms)');
+    setText('s3b', fmtT(an.h));
+    setText('s3c', fmt2(gas.rms));
+    setText('s3d', fmt2(brine.rms));
+    setText('s3e', fmtX(gas.rms / (brine.rms || 1e-9)));
+    setText('s3f', fmtX(gas.amp / (brine.amp || 1e-9)));
+    setText('s3g', '\u00b1' + S.win + ' ms');
+
+    const ab = aboveSand();
+    setText('s4t', fmtT(ABOVEMS / 1000));
+    setText('s4w', '\u00b1' + S.win + ' ms');
+    setText('s4a', fmt2(CUR.rms[ab.i]));
+    setText('s4b', fmt2(CUR.rms8[ab.i]));
+    setText('s4c', fmt2(CUR.rms60[ab.i]));
+    setText('s4d', fmtT(an.h) + '  for a 50 ms sand');
+
+    const cc = channelContrast();
+    setText('s6a', channelReach().toFixed(0));
+    setText('s6b', S.mtop + ' to ' + (S.mtop + S.mlen) + ' ms below the horizon');
+    setText('s6c', fmt2(cc.on));
+    setText('s6d', fmt2(cc.off));
+    setText('s6e', fmtX(cc.ratio));
+    setText('s6f', channelReach().toFixed(0) + ' crosslines');
+
+    /* Four decimals here, not three: in a quiet zone the numbers are small
+       enough that three would round the whole demonstration to 0.000. */
+    const f4 = (v) => v.toFixed(4);
+    const q = quietWindow();
+    setText('s5t', fmtT(q.t));
+    setText('s5s', f4(q.sig));
+    setText('s5n', f4(q.noi));
+    setText('s5m', f4(q.meas));
+    setText('s5p', f4(q.pred));
+  }
+
+  /* =====================================================================
+     TABS AND WIRING
+     ===================================================================== */
+
+  function drawAll() {
+    syncLabels();
+    if (!CUR) return;
+    const onStep = visible('p1') || visible('p2') || visible('p3')
+      || visible('p4') || visible('p5') || visible('p6');
+    if (onStep) drawHeader();
+    if (visible('p1')) drawStep1();
+    if (visible('p2')) drawStep2();
+    if (visible('p3')) drawStep3();
+    if (visible('p4')) drawStep4();
+    if (visible('p5')) drawStep5();
+    if (visible('p6')) drawStep6();
+    syncStats();
+  }
+
+  const STEPNAMES = {
+    p1: 'The window', p2: 'Length', p3: 'Sections', p4: 'Smearing',
+    p5: 'Noise', p6: 'Map view', pw: 'Why it matters', pe: 'Exercises',
+    pk: 'Key points', pm: 'Method',
+  };
+  const TIMECANVASES = ['c1a', 'c2a', 'c3b', 'c4a', 'c5a'];
+  const SECTIONCANVASES = ['c3a'];
+
+
+  /* =====================================================================
+     MEASUREMENT
+
+     Every number that appears in the prose or an exercise is read out of
+     these, never estimated.
+     ===================================================================== */
+
+  const iOf = (t) => clamp(Math.round(t / DT), 0, NT - 1);
+  const tOf = (i) => i * DT;
+  const kOf = (ms) => Math.max(1, Math.round((ms / 1000) / DT));
+
+  function argMaxIn(arr, t0, t1) {
+    let bi = iOf(t0), bv = -Infinity;
+    for (let i = iOf(t0); i <= iOf(t1); i++) if (arr[i] > bv) { bv = arr[i]; bi = i; }
+    return bi;
+  }
+  function maxAbsIn(arr, t0, t1) {
+    let v = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) v = Math.max(v, Math.abs(arr[i]));
+    return v;
+  }
+  function meanIn(arr, t0, t1) {
+    let s = 0, n = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) { s += arr[i]; n++; }
+    return n ? s / n : 0;
+  }
+  function rmsIn(arr, t0, t1) {
+    let s = 0, n = 0;
+    for (let i = iOf(t0); i <= iOf(t1); i++) { s += arr[i] * arr[i]; n++; }
+    return n ? Math.sqrt(s / n) : 0;
+  }
+
+  const fmtT = (t) => (t * 1000).toFixed(0) + ' ms';
+  const fmt2 = (v) => (Math.abs(v) < 0.0005 ? '0.000' : v.toFixed(3));
+  const fmtX = (v) => '\u00d7' + (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+
+  /* =====================================================================
+     DRAWING
+     ===================================================================== */
+
+  const M = { l: 54, r: 14, t: 24, b: 34 };
+
+  function pw(el) {
+    const par = el && el.parentElement;
+    if (!par) return 900;
+    const cs = window.getComputedStyle(par);
+    const inner = par.clientWidth
+      - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+    return Math.max(240, Math.floor(inner));
+  }
+
+  function rowWidth(rowId, n) {
+    const row = $(rowId);
+    const total = row ? pw(row.firstElementChild || row) : 800;
+    const w = window.innerWidth <= 700
+      ? Math.max(240, total)
+      : Math.max(180, Math.floor((total - 10 * (n - 1)) / n));
+    if (row) {
+      row.querySelectorAll(':scope > .panel-col').forEach((el) => {
+        el.style.width = w + 'px'; el.style.maxWidth = w + 'px';
+      });
+    }
+    return w;
+  }
+
+  function panels(w, h, n, gap) {
+    const g = gap === undefined ? 16 : gap;
+    const inner = w - M.l - M.r - g * (n - 1);
+    const pwid = inner / n;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      out.push({ x: M.l + i * (pwid + g), y: M.t, w: pwid, h: h - M.t - M.b });
+    }
+    return out;
+  }
+
+  const yT = (R, t) => R.y + ((t - TV0) / (TV1 - TV0)) * R.h;
+  const tY = (R, y) => TV0 + ((y - R.y) / R.h) * (TV1 - TV0);
+  const xV = (R, v, lo, hi) => R.x + ((v - lo) / (hi - lo)) * R.w;
+
+  function panelTitle(ctx, R, text, color) {
+    ctx.save();
+    ctx.font = '10.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = color || SLATE;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(text, R.x, R.y - 8);
+    ctx.restore();
+  }
+
+  /** One curve, time down the page and value across. */
+  function series(ctx, R, arr, lo, hi, color, opts) {
+    const o = opts || {};
+    const i0 = iOf(TV0), i1 = iOf(TV1);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(R.x - 1, R.y, R.w + 2, R.h); ctx.clip();
+    if (o.fillPositive) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, 0, lo, hi), yT(R, tOf(i0)));
+      for (let i = i0; i <= i1; i++) {
+        ctx.lineTo(xV(R, Math.max(0, arr[i]), lo, hi), yT(R, tOf(i)));
+      }
+      ctx.lineTo(xV(R, 0, lo, hi), yT(R, tOf(i1)));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(22,25,28,.72)';
+      ctx.fill();
+    }
+    if (o.fillTo !== undefined) {
+      ctx.beginPath();
+      ctx.moveTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i0)));
+      for (let i = i0; i <= i1; i++) ctx.lineTo(xV(R, arr[i], lo, hi), yT(R, tOf(i)));
+      ctx.lineTo(xV(R, o.fillTo, lo, hi), yT(R, tOf(i1)));
+      ctx.closePath();
+      ctx.fillStyle = o.fill || 'rgba(11,114,133,.16)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    for (let i = i0; i <= i1; i++) {
+      const v = arr[i];
+      const x = xV(R, isFinite(v) ? clamp(v, lo - (hi - lo), hi + (hi - lo)) : lo, lo, hi);
+      const y = yT(R, tOf(i));
+      i === i0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = color; ctx.lineWidth = o.width || 1.3;
+    if (o.dash) ctx.setLineDash(o.dash);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function zeroLine(ctx, R, lo, hi, v) {
+    const x = xV(R, v === undefined ? 0 : v, lo, hi);
+    if (x < R.x - 1 || x > R.x + R.w + 1) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(92,102,112,.45)'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    ctx.restore();
+  }
+
+  function cursorLine(ctx, R) {
+    const y = yT(R, S.ts);
+    if (y < R.y || y > R.y + R.h) return;
+    SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(11,114,133,.85)', [4, 3], 1.4);
+  }
+
+  function panelBox(ctx, R, lo, hi, fmt, ticks) {
+    ctx.save(); ctx.fillStyle = '#fff'; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, lo, hi, null, fmt, { ticks: ticks || 3 });
+  }
+
+  /** Sequential or diverging color bar with numbers on it. */
+  function bar(ctx, rect, cmap, lo, hi, title, seq) {
+    const n = Math.max(2, Math.round(rect.w));
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1);
+      const c = cmap(seq ? u : (-1 + 2 * u) * 0.98);
+      ctx.fillStyle = 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+      ctx.fillRect(rect.x + i * (rect.w / n), rect.y, rect.w / n + 1, rect.h);
+    }
+    ctx.save();
+    ctx.strokeStyle = 'rgba(22,25,28,.45)'; ctx.lineWidth = 1;
+    ctx.strokeRect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h);
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText(lo, rect.x, rect.y + rect.h + 3);
+    ctx.textAlign = 'right'; ctx.fillText(hi, rect.x + rect.w, rect.y + rect.h + 3);
+    if (title) {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(title, rect.x + rect.w / 2, rect.y - 3);
+    }
+    ctx.restore();
+  }
+
+  /** A section panel: variable density, framed, with time and trace axes. */
+  function sectionPanel(ctx, R, data, opts) {
+    const o = opts || {};
+    const i0 = iOf(TV0), i1 = iOf(TV1), nsub = i1 - i0 + 1;
+    const sub = new Float32Array(NX * nsub);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < nsub; it++) sub[ix * nsub + it] = data[ix * NT + i0 + it];
+    }
+    SEIS.drawVarDensity(ctx, sub, NX, nsub, R, {
+      cmap: o.cmap || SEIS.COLORMAPS.gray, clip: o.clip, gain: o.gain || 1,
+    });
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, NX - 1, o.label === null ? null : (o.label || 'trace'),
+      (v) => v.toFixed(0), { ticks: 4 });
+    if (o.timeAxis) SEIS.axisLeft(ctx, R, TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 5 });
+    // where the analysis trace is
+    /* A crosshair, not just a trace marker. The vertical line says which trace
+       the curves belong to; the horizontal one lets a reader line the same
+       instant up across an amplitude panel and an attribute panel sitting side
+       by side, which is the comparison these paired sections exist to make. */
+    const x = R.x + (S.tr / (NX - 1)) * R.w;
+    const yc = yT(R, S.ts);
+    ctx.save();
+    ctx.strokeStyle = TEAL; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(x, R.y); ctx.lineTo(x, R.y + R.h); ctx.stroke();
+    if (yc >= R.y && yc <= R.y + R.h) {
+      ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(R.x, yc); ctx.lineTo(R.x + R.w, yc); ctx.stroke();
+      // a small open square where they cross, so the point itself is readable
+      // against both a bright and a dark background
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = 'rgba(255,255,255,.9)';
+      ctx.strokeRect(x - 4.5, yc - 4.5, 9, 9);
+      ctx.strokeStyle = TEAL;
+      ctx.strokeRect(x - 3.5, yc - 3.5, 7, 7);
+    }
+    ctx.restore();
+  }
+
+  /* ------------------------------ the header --------------------------- */
+  function drawHeader() {
+    const el = $('cMap');
+    if (!el || !el.parentElement || !el.parentElement.clientWidth) return;
+    const w = pw(el);
+    const h = clamp(Math.round(w * 0.56), 230, 330);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    // 56 px at the foot rather than M.b: the trace axis label takes 34 of it
+    // and the color bar with its end labels needs the rest
+    const R = { x: M.l, y: M.t, w: w - M.l - M.r - 74, h: h - M.t - 56 };
+    sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
+    SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
+      R.y + 12, 'trace ' + S.tr, TEAL);
+    // and the time, labelled where the horizontal line leaves the panel, so the
+    // crosshair reads as a coordinate rather than as decoration
+    const yc = yT(R, S.ts);
+    if (yc >= R.y && yc <= R.y + R.h) {
+      SEIS.tag(ctx, R.x + R.w - 4, clamp(yc - 10, R.y + 8, R.y + R.h - 8),
+        fmtT(S.ts), TEAL, 'right');
+    }
+    // the features, labeled once, on the right
+    ctx.save();
+    ctx.font = '9.5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = SLATE; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const s = tShift(NX - 1);
+    [[MARK + s, 'marker'], [WEDGE + 0.01 + s, 'wedge'], [SANDT + 0.025 + s, 'sand'],
+     [0.645 + s, 'interbeds'], [DIMT + s, 'dims out']].forEach((f) => {
+      const yy = yT(R, f[0]);
+      if (yy < R.y || yy > R.y + R.h) return;
+      ctx.strokeStyle = 'rgba(92,102,112,.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(R.x + R.w, yy); ctx.lineTo(R.x + R.w + 6, yy); ctx.stroke();
+      ctx.fillText(f[1], R.x + R.w + 9, yy);
+    });
+    ctx.restore();
+    bar(ctx, { x: R.x, y: R.y + R.h + 36, w: Math.min(180, R.w * 0.4), h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212 trough', '+ peak', null, false);
+  }
+
+  /* ------------------------------- step 1 ------------------------------ */
+
+  const PANES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'pw', 'pe', 'pk', 'pm'];
+  const NSTEPS = 6;
+
+  function buildStepNav() {
+    PANES.forEach((id, i) => {
+      const pane = $(id);
+      if (!pane || pane.querySelector('.stepnav')) return;
+      const prev = PANES[i - 1], next = PANES[i + 1];
+      const nav = document.createElement('div');
+      nav.className = 'stepnav';
+      const mk = (target, text, ghost) => {
+        const bt = document.createElement('button');
+        bt.type = 'button';
+        bt.className = 'btn' + (ghost ? ' ghost' : '') + ' small';
+        bt.textContent = text;
+        bt.addEventListener('click', () => {
+          showTab(target);
+          const t = document.querySelector('.tabhint');
+          if (t && t.scrollIntoView) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return bt;
+      };
+      nav.appendChild(prev ? mk(prev, '\u2190 ' + STEPNAMES[prev], true)
+                           : document.createElement('span'));
+      const where = document.createElement('span');
+      where.className = 'where';
+      where.textContent = i < NSTEPS ? 'step ' + (i + 1) + ' of ' + NSTEPS : STEPNAMES[id];
+      nav.appendChild(where);
+      nav.appendChild(next ? mk(next, STEPNAMES[next] + ' \u2192')
+                           : document.createElement('span'));
+      pane.appendChild(nav);
+    });
+  }
+
+  function showTab(id) {
+    PANES.forEach((q) => { const el = $(q); if (el) el.hidden = q !== id; });
+    document.querySelectorAll('#tabs button').forEach((b) => {
+      b.setAttribute('aria-selected', b.dataset.tab === id);
+    });
+    const lab = document.querySelector('.labhead');
+    if (lab) lab.hidden = (id === 'pw' || id === 'pe' || id === 'pk' || id === 'pm');
+    const last = (id === 'pk' || id === 'pm');
+    if ($('nextup')) $('nextup').hidden = !last;
+    if ($('pager')) $('pager').hidden = !last;
+    S.tab = id;
+    drawAll();
+    saveState();
+  }
+  document.querySelectorAll('#tabs button').forEach((b) => {
+    b.addEventListener('click', () => showTab(b.dataset.tab));
+  });
+
+  document.addEventListener('input', (ev) => {
+    const key = ev.target && ev.target.dataset && ev.target.dataset.key;
+    if (!key) return;
+    S[key] = parseFloat(ev.target.value);
+    recompute();
+    drawAll();
+    saveState();
+  });
+
+  function attachSection(canvasId, getRect) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = getRect(r.width, r.height, ev.clientX - r.left);
+      S.tr = clamp(Math.round(((ev.clientX - r.left - R.x) / R.w) * (NX - 1)), 0, NX - 1);
+      S.ts = clamp(TV0 + ((ev.clientY - r.top - R.y) / R.h) * (TV1 - TV0), TV0, TV1);
+      computeTrace();
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  function attachTime(canvasId) {
+    const c = $(canvasId);
+    if (!c) return;
+    let down = false;
+    const go = (ev) => {
+      const r = c.getBoundingClientRect();
+      const R = { x: M.l, y: M.t, w: r.width - M.l - M.r, h: r.height - M.t - M.b };
+      S.ts = clamp(tY(R, ev.clientY - r.top), TV0, TV1);
+      drawAll(); saveState();
+    };
+    c.addEventListener('pointerdown', (e) => {
+      down = true; if (c.setPointerCapture) c.setPointerCapture(e.pointerId);
+      e.preventDefault(); go(e);
+    });
+    c.addEventListener('pointermove', (e) => { if (down) go(e); });
+    c.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('pointercancel', () => { down = false; });
+  }
+
+  attachSection('cMap', (w, h) => ({ x: M.l, y: M.t, w: w - M.l - M.r - 74, h: h - M.t - 56 }));
+  TIMECANVASES.forEach(attachTime);
+  SECTIONCANVASES.forEach((id) => attachSection(id, (w, h, x) => {
+    const Q = panels(w, h - 16, 2, 18);
+    return (x !== undefined && x > Q[1].x - 9) ? Q[1] : Q[0];
+  }));
+
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawAll, 140); });
+
+  recompute();
+  buildStepNav();
+  showTab(PANES.indexOf(S.tab) >= 0 ? S.tab : 'p1');
+  document.fonts && document.fonts.ready.then(drawAll);
+
+
+  // exposed for the headless harness only
+  window.__MOD = {
+    state: () => S, cur: () => CUR, field: () => FIELD, clean: () => CLEAN, rmsf: () => RMSF,
+    set: (k, v) => { S[k] = v; recompute(); },
+    T: T, LOCALT: LOCALT, traceAt: traceAt, tShift: tShift, DT: DT, NT: NT, NX: NX,
+    iOf: iOf, tOf: tOf, kOf: kOf, showTab: showTab, drawAll: drawAll,
+    quiet: quietWindow, anomaly: anomalyHeight, sandRMS: sandRMS, aboveSand: aboveSand,
+    envelopeCompare: envelopeCompare, rawSection: rawSection,
+    extractMap: extractMap, channelContrast: channelContrast, channelReach: channelReach,
+    crosslineSection: crosslineSection, spikes3: spikes3, NY: NY, IY0: IY0,
+  };
+})();
+</script>
+</body>
+</html>
