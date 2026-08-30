@@ -74,7 +74,8 @@
     <button role="tab" data-tab="p2" aria-selected="false">2 · Length</button>
     <button role="tab" data-tab="p3" aria-selected="false">3 · Sections</button>
     <button role="tab" data-tab="p4" aria-selected="false">4 · Smearing</button>
-    <button role="tab" data-tab="p5" aria-selected="false">5 · Noise floor</button>
+    <button role="tab" data-tab="p5" aria-selected="false">5 · Noise</button>
+    <button role="tab" data-tab="p6" aria-selected="false">6 · Map view</button>
     <button role="tab" data-tab="pw" aria-selected="false">Why it matters</button>
     <span class="gap"></span>
     <button role="tab" data-tab="pe" aria-selected="false">Exercises</button>
@@ -274,6 +275,74 @@
     </div>
   </section>
 
+
+  <!-- =============================== STEP 6 =============================== -->
+  <section class="tabpane" id="p6" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">6</span>Where this attribute actually gets used</h3>
+      <span class="hint">One line is not a survey</span>
+    </div>
+    <p class="lede">Everything so far has been a section, because that is how you learn what an attribute
+      does. It is not how anyone uses this one. An RMS amplitude is nearly always extracted in a window
+      that follows a horizon, one number per trace, and displayed as a <b>map</b>. That is the deliverable,
+      and it changes what you can see.</p>
+    <p class="lede">The line you have been working on is one crossline out of a small volume. Below on the
+      left is a map of RMS amplitude in a window below the top of the sand. On the right is a section
+      through the volume at whichever crossline you choose, with the extraction window drawn on it.</p>
+    <p class="lede">Set the window top to about 80 ms and its length to 40 ms, and a <b>channel</b> appears.
+      It has been in the data the whole time. It is <b id="s6a">—</b> crosslines away from the line every
+      other step in this module has been showing, so no section you have looked at has come anywhere near
+      it. That is the case for map view in one picture: a section tells you about a line, and geology is
+      not arranged in lines.</p>
+
+    <div class="controls" style="max-width:none;margin-bottom:16px">
+      <div class="ctl-col">
+        <div class="ctl">
+          <label for="mtop">Window starts below the horizon <span class="val" id="mtopV">0 ms</span></label>
+          <input type="range" data-key="mtop" id="mtop" min="0" max="150" step="5" value="0">
+        </div>
+        <div class="ctl">
+          <label for="mlen">Window length <span class="val" id="mlenV">60 ms</span></label>
+          <input type="range" data-key="mlen" id="mlen" min="10" max="120" step="5" value="60">
+        </div>
+      </div>
+      <div class="ctl-col">
+        <div class="ctl">
+          <label for="my">Crossline shown on the section <span class="val" id="myV">12</span></label>
+          <input type="range" data-key="my" id="my" min="0" max="47" step="1" value="12">
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-row" id="row6">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> The map
+          <span class="note">RMS in the window, one value per trace</span></p>
+        <canvas id="c6a" aria-label="Map of RMS amplitude extracted in a window below the horizon"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> A section through the volume
+          <span class="note">move the crossline and go find it</span></p>
+        <canvas id="c6b" aria-label="Section at the selected crossline, with the extraction window marked"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Window</span><b id="s6b">—</b></div>
+      <div class="stat key"><span>On the channel</span><b id="s6c">—</b></div>
+      <div class="stat key"><span>Beside it</span><b id="s6d">—</b></div>
+      <div class="stat"><span>Contrast</span><b id="s6e">—</b></div>
+      <div class="stat"><span>Closest the channel comes to the line above</span><b id="s6f">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Move the window top back to 0 ms and the channel vanishes, replaced by the sand. Both maps are
+        correct; they are maps of different intervals, and neither of them announces which. This is the
+        single most common way an amplitude map goes wrong &mdash; not bad arithmetic, but a window sitting
+        20 ms from where the interpreter thought it was. On a map with no section beside it there is
+        nothing to catch that.</span>
+    </div>
+  </section>
+
   <!-- ============================ WHY IT MATTERS ========================== -->
   <section class="tabpane" id="pw" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
@@ -376,6 +445,19 @@
             below it. Between those, the window is roughly the length of the feature and the contrast is
             best. That is a real and useful effect, and it is also a warning: the number you report depends
             on a setting you chose, so the ratio is not a property of the rocks.</span></details></li>
+        <li><b>Find something no section showed you.</b> In step 6, walk the extraction window down from
+          0 ms below the horizon to 110 ms, in 20 ms steps, watching the map and the contrast readout.
+          <details class="reveal"><summary>Hint</summary><span class="ans">The contrast between the
+            channel and the rock beside it goes &times;0.8 at 0 to 60 ms, &times;1.3 at 40 to 80,
+            &times;2.7 at 60 to 100, &times;3.7 at 70 to 110, &times;4.5 at 80 to 120, and then back down
+            to &times;2.4 at 90 to 130. The channel is 78 ms below the horizon and 30 ms thick, so the best
+            window is the one sitting on it and the worst are the ones that are not. Look at the first
+            number: below &times;1, meaning the channel reads slightly <em>darker</em> than its
+            surroundings at that window. You are mapping the gas lobe there and the channel is not in the
+            picture at all. Two things follow. Every map you make is a map of an interval, and that
+            interval is a decision someone made. And a map that shows nothing may be a map of the wrong
+            40 milliseconds rather than a map of nothing, which is why the section beside it is not
+            optional.</span></details></li>
       </ol>
     </div>
   </section>
@@ -397,6 +479,8 @@
           attribute has a floor it can never go below and never announces.</li>
         <li><b>It inherits every gain decision made upstream.</b> Which makes it powerful, cheap, and the
           easiest attribute in the set to misread.</li>
+        <li><b>It is a map attribute.</b> Sections teach you what it does; interval maps are what it is
+          for. A feature that no section happens to cross stays invisible until somebody makes one.</li>
       </ul>
     </div>
   </section>
@@ -430,8 +514,19 @@
         a synthetic allows, and it is the point: on real data you can never separate the two, which is
         exactly why the floor is invisible. The quiet window is found by searching the noise-free trace for
         the 60 ms window with the least energy in it, so it moves when the geology moves.</p>
-      <p><b>Simplifications.</b> One dimension, normal incidence, acoustic, no multiples and no
-        transmission losses. The decay is applied as a gain function rather than modeled from spherical
+      <p><b>The volume, for step 6.</b> The first five steps use one line. Step 6 needs a map, so the
+        model is extended to 48 crosslines &mdash; and extended so that crossline 12 is exactly the line
+        the other steps show. The cross-dip is zero there and the channel never comes closer than six
+        crosslines, so nothing measured in steps 1 to 5 changes; the harness checks that the volume and the
+        line agree sample for sample. The channel is a soft, meandering fill about 30 ms thick sitting
+        78 ms below the top of the sand. The horizon used for the extraction is the top of the sand taken
+        straight from the model rather than picked, so it carries no picking error &mdash; on real data a
+        horizon wanders a few milliseconds and the window wanders with it, which is one more reason a map
+        and a section belong side by side. To keep the volume quick to build, only the times a horizon
+        window can reach are computed, and the band-limited noise field is reused across crosslines with an
+        offset rather than generated independently for each.</p>
+      <p><b>Simplifications.</b> One dimension for the first five steps, normal incidence, acoustic, no
+        multiples and no transmission losses. The decay is applied as a gain function rather than modeled from spherical
         divergence and absorption, so it is a stand-in for the real thing rather than a simulation of it.
         AASPI runs on a 3D volume and can take its window between interpreted horizons, which is how most
         interval amplitude maps are actually made; there are no horizons here, so the window is a fixed
@@ -682,6 +777,7 @@
 
   const DEF = {
     win: 20, decay: 8, freq: 25, noise: 0,
+    mtop: 0, mlen: 60, my: 12,
     tr: GASTRACE, ts: 0.500, tab: 'p1',
   };
   let S = SEIS.readState(DEF);
@@ -999,6 +1095,353 @@
     cursorLine(ctx, P[0]); cursorLine(ctx, P[1]);
   }
 
+
+  /* =====================================================================
+     THE THIRD DIMENSION
+
+     Everything above this point is one line. A map needs a volume, so the
+     model is extended sideways here — and extended so that the line itself is
+     untouched, because five modules quote numbers measured on it.
+
+     The rule: at crossline IY0 the volume is EXACTLY the section the other
+     steps show. The cross-dip is zero there, the gas lobe still covers it, and
+     the channel never reaches it. Each module's harness checks that by
+     rebuilding the reference crossline out of the volume and comparing it
+     against the section, sample by sample.
+
+     Two features only exist in map view:
+
+       the gas lobe    the sand's gas fill pinches out against a wavy edge in
+                       the crossline direction, which on a section looks like
+                       nothing at all and in map view looks like a lobe
+       the channel     a soft meandering fill 78 ms below the sand, which never
+                       crosses the reference line
+
+     This block is identical in every module that has a map tab. If you change
+     it, change it everywhere.
+     ===================================================================== */
+
+  const NY = 48, IY0 = 12;                     // crosslines, and the reference one
+  const CROSSDIP = 0.00020;                    // s per crossline, zero at IY0
+  const CHANT = 0.548, CHANTHICK = 0.030;      // the channel, just below the sand
+  const SLAB0 = 0.38, SLAB1 = 0.78;            // the only times a map ever needs
+
+  const tShift3 = (ix, iy) => tShift(ix) + CROSSDIP * (iy - IY0);
+
+  /** Where the channel axis runs, in crosslines, as a function of inline. */
+  const chanAxis = (ix) => IY0 + 15 + 9 * Math.sin(TWOPI * ix / 62 + 0.6);
+
+  /** How much channel there is at (ix, iy): 1 on the axis, 0 outside it. */
+  function chanMask(ix, iy) {
+    const d = Math.abs(iy - chanAxis(ix)) / 3.4;
+    if (d >= 1) return 0;
+    return Math.pow(Math.cos(0.5 * Math.PI * d), 2);
+  }
+
+  /** The gas lobe's edge, in crosslines, and how much gas there is at (ix, iy).
+      The edge never comes below crossline 24, so the reference line at 12 is
+      always fully inside the lobe and the section it shows is unchanged. */
+  const lobeEdge = (ix) => 29 + 5 * Math.sin(TWOPI * ix / 78 + 1.1);
+  function lobeMask(ix, iy) {
+    const u = clamp((lobeEdge(ix) - iy) / 5, 0, 1);
+    return u * u * (3 - 2 * u);
+  }
+
+  /**
+   * Reflection coefficients at (ix, iy). This is the earth model above, written
+   * out again with a crossline argument, rather than the two-dimensional
+   * version with something bolted on: the gas fraction now varies in both
+   * directions and everything below the sand follows it. Setting iy = IY0 must
+   * reproduce spikesFor(ix) exactly, and the harness checks that it does.
+   */
+  function spikes3(ix, iy) {
+    const s = tShift3(ix, iy);
+    const g = clamp(gasWin(ix) * lobeMask(ix, iy), 0, 1);
+    const norm = [], atten = [];
+    const below = (t, r) => {
+      norm.push({ t: t, r: r * (1 - g) });
+      atten.push({ t: t, r: r * g * 0.72 });
+    };
+    norm.push({ t: MARK + s, r: 0.130 });
+    norm.push({ t: 0.232 + s, r: -0.075 });
+    norm.push({ t: WEDGE + s, r: 0.085 });
+    norm.push({ t: WEDGE + wedgeGap(ix) + s, r: -0.085 });
+    atten.push({ t: SANDT + s, r: -0.115 * g });
+    atten.push({ t: SANDB + s, r: 0.115 * g });
+    norm.push({ t: SANDT + s, r: -0.035 * (1 - g) });
+    norm.push({ t: SANDB + s, r: 0.035 * (1 - g) });
+    for (let k = 0; k < 7; k++) below(0.600 + 0.015 * k + s, (k % 2 ? -1 : 1) * 0.022);
+    below(DIMT + s, 0.095 * dimFac(ix));
+    below(0.885 + s, -0.075);
+    // and the channel, which exists only here
+    const c = chanMask(ix, iy);
+    if (c > 0.001) {
+      const thick = CHANTHICK * (0.72 + 0.5 * c);
+      norm.push({ t: CHANT + s, r: -0.085 * c });
+      norm.push({ t: CHANT + thick + s, r: 0.085 * c });
+    }
+    return { norm: norm, atten: atten };
+  }
+
+  /* The slab: only the times a horizon window can reach. Building the whole
+     volume would be 4608 traces of 500 samples and several seconds of work for
+     data no panel ever draws. */
+  const SI0 = Math.round(SLAB0 / DT), SI1 = Math.round(SLAB1 / DT), NS = SI1 - SI0 + 1;
+  let SLAB = null;
+  let SLABKEY = '';
+
+  function slabKey() { return [S.freq, S.decay === undefined ? 0 : S.decay, S.noise].join('|'); }
+
+  function buildSlab() {
+    if (SLAB && SLABKEY === slabKey()) return SLAB;
+    const W = wavelets(S.freq, 0);
+    const out = new Float32Array(NX * NY * NS);
+    const tmp = new Float32Array(NS);
+    const dec = S.decay === undefined ? 0 : S.decay;
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const sp = spikes3(ix, iy);
+        for (let k = 0; k < NS; k++) tmp[k] = 0;
+        [[sp.norm, W.w], [sp.atten, W.wl]].forEach((pair) => {
+          const list = pair[0], wav = pair[1], half = wav.halfLength;
+          for (let q = 0; q < list.length; q++) {
+            const c = list[q];
+            if (!c.r) continue;
+            const a = Math.max(SI0, Math.ceil((c.t - half) / DT));
+            const b = Math.min(SI1, Math.floor((c.t + half) / DT));
+            for (let i = a; i <= b; i++) tmp[i - SI0] += c.r * wav.fn(i * DT - c.t);
+          }
+        });
+        const o = (iy * NX + ix) * NS;
+        for (let k = 0; k < NS; k++) {
+          out[o + k] = tmp[k] * Math.pow(10, -dec * ((SI0 + k) * DT) / 20) / NORM;
+        }
+      }
+    }
+    if (S.noise > 0) {
+      /* One band-limited field, reused across crosslines with a shift so no two
+         lines carry the same noise. Generating an independent field for every
+         crossline is the honest thing and costs about a second and a half; at
+         this scale the shift is indistinguishable, and the Method section says
+         so rather than leaving it to be discovered. */
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < out.length; i++) s2 += out[i] * out[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / out.length) || 1);
+      for (let iy = 0; iy < NY; iy++) {
+        for (let ix = 0; ix < NX; ix++) {
+          const o = (iy * NX + ix) * NS;
+          for (let k = 0; k < NS; k++) {
+            out[o + k] += amp * nf[ix * NT + ((SI0 + k + 7 * iy) % NT)];
+          }
+        }
+      }
+    }
+    SLAB = out; SLABKEY = slabKey();
+    return SLAB;
+  }
+
+  /** One trace out of the slab. */
+  function slabTrace(ix, iy, into) {
+    const slab = buildSlab();
+    const o = (iy * NX + ix) * NS;
+    const out = into || new Float32Array(NS);
+    for (let k = 0; k < NS; k++) out[k] = slab[o + k];
+    return out;
+  }
+
+  /** One crossline out of the volume, full length, for a section panel. */
+  function crosslineSection(iy) {
+    const W = wavelets(S.freq, 0);
+    const dec = S.decay === undefined ? 0 : S.decay;
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikes3(ix, iy);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) {
+        f[ix * NT + it] = (a[it] + b[it]) * Math.pow(10, -dec * (it * DT) / 20) / NORM;
+      }
+    }
+    if (S.noise > 0) {
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < f.length; i++) s2 += f[i] * f[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / f.length) || 1);
+      for (let ix = 0; ix < NX; ix++) {
+        for (let it = 0; it < NT; it++) {
+          f[ix * NT + it] += amp * nf[ix * NT + ((it + 7 * iy) % NT)];
+        }
+      }
+    }
+    return f;
+  }
+
+  /** The horizon every map extraction hangs from: the top of the sand. */
+  const horizonAt = (ix, iy) => SANDT + tShift3(ix, iy);
+
+  /** How close the channel ever comes to the line the other steps show. */
+  function channelReach() {
+    let closest = 1e9;
+    for (let ix = 0; ix < NX; ix++) closest = Math.min(closest, Math.abs(chanAxis(ix) - IY0));
+    return closest;
+  }
+
+  /** Mean of a map on the channel axis, and well away from it. */
+  function onOffChannel(map, absolute) {
+    let on = 0, non = 0, off = 0, noff = 0;
+    for (let ix = 8; ix < NX - 8; ix++) {
+      const yc = chanAxis(ix);
+      for (let iy = 0; iy < NY; iy++) {
+        const v = absolute ? Math.abs(map[iy * NX + ix]) : map[iy * NX + ix];
+        const d = Math.abs(iy - yc);
+        if (d < 2) { on += v; non++; } else if (d > 8 && d < 16) { off += v; noff++; }
+      }
+    }
+    const a = non ? on / non : 0, b = noff ? off / noff : 0;
+    return { on: a, off: b, ratio: b > 0 ? a / b : 0 };
+  }
+
+  /** Mean of a map inside the gas lobe, and outside it. */
+  function inOutLobe(map) {
+    let a = 0, na = 0, b = 0, nb = 0;
+    for (let ix = 8; ix < NX - 8; ix++) {
+      if (gasWin(ix) < 0.9) continue;                 // only where the sand is gassy at all
+      for (let iy = 0; iy < NY; iy++) {
+        const v = map[iy * NX + ix];
+        const m = lobeMask(ix, iy);
+        if (m > 0.9) { a += v; na++; } else if (m < 0.1) { b += v; nb++; }
+      }
+    }
+    const x = na ? a / na : 0, y = nb ? b / nb : 0;
+    return { inside: x, outside: y, ratio: y > 0 ? x / y : 0 };
+  }
+
+  /** A map panel, drawn into a box whose shape matches the grid. */
+  function mapPanel(ctx, R, map, opts) {
+    const o = opts || {};
+    SEIS.drawVarDensity(ctx, map, NX, NY, R, {
+      cmap: o.cmap || SEIS.SEQMAPS.warm, clip: o.clip, gain: 1,
+    });
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, NX - 1, o.label === null ? null : 'inline',
+      (v) => v.toFixed(0), { ticks: 5 });
+    if (o.timeAxis) {
+      SEIS.axisLeft(ctx, R, 0, NY - 1, 'crossline', (v) => v.toFixed(0), { ticks: 4 });
+    }
+    if (o.markLine !== undefined) {
+      const y = R.y + (o.markLine / (NY - 1)) * R.h;
+      SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(255,255,255,.9)', [6, 4], 1.6);
+    }
+  }
+
+  /** 96 inlines by 48 crosslines with equal spacing: the box has to be 2:1, or
+      every shape and direction read off it is wrong. */
+  function mapBox(w, h, x0, footer) {
+    const availW = w - x0 - M.r, availH = h - M.t - (footer === undefined ? 46 : footer);
+    let bw = availW, bh = bw * (NY / NX);
+    if (bh > availH) { bh = availH; bw = bh * (NX / NY); }
+    return { x: x0, y: M.t + (availH - bh) / 2, w: bw, h: bh };
+  }
+
+  /** RMS of the slab between horizon+top and horizon+top+length, per trace. */
+  function extractMap() {
+    const slab = buildSlab();
+    const map = new Float32Array(NX * NY);
+    const t0 = S.mtop / 1000, len = S.mlen / 1000;
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const h = horizonAt(ix, iy);
+        const a = Math.max(SI0, Math.round((h + t0) / DT));
+        const b = Math.min(SI1, Math.round((h + t0 + len) / DT));
+        const o = (iy * NX + ix) * NS;
+        let s = 0, n = 0;
+        for (let i = a; i <= b; i++) { const v = slab[o + i - SI0]; s += v * v; n++; }
+        map[iy * NX + ix] = n ? Math.sqrt(s / n) : 0;
+      }
+    }
+    return map;
+  }
+
+  /** One crossline out of the volume, full length, for the section panel. */
+  function crosslineSection(iy) {
+    const W = wavelets(S.freq, 0);
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikes3(ix, iy);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) {
+        const g = Math.pow(10, -S.decay * (it * DT) / 20);
+        f[ix * NT + it] = (a[it] + b[it]) * g / NORM;
+      }
+    }
+    if (S.noise > 0) {
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < f.length; i++) s2 += f[i] * f[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / f.length) || 1);
+      for (let ix = 0; ix < NX; ix++) {
+        for (let it = 0; it < NT; it++) {
+          f[ix * NT + it] += amp * nf[ix * NT + ((it + 7 * iy) % NT)];
+        }
+      }
+    }
+    return f;
+  }
+
+  /** On the channel against beside it, at the current window. */
+  function channelContrast() { return onOffChannel(extractMap(), false); }
+
+  function drawStep6() {
+    const el = $('c6a');
+    if (!el) return;
+    const w = rowWidth('row6', 2);
+    const h = clamp(Math.round(w * 0.62), 240, 420);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const map = extractMap();
+    let pk = 1e-12;
+    for (let i = 0; i < map.length; i++) pk = Math.max(pk, map[i]);
+    const R = mapBox(w, h, M.l);
+    mapPanel(ctx, R, map, { cmap: SEIS.SEQMAPS.warm, clip: pk, timeAxis: true, markLine: IY0 });
+    const yOf = (iy) => R.y + (iy / (NY - 1)) * R.h;
+    SEIS.dashedLine(ctx, R.x, yOf(S.my), R.x + R.w, yOf(S.my), TEAL, [4, 3], 1.8);
+    SEIS.tag(ctx, R.x + 6, clamp(yOf(IY0) - 10, R.y + 8, R.y + R.h - 8), 'the line above', SLATE);
+    SEIS.tag(ctx, R.x + 6, clamp(yOf(S.my) + 12, R.y + 8, R.y + R.h - 8),
+      'crossline ' + S.my, TEAL);
+    bar(ctx, { x: R.x, y: R.y + R.h + 34, w: Math.min(200, R.w * 0.5), h: 8 },
+      SEIS.SEQMAPS.warm, '0', pk.toFixed(2), null, true);
+
+    const el2 = $('c6b');
+    if (!el2) return;
+    const w2 = rowWidth('row6', 2), h2 = h;
+    const c2 = SEIS.fitCanvas(el2, w2, h2);
+    c2.clearRect(0, 0, w2, h2);
+    const sec = crosslineSection(S.my);
+    const Rs = { x: M.l, y: M.t, w: w2 - M.l - M.r, h: h2 - M.t - 46 };
+    const i0 = iOf(TV0), i1 = iOf(TV1), nsub = i1 - i0 + 1;
+    const sub = new Float32Array(NX * nsub);
+    for (let ix = 0; ix < NX; ix++) {
+      for (let it = 0; it < nsub; it++) sub[ix * nsub + it] = sec[ix * NT + i0 + it];
+    }
+    SEIS.drawVarDensity(c2, sub, NX, nsub, Rs, { cmap: SEIS.COLORMAPS.gray, clip: 1 });
+    SEIS.frame(c2, Rs);
+    SEIS.axisBottom(c2, Rs, 0, NX - 1, 'inline', (v) => v.toFixed(0), { ticks: 5 });
+    SEIS.axisLeft(c2, Rs, TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 5 });
+    const mid = Math.round(NX / 2);
+    const hz = horizonAt(mid, S.my);
+    [[hz + S.mtop / 1000, 1], [hz + (S.mtop + S.mlen) / 1000, 0]].forEach((q) => {
+      const y = Rs.y + ((q[0] - TV0) / (TV1 - TV0)) * Rs.h;
+      if (y < Rs.y || y > Rs.y + Rs.h) return;
+      SEIS.dashedLine(c2, Rs.x, y, Rs.x + Rs.w, y, 'rgba(11,114,133,.9)', [5, 4], 1.5);
+      if (q[1]) SEIS.tag(c2, Rs.x + 6, clamp(y - 10, Rs.y + 8, Rs.y + Rs.h - 8),
+        'extraction window', TEAL);
+    });
+    bar(c2, { x: Rs.x, y: Rs.y + Rs.h + 34, w: Math.min(200, Rs.w * 0.5), h: 8 },
+      SEIS.COLORMAPS.gray, '\u2212', '+', null, false);
+  }
+
   /* =====================================================================
      READOUTS
      ===================================================================== */
@@ -1010,6 +1453,9 @@
     setText('decayV', S.decay === 0 ? 'none' : S.decay + ' dB/s');
     setText('freqV', S.freq + ' Hz');
     setText('noiseV', S.noise === 0 ? 'none' : S.noise + '% of RMS');
+    setText('mtopV', S.mtop + ' ms');
+    setText('mlenV', S.mlen + ' ms');
+    setText('myV', String(S.my));
   }
 
   function syncStats() {
@@ -1047,6 +1493,14 @@
     setText('s4c', fmt2(CUR.rms60[ab.i]));
     setText('s4d', fmtT(an.h) + '  for a 50 ms sand');
 
+    const cc = channelContrast();
+    setText('s6a', channelReach().toFixed(0));
+    setText('s6b', S.mtop + ' to ' + (S.mtop + S.mlen) + ' ms below the horizon');
+    setText('s6c', fmt2(cc.on));
+    setText('s6d', fmt2(cc.off));
+    setText('s6e', fmtX(cc.ratio));
+    setText('s6f', channelReach().toFixed(0) + ' crosslines');
+
     /* Four decimals here, not three: in a quiet zone the numbers are small
        enough that three would round the whole demonstration to 0.000. */
     const f4 = (v) => v.toFixed(4);
@@ -1066,19 +1520,20 @@
     syncLabels();
     if (!CUR) return;
     const onStep = visible('p1') || visible('p2') || visible('p3')
-      || visible('p4') || visible('p5');
+      || visible('p4') || visible('p5') || visible('p6');
     if (onStep) drawHeader();
     if (visible('p1')) drawStep1();
     if (visible('p2')) drawStep2();
     if (visible('p3')) drawStep3();
     if (visible('p4')) drawStep4();
     if (visible('p5')) drawStep5();
+    if (visible('p6')) drawStep6();
     syncStats();
   }
 
   const STEPNAMES = {
     p1: 'The window', p2: 'Length', p3: 'Sections', p4: 'Smearing',
-    p5: 'Noise floor', pw: 'Why it matters', pe: 'Exercises',
+    p5: 'Noise', p6: 'Map view', pw: 'Why it matters', pe: 'Exercises',
     pk: 'Key points', pm: 'Method',
   };
   const TIMECANVASES = ['c1a', 'c2a', 'c3b', 'c4a', 'c5a'];
@@ -1339,7 +1794,8 @@
 
   /* ------------------------------- step 1 ------------------------------ */
 
-  const PANES = ['p1', 'p2', 'p3', 'p4', 'p5', 'pw', 'pe', 'pk', 'pm'];
+  const PANES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'pw', 'pe', 'pk', 'pm'];
+  const NSTEPS = 6;
 
   function buildStepNav() {
     PANES.forEach((id, i) => {
@@ -1364,7 +1820,7 @@
                            : document.createElement('span'));
       const where = document.createElement('span');
       where.className = 'where';
-      where.textContent = i < 5 ? 'step ' + (i + 1) + ' of 5' : STEPNAMES[id];
+      where.textContent = i < NSTEPS ? 'step ' + (i + 1) + ' of ' + NSTEPS : STEPNAMES[id];
       nav.appendChild(where);
       nav.appendChild(next ? mk(next, STEPNAMES[next] + ' \u2192')
                            : document.createElement('span'));
@@ -1463,6 +1919,8 @@
     iOf: iOf, tOf: tOf, kOf: kOf, showTab: showTab, drawAll: drawAll,
     quiet: quietWindow, anomaly: anomalyHeight, sandRMS: sandRMS, aboveSand: aboveSand,
     envelopeCompare: envelopeCompare, rawSection: rawSection,
+    extractMap: extractMap, channelContrast: channelContrast, channelReach: channelReach,
+    crosslineSection: crosslineSection, spikes3: spikes3, NY: NY, IY0: IY0,
   };
 })();
 </script>
