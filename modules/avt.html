@@ -316,9 +316,10 @@
       same level: the amplitude on the left, the AVT on the right. Move the slider to walk the slice down
       through the interval, and watch two quite different things happen.</p>
     <p class="lede"><b>The amplitude slice flickers.</b> Its contrast between the channel and the rock
-      beside it is &times;5.3 at 78 ms, &times;0.4 twelve milliseconds higher, &times;7.8 at 108 and
-      &times;0.2 at 126. Move the slice by half a wavelet and the answer changes by a factor of ten,
-      because you are cutting through a wavelet and the level decides which lobe you land on.</p>
+      beside it is &times;5.2 at 78 ms, &times;0.4 twelve milliseconds higher and &times;1.4 twelve
+      milliseconds lower, and &times;7.7 at 108 ms. Move the slice by half a wavelet and the answer changes
+      by a factor of twelve, because you are cutting through a wavelet and the level decides which lobe you
+      land on.</p>
     <p class="lede"><b>The AVT slice does not.</b> It runs smoothly from &times;3.3 near the top of the
       interval down through &times;1.8 and &times;0.8 with no reversals at all. That stability is the
       attribute's real contribution, and the readouts below measure it: at the current level, moving the
@@ -463,8 +464,8 @@
           channel is, and read how much each attribute's contrast moves when the slice moves 12 ms either
           way. Then do it again at 42 ms and at 108 ms.
           <details class="reveal"><summary>Hint</summary><span class="ans">At 78 ms the amplitude contrast
-            swings by a factor of 11.9 across that 24 ms &mdash; from &times;0.44 to &times;1.47 &mdash;
-            while the AVT swings by 3.4. At 108 ms it is 5.2 against 1.5, and at 42 ms it is 2.4 against
+            swings by a factor of 12.2 across that 24 ms &mdash; from &times;0.43 to &times;1.42 &mdash;
+            while the AVT swings by 3.4. At 108 ms it is 6.0 against 1.5, and at 42 ms it is 2.4 against
             1.3. The amplitude slice is unstable because it is cutting through a wavelet and the level
             decides which lobe it lands on; the AVT slice is steadier because the envelope threw the
             wavelet away in step 1. That is the honest case for slicing this attribute rather than the
@@ -490,7 +491,8 @@
         <li><b>Polarity is gone from the first step onward.</b> Hard and soft look identical.</li>
         <li><b>It is a slice attribute.</b> AVT was built for looking at depositional systems in plan
           view, and its advantage over an amplitude slice is stability rather than sensitivity: move the
-          slice and the amplitude answer swings by a factor of ten where the AVT answer swings by three.</li>
+          slice 12 ms either way at the channel and the amplitude answer swings by a factor of twelve
+          where the AVT answer swings by three.</li>
         <li><b>Two window lengths now govern the answer</b>: the wavelet, and the RMS window you chose.
           The second can only make things blunter than the first.</li>
       </ul>
@@ -532,6 +534,12 @@
         against itself. The horizon is taken from the model rather than picked, so it carries no picking
         error &mdash; which is worth remembering when reading the stability numbers, since on real data the
         pick is exactly what moves.</p>
+      <p>The slice is interpolated between the two nearest samples rather than rounded to one. A horizon
+        moves smoothly across a survey and a rounded sample index does not, so rounding puts a
+        one-sample hop into the extraction wherever the horizon crosses a sample boundary. On a
+        single-sample slice through a wavelet that is a large change in value, and it draws as stripes
+        running along the inline direction &mdash; a map that looks like acquisition footprint and is
+        nothing of the kind.</p>
       <p><b>Simplifications.</b> One dimension for the first five steps, normal incidence, acoustic, no
         multiples and no transmission losses. AASPI runs on a 3D volume. There is no spectral balancing step here; on real
         data a wavelet closer to a spike changes the envelope and therefore everything downstream of it.
@@ -1307,7 +1315,7 @@
             for (let i = a; i <= b; i++) tmp[i - SI0] += c.r * wav.fn(i * DT - c.t);
           }
         });
-        const o = (iy * NX + ix) * NS;
+        const o = (ix * NY + iy) * NS;
         for (let k = 0; k < NS; k++) {
           out[o + k] = tmp[k] * Math.pow(10, -dec * ((SI0 + k) * DT) / 20) / NORM;
         }
@@ -1325,7 +1333,7 @@
       const amp = (S.noise / 100) * (Math.sqrt(s2 / out.length) || 1);
       for (let iy = 0; iy < NY; iy++) {
         for (let ix = 0; ix < NX; ix++) {
-          const o = (iy * NX + ix) * NS;
+          const o = (ix * NY + iy) * NS;
           for (let k = 0; k < NS; k++) {
             out[o + k] += amp * nf[ix * NT + ((SI0 + k + 7 * iy) % NT)];
           }
@@ -1339,7 +1347,7 @@
   /** One trace out of the slab. */
   function slabTrace(ix, iy, into) {
     const slab = buildSlab();
-    const o = (iy * NX + ix) * NS;
+    const o = (ix * NY + iy) * NS;
     const out = into || new Float32Array(NS);
     for (let k = 0; k < NS; k++) out[k] = slab[o + k];
     return out;
@@ -1388,7 +1396,7 @@
     for (let ix = 8; ix < NX - 8; ix++) {
       const yc = chanAxis(ix);
       for (let iy = 0; iy < NY; iy++) {
-        const v = absolute ? Math.abs(map[iy * NX + ix]) : map[iy * NX + ix];
+        const v = absolute ? Math.abs(map[ix * NY + iy]) : map[ix * NY + iy];
         const d = Math.abs(iy - yc);
         if (d < 2) { on += v; non++; } else if (d > 8 && d < 16) { off += v; noff++; }
       }
@@ -1403,7 +1411,7 @@
     for (let ix = 8; ix < NX - 8; ix++) {
       if (gasWin(ix) < 0.9) continue;                 // only where the sand is gassy at all
       for (let iy = 0; iy < NY; iy++) {
-        const v = map[iy * NX + ix];
+        const v = map[ix * NY + iy];
         const m = lobeMask(ix, iy);
         if (m > 0.9) { a += v; na++; } else if (m < 0.1) { b += v; nb++; }
       }
@@ -1412,7 +1420,12 @@
     return { inside: x, outside: y, ratio: y > 0 ? x / y : 0 };
   }
 
-  /** A map panel, drawn into a box whose shape matches the grid. */
+  /** A map panel, drawn into a box whose shape matches the grid.
+      Maps are stored inline-major, map[ix * NY + iy], because that is how
+      SEIS.drawVarDensity reads its data. Storing them crossline-major and
+      passing (NX, NY) makes it read the array with the wrong stride, which
+      does not fail — it draws a plausible-looking map covered in vertical
+      stripes. */
   function mapPanel(ctx, R, map, opts) {
     const o = opts || {};
     SEIS.drawVarDensity(ctx, map, NX, NY, R, {
@@ -1468,9 +1481,15 @@
         const a = T.avt(u, DT, K);
         const h = horizonAt(ix, iy);
         for (let q = 0; q < 3; q++) {
-          const i = clamp(Math.round((h + offs[q]) / DT) - SI0, 0, NS - 1);
-          amp[q][iy * NX + ix] = u[i];
-          av[q][iy * NX + ix] = a.avt[i];
+          /* Interpolate between the two nearest samples instead of rounding to
+             one. The horizon moves smoothly across the survey but a rounded
+             index does not, and on a single-sample slice through a wavelet a
+             one-sample hop is a large change in value — it draws as stripes
+             running along the inline direction. */
+          const x = clamp((h + offs[q]) / DT - SI0, 0, NS - 1.001);
+          const i = Math.floor(x), f = x - i;
+          amp[q][ix * NY + iy] = u[i] * (1 - f) + u[i + 1] * f;
+          av[q][ix * NY + iy] = a.avt[i] * (1 - f) + a.avt[i + 1] * f;
         }
       }
     }

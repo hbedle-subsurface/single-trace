@@ -1212,7 +1212,7 @@
             for (let i = a; i <= b; i++) tmp[i - SI0] += c.r * wav.fn(i * DT - c.t);
           }
         });
-        const o = (iy * NX + ix) * NS;
+        const o = (ix * NY + iy) * NS;
         for (let k = 0; k < NS; k++) {
           out[o + k] = tmp[k] * Math.pow(10, -dec * ((SI0 + k) * DT) / 20) / NORM;
         }
@@ -1230,7 +1230,7 @@
       const amp = (S.noise / 100) * (Math.sqrt(s2 / out.length) || 1);
       for (let iy = 0; iy < NY; iy++) {
         for (let ix = 0; ix < NX; ix++) {
-          const o = (iy * NX + ix) * NS;
+          const o = (ix * NY + iy) * NS;
           for (let k = 0; k < NS; k++) {
             out[o + k] += amp * nf[ix * NT + ((SI0 + k + 7 * iy) % NT)];
           }
@@ -1244,7 +1244,7 @@
   /** One trace out of the slab. */
   function slabTrace(ix, iy, into) {
     const slab = buildSlab();
-    const o = (iy * NX + ix) * NS;
+    const o = (ix * NY + iy) * NS;
     const out = into || new Float32Array(NS);
     for (let k = 0; k < NS; k++) out[k] = slab[o + k];
     return out;
@@ -1293,7 +1293,7 @@
     for (let ix = 8; ix < NX - 8; ix++) {
       const yc = chanAxis(ix);
       for (let iy = 0; iy < NY; iy++) {
-        const v = absolute ? Math.abs(map[iy * NX + ix]) : map[iy * NX + ix];
+        const v = absolute ? Math.abs(map[ix * NY + iy]) : map[ix * NY + iy];
         const d = Math.abs(iy - yc);
         if (d < 2) { on += v; non++; } else if (d > 8 && d < 16) { off += v; noff++; }
       }
@@ -1308,7 +1308,7 @@
     for (let ix = 8; ix < NX - 8; ix++) {
       if (gasWin(ix) < 0.9) continue;                 // only where the sand is gassy at all
       for (let iy = 0; iy < NY; iy++) {
-        const v = map[iy * NX + ix];
+        const v = map[ix * NY + iy];
         const m = lobeMask(ix, iy);
         if (m > 0.9) { a += v; na++; } else if (m < 0.1) { b += v; nb++; }
       }
@@ -1317,7 +1317,12 @@
     return { inside: x, outside: y, ratio: y > 0 ? x / y : 0 };
   }
 
-  /** A map panel, drawn into a box whose shape matches the grid. */
+  /** A map panel, drawn into a box whose shape matches the grid.
+      Maps are stored inline-major, map[ix * NY + iy], because that is how
+      SEIS.drawVarDensity reads its data. Storing them crossline-major and
+      passing (NX, NY) makes it read the array with the wrong stride, which
+      does not fail — it draws a plausible-looking map covered in vertical
+      stripes. */
   function mapPanel(ctx, R, map, opts) {
     const o = opts || {};
     SEIS.drawVarDensity(ctx, map, NX, NY, R, {
@@ -1354,10 +1359,10 @@
         const h = horizonAt(ix, iy);
         const a = Math.max(SI0, Math.round((h + t0) / DT));
         const b = Math.min(SI1, Math.round((h + t0 + len) / DT));
-        const o = (iy * NX + ix) * NS;
+        const o = (ix * NY + iy) * NS;
         let s = 0, n = 0;
         for (let i = a; i <= b; i++) { const v = slab[o + i - SI0]; s += v * v; n++; }
-        map[iy * NX + ix] = n ? Math.sqrt(s / n) : 0;
+        map[ix * NY + iy] = n ? Math.sqrt(s / n) : 0;
       }
     }
     return map;
