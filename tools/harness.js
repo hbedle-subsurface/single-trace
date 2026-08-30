@@ -78,7 +78,8 @@ if (require.main === module) {
     const $ = (id) => { const el = win.document.getElementById(id); return el ? el.textContent : '(missing)'; };
     const IDS = ['s1t', 's1u', 's1h', 's1e', 's1p', 's2e', 's2u', 's2m', 's2pt', 's2pe',
       's3p', 's3c', 's3e', 's3a', 's3b', 's4i', 's4a', 's4w', 's4r', 's4n', 's4k',
-      's5s', 's5g', 's5b', 's5r', 's5e'];
+      's5s', 's5g', 's5b', 's5r', 's5e',
+      's6a', 's6b', 's6c', 's6d', 's6e', 's6f', 's6g'];
 
     function dump(label) {
       M.drawAll();
@@ -94,7 +95,7 @@ if (require.main === module) {
     const ids = [...html.matchAll(/\$\('([A-Za-z0-9_]+)'\)/g)].map(m => m[1]);
     const missing = [...new Set(ids)].filter((id) => !win.document.getElementById(id));
     console.log('  $(id) references with no element: ' + (missing.length ? missing.join(', ') : 'none'));
-    const panes = ['p1', 'p2', 'p3', 'p4', 'p5', 'pw', 'pe', 'pk', 'pm'];
+    const panes = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'pw', 'pe', 'pk', 'pm'];
     console.log('  panes present: ' + panes.every(p => win.document.getElementById(p)));
     const labels = [...win.document.querySelectorAll('#tabs button')].map(b => b.textContent);
     console.log('  tab label characters: ' + labels.join('').length + ' (keep under 115)');
@@ -137,6 +138,29 @@ if (require.main === module) {
     M.state().tr = 80; M.set('win', 16); dump('trace 80 (thin wedge)');
     M.state().tr = 20; M.set('win', 16); dump('trace 20 (brine, thick wedge)');
     M.state().tr = 66; M.set('win', 16);
+
+    console.log('\n--- the volume reduces to the line at the reference crossline ---');
+    {
+      const sec = M.crosslineSection(M.IY0);
+      const ref = M.field();
+      let worst = 0;
+      for (let i = 0; i < ref.length; i++) worst = Math.max(worst, Math.abs(sec[i] - ref[i]));
+      console.log('   max difference: ' + worst.toExponential(2) +
+        (worst < 1e-6 ? '  (identical to Float32 precision)' : '  DIVERGENT'));
+      console.log('   channel closest approach: ' + M.channelReach().toFixed(1) + ' crosslines');
+    }
+
+    console.log('\n--- map view ---');
+    {
+      M.showTab('p6');
+      [[0, 60], [40, 60], [80, 40]].forEach((q) => {
+        M.state().mtop = q[0]; M.state().mlen = q[1];
+        M.drawAll();
+        console.log('   window ' + String(q[0]).padStart(3) + ' to ' + (q[0] + q[1]) +
+          ' ms   envelope ' + $('s6d') + '   sweetness ' + $('s6e'));
+      });
+      M.state().mtop = 0; M.state().mlen = 60; M.showTab('p1');
+    }
 
     console.log('\n--- errors ---');
     console.log(errors.length ? errors.join('\n') : '  none');

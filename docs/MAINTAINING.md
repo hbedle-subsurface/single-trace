@@ -79,6 +79,7 @@ node tools/measure-agc.js           # module 04: same
 node tools/harness-avt.js           # module 05: same
 node tools/harness-teager.js        # module 06: same
 node tools/check-shared.js          # modules 01, 03-06 are running one line
+node tools/check-volume.js          # modules 01, 03, 05 share one volume
 node tools/gen_thumbs.js            # regenerates the landing-page thumbnails
 ```
 
@@ -151,6 +152,20 @@ The script copies `assets/count.js` in, adds one `<script>` line to every HTML
 page, and works out the relative path for pages in subfolders. Running it twice
 does nothing the second time. `--remove` takes it all back out.
 
+`tools/retrofit-footer.py` does the same job for an older repository that
+already has footers but not the current ones. It replaces each footer with the
+two-column version, adds the citation line, installs the counter, and removes
+any claim that no data leaves the machine — which stops being true the moment
+the counter is on. It reports any sentence it discards from an old footer rather
+than binning it silently; replacing a footer wholesale is the easiest way to
+delete something useful without noticing, and on `seismic_resolution` it caught
+one.
+
+```
+python3 tools/retrofit-footer.py --dry-run --with-counter \
+    --title "What Can You REALLY See in Seismic?" ../seismic_resolution
+```
+
 If the work is being done in another conversation or by someone else,
 [`docs/ADD-COUNTING.md`](ADD-COUNTING.md) is a self-contained handoff: it
 carries the whole of `count.js` inline, the script tag with its relative paths,
@@ -194,3 +209,63 @@ the same numbers with those two signs corrected: it sums to zero and returns
 exactly 2 for t squared. `verify_trace.js` checks both conditions, which is how
 the error surfaced. The eleven-point first-derivative filter in the same document
 is correct as printed.
+
+## Map view
+
+Modules 01, 03 and 05 each have a sixth step that works in map view, because
+that is where these attributes are actually used. They share one volume: 48
+crosslines, built by a block of code that is identical in all three files.
+
+The rule the volume obeys is that **crossline 12 is exactly the line every other
+module shows**. The cross-dip is zero there, the gas lobe covers it completely,
+and the channel never comes closer than six crosslines. Two checks enforce this:
+
+- each module's own harness rebuilds crossline 12 out of the volume and compares
+  it against the section, sample by sample;
+- `check-volume.js` compares the volumes the three modules produce against each
+  other, at several crosslines and frequencies, after putting them all in the
+  same state. (They have different defaults for decay and noise, and the volume
+  carries both — the check sets them before comparing, which took one false
+  alarm to work out.)
+
+Two features exist only in map view, and each module uses a different one so the
+lesson does not repeat:
+
+| module | map subject | the lesson |
+|---|---|---|
+| 01 | the gas lobe, and its edge | sweetness separates it better than the envelope does, and by how much |
+| 03 | the channel | the extraction window is a decision, and a map of the wrong 40 ms looks convincing |
+| 05 | the channel, as a slice | an amplitude slice flickers with level; an AVT slice does not |
+
+Both features are invisible on every section the earlier steps draw, which is
+the point.
+
+**Maps are stored inline-major**, `map[ix * NY + iy]`, because that is how
+`SEIS.drawVarDensity` reads its data. Storing them crossline-major and passing
+`(NX, NY)` does not fail — it reads the array with the wrong stride and draws a
+plausible-looking map covered in vertical stripes, which looks enough like
+acquisition footprint to be believed. `check-volume.js` now measures the step
+between neighbouring inlines against the step between neighbouring crosslines
+and fails if the first is more than four times the second.
+
+**Slices are interpolated, not rounded.** A horizon moves smoothly across a
+survey and a rounded sample index does not, so rounding puts a one-sample hop
+into the extraction wherever the horizon crosses a sample boundary. On module
+05's single-sample slice that is a large change in value and it also draws as
+stripes. Window averages (modules 01 and 03) are less sensitive and use rounded
+endpoints.
+
+Only the times a horizon window can reach are computed — building the whole
+volume would be 4608 traces of 500 samples for data no panel draws. The
+band-limited noise field is reused across crosslines with a sample offset rather
+than generated independently for each; that is stated in each module's Method
+section rather than left to be discovered.
+
+The horizon is taken from the model rather than picked, so it carries no picking
+error. That is a real simplification and each module says so: on live data the
+window wanders with the pick, which is exactly what module 05's stability
+readout is about.
+
+If map view is added to another module, reuse this block rather than inventing a
+second volume. Two different synthetic volumes in one set would be worse than
+none.

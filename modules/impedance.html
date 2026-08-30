@@ -102,13 +102,14 @@
     <p class="lede">The middle panel is that calculation applied to the log on the left. It is empty
       wherever the rock is uniform, and it spikes at each boundary. Then the earth blurs those spikes with
       a wavelet, and you get the trace on the right.</p>
+
+    <canvas id="c1a" aria-label="Impedance log, reflection coefficients and the resulting seismic trace"></canvas>
+
+
     <p class="lede">Look at what happened to the thick limestone near the top. Two boundaries produced two
       spikes and the trace shows two events. <b>The layer itself left no mark at all.</b> That is the whole
       problem this module is about: a geologist wants to know about the layer, and the trace is telling
       them about its edges.</p>
-
-    <canvas id="c1a" aria-label="Impedance log, reflection coefficients and the resulting seismic trace"></canvas>
-
     <div class="stats">
       <div class="stat"><span>Impedance at the cursor</span><b id="s1z">—</b></div>
       <div class="stat"><span>Nearest boundary</span><b id="s1b">—</b></div>
@@ -142,9 +143,6 @@
       and integrating it hands back &frac12;ln(Z) itself. That is what the middle panel is. The right-hand
       panel is the true impedance log from step 1, put through the same filter the seismic went through, so
       the two can be compared fairly.</p>
-    <p class="lede">The readout below measures how close they are. On the default settings the two agree to
-      a correlation of <b id="s2c">—</b>, which is close enough that you can read the integrated trace as a
-      layer property rather than a boundary marker. That is the entire attribute.</p>
 
     <div class="sec-row" id="row2">
       <div class="panel-col">
@@ -159,6 +157,10 @@
       </div>
     </div>
 
+
+    <p class="lede">The readout below measures how close they are. On the default settings the two agree to
+      a correlation of <b id="s2c">—</b>, which is close enough that you can read the integrated trace as a
+      layer property rather than a boundary marker. That is all the attribute does.</p>
     <div class="stats">
       <div class="stat key"><span>Match with the true log, in band</span><b id="s2a">—</b></div>
       <div class="stat"><span>Impedance value at the cursor</span><b id="s2z">—</b></div>
@@ -178,23 +180,26 @@
   <!-- =============================== STEP 3 =============================== -->
   <section class="tabpane" id="p3" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">3</span>Everything moves a quarter of a cycle</h3>
+      <h3><span class="stepno">3</span>Every frequency turns by a quarter of its own cycle</h3>
       <span class="hint">The mistake that puts your pick in the wrong place</span>
     </div>
     <p class="lede">Integration does something to the wavelet that you have to know about before picking
-      anything. Dividing a spectrum by frequency rotates the phase by 90 degrees. In plain terms: peaks
-      stop being peaks. Where the trace had a bright peak at a boundary, the integrated version has a
+      anything. Dividing a spectrum by frequency rotates the phase by 90 degrees, which turns every
+      frequency in the wavelet by a quarter of its own period. That is not a delay: a delay would move
+      every frequency by the same number of milliseconds, and this does not. The wavelet changes shape, and
+      peaks stop being peaks. Where the trace had a bright peak at a boundary, the integrated version has a
       <em>step</em> at that boundary, and its own maximum sits in the middle of the layer below.</p>
     <p class="lede">The panels below zoom in on one event so you can see the two curves side by side. The
       boundary is marked with a dashed line. The trace peaks on it. The integrated trace is climbing
       through it, at its steepest, and does not reach its own maximum until <b id="s3d">—</b> later.</p>
+
+    <canvas id="c3a" aria-label="Zoomed comparison of the trace and the integrated trace at one boundary"></canvas>
+
+
     <p class="lede">So the rule for reading these sections is different, and it catches people out
       constantly. <b>On an amplitude section, the boundary is the bright line. On a relative impedance
       section, the boundary is where the color changes.</b> Pick the bright part of an impedance display
       and you have picked the middle of the layer.</p>
-
-    <canvas id="c3a" aria-label="Zoomed comparison of the trace and the integrated trace at one boundary"></canvas>
-
     <div class="stats">
       <div class="stat"><span>Boundary time</span><b id="s3b">—</b></div>
       <div class="stat"><span>Where the trace peaks</span><b id="s3t">—</b></div>
@@ -204,9 +209,9 @@
     </div>
     <div class="legend prose">
       <span>The last two readouts should be close to each other, and they move together when you change the
-        frequency content with the slider above. That is the check that this is a phase rotation and not
-        something the model is doing: a quarter of a cycle is a quarter of a cycle, whatever the
-        wavelet.</span>
+        frequency content with the slider above. That is the check that a phase rotation is what is
+        happening: the offset scales with the period of the wavelet, which a fixed time delay would
+        not do.</span>
     </div>
   </section>
 
@@ -234,8 +239,7 @@
     </ul>
     <p class="lede">Move the low-frequency slider in the header and watch the third panel. As you let the
       data record lower and lower frequencies, more of the trend comes back and the integrated version gets
-      closer to the truth. That slider is the single most important control on this page, and in real life
-      it is not a slider &mdash; it is whatever your acquisition and processing happened to deliver.</p>
+      closer to the truth. That slider is the most important control on this page. In real life you do not get a slider: the low end of your band is whatever the acquisition and the processing delivered.</p>
 
     <canvas id="c4a" aria-label="True log impedance, the integrated trace, and the missing low-frequency trend"></canvas>
 
@@ -271,10 +275,6 @@
       header. The result wanders off the scale in long slow swings that have nothing to do with geology.
       This is why AASPI's <span class="k">relative_acoustic_impedance</span> applies a four-point Ormsby
       bandpass after the integration, and why that filter is not optional.</p>
-    <p class="lede">Setting the corner is a judgement call. Too low and the noise comes through. Too high
-      and you throw away the low frequencies that made the attribute worth computing, since the whole
-      point was to emphasize them. Somewhere just below the lowest frequency your data actually recorded is
-      the usual answer.</p>
 
     <div class="ctl" style="max-width:520px;margin-bottom:14px">
       <label for="cut">Filter corner <span class="val" id="cutV">5 Hz</span></label>
@@ -283,6 +283,11 @@
 
     <canvas id="c5a" aria-label="Integrated trace with and without the Ormsby filter"></canvas>
 
+
+    <p class="lede">Setting the corner is a judgement call. Too low and the noise comes through. Too high
+      and you throw away the low frequencies that made the attribute worth computing, since the whole
+      point was to emphasize them. Somewhere just below the lowest frequency your data actually recorded is
+      the usual answer.</p>
     <div class="stats">
       <div class="stat"><span>Filter corner</span><b id="s5c">—</b></div>
       <div class="stat key"><span>Largest excursion, filtered</span><b id="s5f">—</b></div>
@@ -388,8 +393,7 @@
             The two settings have to be chosen with each other in mind.</span></details></li>
         <li><b>Break the small-contrast assumption.</b> In step 2, set the impedance contrast to 0.3, note
           the match with the true log, then take it to 3.0 and look again.
-          <details class="reveal"><summary>Hint</summary><span class="ans">At &times;0.3 the largest reflection coefficient on the trace is 0.055 and the
-            integrated result recovers essentially 100% of the log impedance. At &times;1 the largest r is
+          <details class="reveal"><summary>Hint</summary><span class="ans">At &times;0.3 the largest reflection coefficient on the trace is 0.055 and the integrated result recovers very close to 100% of the log impedance. At &times;1 the largest r is
             0.179 and it recovers 99.4%. At &times;3, r reaches 0.494 and it recovers 94.1%. The shortfall
             always goes the same way, because r = tanh(&frac12;&Delta;lnZ) is always slightly smaller than
             &frac12;&Delta;lnZ, and integration returns the r it was given. Now watch the correlation while
@@ -400,11 +404,24 @@
           filter corner from 5 Hz down to 0.
           <details class="reveal"><summary>Hint</summary><span class="ans">At 20% noise with the corner at 5 Hz the largest excursion on the attribute is
             0.93 and the match with the true log is 0.992. Take the corner to 0 and the excursion doubles to
-            1.90 while the match collapses to 0.452. At 40% noise it is 3.15 and 0.234. That extra size is
-            not geology; it is noise sitting below the seismic band, divided by a very small frequency. Then
+            1.90 while the match collapses to 0.452. At 40% noise it is 3.15 and 0.234. That extra size is noise sitting below the seismic band, divided by a very small frequency. Then
             try the opposite mistake and set the corner to 12 Hz. The drift is gone, but the match drops to
             0.835, because now you are filtering out the low frequencies of the data itself. Both failures
             look like a smooth, plausible section. Neither announces itself.</span></details></li>
+        <li><b>One low on the impedance display, several rocks.</b> A relative impedance section shows a
+          clear low across your reservoir interval. List at least three rocks or fluid conditions that
+          would produce it, and say what you would need in order to choose between them.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Impedance is velocity times
+            density, so anything that lowers either one lowers impedance. A porous brine sand is lower
+            impedance than the shale around it. The same sand with gas in it is lower still, because gas
+            drops both density and velocity. An overpressured shale is low impedance without being a
+            reservoir at all. Coal is very low impedance and is not a reservoir either. All four read as a
+            low, and the attribute cannot separate them, because it measures one number and four different
+            rocks can share it. Worse, this attribute is <em>relative</em>: step 4 showed that the values
+            float, so you cannot even compare the depth of the low against a value from a rock physics
+            table. Choosing between them needs information the seismic does not contain &mdash; a well tie,
+            a rock physics model of the local shales and sands, an AVO response, or the shape of the body
+            in map view. The impedance display narrows the list. It does not close it.</span></details></li>
       </ol>
     </div>
   </section>
@@ -420,9 +437,10 @@
         <li><b>Relative means relative.</b> The trend with depth is a frequency too low for seismic to
           record, so it cannot come back. There is no absolute scale and no meaningful zero, and two
           layers far apart cannot be compared.</li>
-        <li><b>Everything shifts by a quarter of a cycle.</b> Bed boundaries land where the color changes,
-          not where the display is brightest. Picking by brightness puts you in the middle of the
-          layer.</li>
+        <li><b>Integration rotates the phase by 90 degrees.</b> Every frequency turns by a quarter of its
+          own cycle, which changes the shape of the wavelet rather than delaying it. Bed boundaries end up
+          where the color changes and not where the display is brightest, so picking by brightness puts you
+          in the middle of the layer.</li>
         <li><b>The bandpass at the end is load-bearing.</b> Dividing by frequency amplifies whatever sits
           near zero frequency without limit, and the filter is what stops the section drifting.</li>
         <li><b>Two assumptions come with it.</b> Small reflection coefficients, and a wavelet close to a
@@ -660,7 +678,7 @@
       { top: LIMET + s, base: LIMEB + s, d: 0.36 },                       // limestone
       { top: 0.232 + s, base: 0.262 + s, d: -0.13 },                      // soft shale
       { top: WEDGE + s, base: WEDGE + wedgeGap(ix) + s, d: 0.30 },        // thinning hard bed
-      { top: SANDT + s, base: SANDB + s, d: -0.11 - 0.23 * g },           // sand, gassy on the right
+      { top: SANDT + s, base: SANDB + s, d: -0.11 - 0.23 * g },           // sand, gas-charged on the right
     ];
     for (let k = 0; k < 7; k++) {
       L.push({ top: 0.600 + 0.0128 * k + s, base: 0.600 + 0.0128 * (k + 1) + s,

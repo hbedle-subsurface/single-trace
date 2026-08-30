@@ -71,7 +71,8 @@ if (require.main === module) {
     const $ = (id) => { const el = win.document.getElementById(id); return el ? el.textContent : '(missing)'; };
     const IDS = ['s1u', 's1e', 's1r', 's1a', 's1w', 's2a', 's2b', 's2c', 's2d', 's2e', 's2f',
       's3a', 's3b', 's3c', 's3d', 's3e', 's3f', 's3g',
-      's4w', 's4a', 's4b', 's4c', 's4d', 's4e', 's5a', 's5b', 's5c', 's5d', 's5e'];
+      's4w', 's4a', 's4b', 's4c', 's4d', 's4e', 's5a', 's5b', 's5c', 's5d', 's5e',
+      's6a', 's6b', 's6c', 's6d', 's6e', 's6f', 's6g'];
 
     function dump(label) {
       M.drawAll();
@@ -87,7 +88,7 @@ if (require.main === module) {
     const ids = [...html.matchAll(/\$\('([A-Za-z0-9_]+)'\)/g)].map((m) => m[1]);
     const missing = [...new Set(ids)].filter((id) => !win.document.getElementById(id));
     console.log('  $(id) references with no element: ' + (missing.length ? missing.join(', ') : 'none'));
-    const panes = ['p1', 'p2', 'p3', 'p4', 'p5', 'pw', 'pe', 'pk', 'pm'];
+    const panes = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'pw', 'pe', 'pk', 'pm'];
     console.log('  panes present: ' + panes.every((p) => win.document.getElementById(p)));
     const labels = [...win.document.querySelectorAll('#tabs button')].map((b) => b.textContent);
     console.log('  tab label characters: ' + labels.join('').length + ' (keep under 115)');
@@ -132,6 +133,27 @@ if (require.main === module) {
     S.freq = 25; M.set('freq', 25);
     S.tr = 20; M.set('tr', 20); dump('trace 20 (brine sand)');
     S.tr = 66; M.set('tr', 66);
+
+    console.log('\n--- the volume reduces to the line at the reference crossline ---');
+    {
+      const sec = M.crosslineSection(M.IY0);
+      const ref = M.field();
+      let worst = 0;
+      for (let i = 0; i < ref.length; i++) worst = Math.max(worst, Math.abs(sec[i] - ref[i]));
+      console.log('   max difference: ' + worst.toExponential(2) +
+        (worst < 1e-6 ? '  (identical to Float32 precision)' : '  DIVERGENT'));
+    }
+
+    console.log('\n--- map view: the channel on each slice ---');
+    {
+      M.showTab('p6');
+      [60, 78, 84, 93, 105, 120].forEach((t) => {
+        M.state().mtop = t; M.drawAll();
+        console.log('   ' + String(t).padStart(4) + ' ms   amplitude ' + $('s6d') +
+          '   AVT ' + $('s6e'));
+      });
+      M.state().mtop = 93; M.showTab('p1');
+    }
 
     console.log('\n--- errors ---');
     console.log(errors.length ? errors.join('\n') : '  none');

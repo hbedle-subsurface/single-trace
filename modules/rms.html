@@ -43,7 +43,7 @@
           <div class="ctl-col">
             <h2>The window</h2>
             <div class="ctl">
-              <label for="win">Half-length <span class="val" id="winV">&plusmn;20 ms</span></label>
+              <label for="win">Window half-length <span class="val" id="winV">&plusmn;20 ms</span></label>
               <input type="range" data-key="win" id="win" min="4" max="80" step="2" value="20">
             </div>
             <div class="ctl">
@@ -91,7 +91,7 @@
     </div>
     <p class="lede">Put a box around the cursor. Take every sample inside it, square each one, average the
       squares, and take the square root of the answer. That number is the <b>RMS amplitude</b> at the
-      cursor. Move the box down one sample and do it again. That is the entire attribute:</p>
+      cursor. Move the box down one sample and do it again:</p>
     <p class="lede" style="text-align:center"><span class="k">RMS = &radic;( average of d&sup2; inside the
       window )</span></p>
     <p class="lede">The squaring is doing two jobs. It makes everything positive, so a trough counts as
@@ -195,9 +195,7 @@
       <div class="stat"><span>Window</span><b id="s3g">—</b></div>
     </div>
     <div class="legend prose">
-      <span>The two ratios are close but not equal, and which is larger depends on the window. RMS is not a
-        neutral summary of amplitude: it is an energy average over a stretch of time, so it rewards a
-        feature that is bright <em>and</em> long over one that is brighter but brief. A thin, very bright
+      <span>The two ratios are close but not equal, and which is larger depends on the window. RMS is an energy average over a stretch of time, so it rewards a feature that is bright <em>and</em> long over one that is brighter but brief. It is not a neutral summary of amplitude. A thin, very bright
         bed can lose to a thicker, duller one.</span>
     </div>
   </section>
@@ -217,12 +215,13 @@
     <p class="lede">The panel below reads the RMS at a fixed time <b id="s4t">—</b> above the top of the gas
       sand, where there is no sand and nothing bright at all. Watch that number as you change the window
       length in the header.</p>
-    <p class="lede">This is also why an interval RMS map straddling a strong reflector is so often
-      disappointing. If the window catches the same bright event everywhere, the map is flat, and the flat
-      map is the window talking rather than the geology.</p>
 
     <canvas id="c4a" aria-label="RMS at three window lengths around the gas sand, showing the smear"></canvas>
 
+
+    <p class="lede">This is also why an interval RMS map straddling a strong reflector is so often
+      disappointing. If the window catches the same bright event everywhere, the map is flat, and the flat
+      map is the window talking rather than the geology.</p>
     <div class="stats">
       <div class="stat"><span>Window</span><b id="s4w">—</b></div>
       <div class="stat key"><span>RMS above the sand, current window</span><b id="s4a">—</b></div>
@@ -363,8 +362,7 @@
         quickly before anything more careful.</li>
       <li><b>Stratigraphic shapes.</b> Channels, fans and bars often show as coherent bright zones in an
         interval, and the map reads as a picture of the depositional system.</li>
-      <li><b>Quality control.</b> An RMS section is a fast way to see gain problems, acquisition footprint,
-        and where the data stops being usable with depth.</li>
+      <li><b>Quality control.</b> An RMS section is a fast way to see gain problems, acquisition footprint &mdash; a pattern left in the data by the shape of the survey rather than by the geology &mdash; and where the data stops being usable with depth.</li>
       <li><b>As the divisor in AGC</b>, which is the whole of module 04.</li>
     </ul>
 
@@ -403,13 +401,10 @@
             agreement is not exact because a seismic trace is not a sine wave and the window covers a bit
             more than one cycle, and it drifts when you change the frequency &mdash; 0.727 at 40 Hz,
             0.681 at 15 Hz, because the same 6 ms window covers a different fraction of a cycle each time.
-            The lesson is not the exact number. It is that a short-window RMS and an envelope are two
-            calculations of nearly the same thing, so having both in a volume is not two pieces of
-            evidence.</span></details></li>
+            The exact number matters less than what it means: a short-window RMS and an envelope are two calculations of nearly the same thing, so having both in a volume does not give you two pieces of evidence.</span></details></li>
         <li><b>Measure the smear.</b> In step 4, read the RMS at the fixed point above the sand with the
           window at &plusmn;8 ms, then at &plusmn;40 ms, then at &plusmn;80 ms.
-          <details class="reveal"><summary>Hint</summary><span class="ans">The point being measured is 60 ms above the top of the sand, where the model has no
-            reflector at all and the trace is essentially flat. At &plusmn;8 ms the RMS reads 0.005, which
+          <details class="reveal"><summary>Hint</summary><span class="ans">The point being measured is 60 ms above the top of the sand, where the model has no reflector at all and the trace is nearly flat. At &plusmn;8 ms the RMS reads 0.005, which
             is honest. At &plusmn;20 it reads 0.026. At &plusmn;40, 0.104. At &plusmn;60, 0.178. At
             &plusmn;80, 0.264. Nothing was ever there. Every one of those numbers is the sand leaking
             upward into a window long enough to reach it, and on a map that leak is indistinguishable from
@@ -458,6 +453,22 @@
             interval is a decision someone made. And a map that shows nothing may be a map of the wrong
             40 milliseconds rather than a map of nothing, which is why the section beside it is not
             optional.</span></details></li>
+        <li><b>One bright RMS map, four causes.</b> An interval RMS map shows a bright zone across part
+          of your survey. Name at least three things that could produce it, only one of which is a change
+          in the rock, and say how you would test each.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Genuinely higher reflection
+            coefficients &mdash; a gas sand, a hard streak, a change in lithology &mdash; is the answer
+            everyone reaches for. Tuning is the second: step 3 showed the gas and brine sands separated by
+            &times;3.9 on RMS but the wedge on this same line changes its envelope by a factor of nearly
+            five with the reflection coefficients held fixed, purely through interference. The third is
+            the window: step 4 showed a point with nothing in it reading 0.005 at &plusmn;8 ms and 0.264 at
+            &plusmn;80 ms, because a long window reaches a bright event 60 ms away. The fourth is
+            processing gain, which module 04 is about, and it can brighten a zone without anything in the
+            ground changing at all. Testing them: shorten the window and see whether the anomaly survives,
+            which separates the window effect from the rest. Look at the interval thickness, since a
+            tuning brightness tracks thickness and a fluid effect does not. Check the amplitude section
+            underneath the map, since a real contrast has a coherent event and a gain artifact often does
+            not. And find out what was done to the amplitudes before you got them.</span></details></li>
       </ol>
     </div>
   </section>
@@ -1306,7 +1317,7 @@
   function inOutLobe(map) {
     let a = 0, na = 0, b = 0, nb = 0;
     for (let ix = 8; ix < NX - 8; ix++) {
-      if (gasWin(ix) < 0.9) continue;                 // only where the sand is gassy at all
+      if (gasWin(ix) < 0.9) continue;                 // only where the sand is gas-charged at all
       for (let iy = 0; iy < NY; iy++) {
         const v = map[ix * NY + iy];
         const m = lobeMask(ix, iy);

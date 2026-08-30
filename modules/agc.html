@@ -129,8 +129,7 @@
       bottom half of the section is a gray smear.</p>
     <p class="lede">The decay slider in the header controls how severe that is here. At the default setting
       the shallow marker on this trace is <b id="s2r">—</b> times the size of the deep one. After AGC the
-      same two events are <b id="s2s">—</b> apart. That is the entire case for the process, and it is a
-      strong one: you cannot interpret what you cannot see.</p>
+      same two events are <b id="s2s">—</b> apart. That is a strong case for the process. You cannot interpret what you cannot see.</p>
     <p class="lede">This is also why AGC is nearly always already on. Every display package applies some
       form of gain by default, often without saying so in any obvious place. If you have never turned it
       off, you have probably never seen your data.</p>
@@ -156,7 +155,7 @@
       <div class="stat key"><span>Ratio after</span><b id="s2e">—</b></div>
     </div>
     <div class="legend prose">
-      <span>Both sections are drawn with the same colour limits, so the comparison is fair. Turn the decay
+      <span>Both sections are drawn with the same color limits, so the comparison is fair. Turn the decay
         slider to zero and the two displays become almost the same picture, which is worth doing once: AGC
         has very little to do when there is no gain problem to fix, and the temptation to leave it on
         anyway is exactly where the trouble starts.</span>
@@ -245,7 +244,7 @@
     </div>
     <div class="legend prose">
       <span>The waveform numbers are correlations between the shape of the shallow marker before and after
-        AGC. A long window leaves it essentially untouched. A short one does not: dividing by a quantity
+        AGC. A long window leaves it almost untouched. A short one does not: dividing by a quantity
         that changes across the wavelet stretches one side of it relative to the other, which shifts the
         apparent peak and changes the phase. If you are picking horizons on AGC'd data with a short window,
         your picks are being moved by the processing.</span>
@@ -258,8 +257,7 @@
       <h3><span class="stepno">5</span>Everything downstream inherits it</h3>
       <span class="hint">The reason this module exists at all</span>
     </div>
-    <p class="lede">AGC is not usually applied by the person doing the interpretation. It is applied
-      earlier, by someone else, for a display that was perfectly reasonable at the time. Then the volume
+    <p class="lede">AGC is usually applied by someone other than the interpreter, earlier in the flow, for a display that was perfectly reasonable at the time. Then the volume
       gets passed along, and attributes get computed from it.</p>
     <p class="lede">Here is what that does. The panel below computes the <b>envelope</b> from module 01 two
       ways: from the original trace, and from the AGC'd trace. On the original, the gas sand's envelope is
@@ -270,11 +268,11 @@
       and relative acoustic impedance, whose whole output scales with the trace it integrated. Only the
       attributes that already threw amplitude away survive &mdash; instantaneous phase and instantaneous
       frequency come through unharmed, because they are ratios in which the gain cancels.</p>
-    <p class="lede">So the question to ask before computing any amplitude attribute is not what the
-      attribute does. It is what was done to the amplitudes before you got them.</p>
 
     <canvas id="c5a" aria-label="Envelope computed from the original trace and from the AGC'd trace"></canvas>
 
+
+    <p class="lede">So before computing any amplitude attribute, ask what was done to the amplitudes before you got them.</p>
     <div class="stats">
       <div class="stat key"><span>Envelope contrast, original data</span><b id="s5c">—</b></div>
       <div class="stat key"><span>Envelope contrast, after AGC</span><b id="s5d">—</b></div>
@@ -299,8 +297,7 @@
       <h3><span class="stepno">?</span>When to use it and when not to</h3>
       <span class="hint">A display tool that keeps being used as a processing step</span>
     </div>
-    <p class="lede">AGC is not a bad process. It is a display process being used, very often, on data that
-      is about to be interpreted quantitatively, and that is a different thing.</p>
+    <p class="lede">AGC is a reasonable display process. The trouble comes when it is used on data that is about to be interpreted quantitatively.</p>
 
     <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
       Where it is the right tool</h2>
@@ -385,13 +382,28 @@
         <li><b>Find the attributes that survive.</b> In step 5, read the phase and frequency correlations,
           then change the AGC window and read them again.
           <details class="reveal"><summary>Hint</summary><span class="ans">At the default &plusmn;120 ms window the phase correlates at 0.9999 before against
-            after, and the frequency at 0.9990. Both are essentially untouched, because each already
-            divides the trace by its own strength: multiply the trace by anything positive and the ratio is
+            after, and the frequency at 0.9990. Both are almost untouched, because each already divides the trace by its own strength: multiply the trace by anything positive and the ratio is
             unchanged. But shorten the window and even they start to go. At &plusmn;30 ms the frequency is
             0.9880, and at &plusmn;10 ms it is 0.9006 with the phase down to 0.9932. The immunity is not
             absolute, it holds while the gain is roughly constant across a wavelet. So the useful version of
             the rule is this: on data of unknown history, phase and frequency are the attributes you can
             still work with, provided nobody applied a short-window AGC.</span></details></li>
+        <li><b>Two flat amplitude sections, two very different reasons.</b> Someone hands you a section
+          on which every event is about equally bright. Give at least two explanations, and say how you
+          would tell which one you are looking at.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Either the earth really is
+            uniform through that interval &mdash; a monotonous shale section with small, similar
+            reflection coefficients does look like this &mdash; or a gain has been applied that removed the
+            differences. The second is far more common, and this module is about why: AGC is defined as
+            removing exactly the amplitude variation an interpreter is looking for, and step 3 showed it
+            turning a &times;3.2 contrast between gas and brine sand into &times;1.2. Nothing on the
+            display announces which you have. Three things to try. Look at the deep section: real data
+            loses amplitude with depth and AGC'd data does not, so a section that is as bright at 2 s as at
+            0.5 s has almost certainly been gained. Compute an RMS amplitude in a running window, as in
+            module 03, and see whether it is close to constant &mdash; if it is, that is AGC, because AGC
+            is division by exactly that quantity. And ask for the processing report. If nobody can tell
+            you, treat every amplitude in the volume as a comparison within one trace and nothing
+            more.</span></details></li>
       </ol>
     </div>
   </section>

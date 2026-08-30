@@ -101,12 +101,13 @@
       three consecutive samples, with no transform and no window:</p>
     <p class="lede" style="text-align:center"><span class="k">&psi;(n) = x(n)&sup2; &minus;
       x(n+1)&middot;x(n&minus;1)</span></p>
-    <p class="lede">The panels below put the envelope and the Teager-Kaiser energy side by side on the same
-      trace. They do not agree, and where they disagree the trace is changing frequency. Watch the wedge in
-      particular, where interference shifts the local frequency around.</p>
 
     <canvas id="c1a" aria-label="The trace, its envelope, and its Teager-Kaiser energy"></canvas>
 
+
+    <p class="lede">The panels below put the envelope and the Teager-Kaiser energy side by side on the same
+      trace. They do not agree, and where they disagree the trace is changing frequency. Watch the wedge in
+      particular, where interference shifts the local frequency around.</p>
     <div class="stats">
       <div class="stat"><span>Trace at the cursor</span><b id="s1u">—</b></div>
       <div class="stat"><span>Envelope there</span><b id="s1e">—</b></div>
@@ -143,13 +144,14 @@
       them twice. On noisy data that is a serious objection. AASPI's answer, following Matos, is to use
       Holoborodko's smooth noise-robust differentiators &mdash; eleven-point and nine-point filters designed
       to differentiate while suppressing the high end.</p>
+
+    <canvas id="c2a" aria-label="Teager-Kaiser energy computed three ways on the same trace"></canvas>
+
+
     <p class="lede">Which buys the noise rejection at a price nobody advertises. Those filters are smoothed,
       so they roll off with frequency too: measured against the exact answer they read 98% at 12 Hz, 88% at
       30 Hz and 66% at 60 Hz. <b>Both</b> practical formulas under-read, and both get worse with
       frequency.</p>
-
-    <canvas id="c2a" aria-label="Teager-Kaiser energy computed three ways on the same trace"></canvas>
-
     <div class="stats">
       <div class="stat"><span>Three-sample form at the cursor</span><b id="s2a">—</b></div>
       <div class="stat"><span>Holoborodko filters</span><b id="s2b">—</b></div>
@@ -159,7 +161,7 @@
     </div>
     <div class="legend prose">
       <span>A note about the source, since it cost some time. The AASPI documentation prints both filters,
-        and the second-derivative row has the signs of the two samples either side of the centre wrong. As
+        and the second-derivative row has the signs of the two samples either side of the center wrong. As
         printed, its coefficients add up to 48 instead of 0, which would report a second derivative of
         0.25 for a flat line. The corrected version uses the same numbers and satisfies both conditions a
         second-derivative filter must satisfy. The verification harness for this site checks that, which is
@@ -182,14 +184,15 @@
       real and imaginary parts. Take the analytic trace from module 01 &mdash; the trace and its Hilbert
       transform &mdash; compute the energy of both, and add. The two ripples are a quarter cycle out of step
       and cancel, leaving a smooth result.</p>
+
+    <canvas id="c3a" aria-label="Teager-Kaiser energy of the real trace and of the analytic trace"></canvas>
+
+
     <p class="lede">It is the same trick that made the envelope smooth in module 01, applied to a
       different quantity. The panels below show both, and the readouts measure how much ripple survives in
       each. At the default 25 Hz the improvement is real but modest. Take the dominant frequency up to
       45 Hz, where each cycle covers fewer samples, and it becomes obvious: the real-trace energy breaks
       into three separate humps inside a single event and the analytic version stays as one.</p>
-
-    <canvas id="c3a" aria-label="Teager-Kaiser energy of the real trace and of the analytic trace"></canvas>
-
     <div class="stats">
       <div class="stat"><span>Real-trace TK at the cursor</span><b id="s3a">—</b></div>
       <div class="stat key"><span>Analytic-trace TK</span><b id="s3b">—</b></div>
@@ -221,15 +224,15 @@
       curve is the energy of a low-frequency component alone, the second of a high-frequency component
       alone, the third of the two together, and the fourth is the difference between the third and the sum
       of the first two &mdash; the cross term, which should be nothing and is not.</p>
-    <p class="lede">Across this trace the cross term has an RMS of <b id="s4a">—</b> of the two parts
-      taken together, and at its worst single sample it is several times larger than the parts themselves. A seismic trace is never one frequency, so this is
-      not a special case; it is the normal case. Kaiser identified the problem in 1993, and the standard
-      answer is to split the trace into narrow frequency bands first, compute the energy in each, and put
-      them back together &mdash; which is what Matos and colleagues did with a wavelet transform, and what
-      AASPI's implementation works around by using the continuous operator with smooth derivatives.</p>
 
     <canvas id="c4a" aria-label="Teager-Kaiser energy of two components separately, together, and the cross term"></canvas>
 
+
+    <p class="lede">Across this trace the cross term has an RMS of <b id="s4a">—</b> of the two parts
+      taken together, and at its worst single sample it is several times larger than the parts themselves. A seismic trace is never one frequency, so this is the normal case rather than a special one. Kaiser identified the problem in 1993, and the standard
+      answer is to split the trace into narrow frequency bands first, compute the energy in each, and put
+      them back together &mdash; which is what Matos and colleagues did with a wavelet transform, and what
+      AASPI's implementation works around by using the continuous operator with smooth derivatives.</p>
     <div class="stats">
       <div class="stat"><span>Low component alone</span><b id="s4b">—</b></div>
       <div class="stat"><span>High component alone</span><b id="s4c">—</b></div>
@@ -238,9 +241,7 @@
       <div class="stat"><span>Largest cross term</span><b id="s4f">—</b></div>
     </div>
     <div class="legend prose">
-      <span>The practical reading of this is not that the attribute is broken. It is that Teager-Kaiser
-        energy of a broadband trace is a genuinely different quantity from the sum of the energies of its
-        parts, so it cannot be interpreted band by band, and two volumes computed with different
+      <span>This does not make the attribute broken. It does mean that Teager-Kaiser energy of a broadband trace is a different quantity from the sum of the energies of its parts, so it cannot be interpreted band by band, and two volumes computed with different
         preconditioning are not comparable. If somebody hands you a TK volume, the question to ask is what
         was done to the data first.</span>
     </div>
@@ -260,17 +261,18 @@
       component and a lot of very low frequency content, and Hilbert transforming that unfiltered gives a
       result dominated by the slow trend. The filter corner slider in the header controls it: take it to
       zero to switch the filter off and watch the attribute go soft.</p>
-    <p class="lede">The final panel puts TKV next to the AVT from module 05. They are built the same way
-      &mdash; a positive quantity, filtered, then Hilbert transformed &mdash; and they differ only in what
-      that positive quantity was: an RMS envelope for AVT, an energy for TKV. Given that, you might expect
-      them to look much alike. On this trace they correlate at only <b id="s5a">—</b>, and that number is
-      the useful one in this module: it is how much of TKV is <em>not</em> just a repackaged envelope.</p>
 
     <div class="sec-row" id="row5">
       <div class="panel-col">
         <p class="sublabel"><b>1</b> Energy, filtered, rotated
           <span class="note">and the AVT for comparison</span></p>
         <canvas id="c5a" aria-label="Teager-Kaiser energy, its variation, and AVT"></canvas>
+
+    <p class="lede">The final panel puts TKV next to the AVT from module 05. They are built the same way
+      &mdash; a positive quantity, filtered, then Hilbert transformed &mdash; and they differ only in what
+      that positive quantity was: an RMS envelope for AVT, an energy for TKV. Given that, you might expect
+      them to look much alike. On this trace they correlate at only <b id="s5a">—</b>, and that number is
+      the useful one in this module: it is how much of TKV is <em>not</em> just a repackaged envelope.</p>
       </div>
       <div class="panel-col">
         <p class="sublabel"><b>2</b> The whole line, as TKV
@@ -397,6 +399,23 @@
             dominated by the trend rather than by the events. Push the corner the other way, to 14 Hz, and
             the correlation goes to &minus;0.084 &mdash; you have filtered away so much that the attribute
             no longer resembles anything. The corner is a real choice with a narrow sensible range.</span></details></li>
+        <li><b>One high-energy zone, and why the number cannot tell you which.</b> A Teager-Kaiser volume
+          shows a zone of high energy. Energy goes as amplitude squared times frequency squared, so name
+          at least two situations that would raise it, and say what you would compute to separate
+          them.
+          <details class="reveal"><summary>Hint</summary><span class="ans">Both ingredients raise it
+            independently, so a bright low-frequency event and a quiet high-frequency one can return the
+            same energy. A tuned thin bed raises both at once, which is why the attribute responds to thin
+            beds more strongly than the envelope does. A strong impedance contrast raises amplitude alone.
+            A stack of thin interbeds raises the local frequency alone. And because energy squares the
+            amplitude, any gain applied upstream is squared too &mdash; a factor of two in becomes a factor
+            of four out. The attribute mixes amplitude and frequency and cannot unmix them for you, so the
+            separation has to be done outside it: compute the envelope from module 01 and a wavelet
+            frequency from step 4 of the same module, and read both at the anomaly. High envelope with
+            normal frequency is a contrast effect. Normal envelope with high frequency is thin bedding.
+            Both raised together is tuning. This is the general rule for any attribute that multiplies two
+            quantities: the product is a screening tool, and the interpretation is in the
+            factors.</span></details></li>
       </ol>
     </div>
   </section>
@@ -443,7 +462,7 @@
       <p><b>The Holoborodko filters, and a correction.</b> The AASPI documentation prints an eleven-point
         first-derivative filter and a nine-point second-derivative filter. The first is correct: its
         coefficients sum to zero and it is exact on a straight line. The second is printed with the signs of
-        the two coefficients either side of the centre reversed, so that as printed they sum to 48 rather
+        the two coefficients either side of the center reversed, so that as printed they sum to 48 rather
         than 0 &mdash; a filter that would report a second derivative of 0.25 for a constant. The set used
         here keeps the same numbers with those two signs corrected, which satisfies both requirements: the
         coefficients sum to zero, and the filter returns exactly 2 for t&sup2;. This is treated as a
