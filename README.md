@@ -85,8 +85,6 @@ resolution.
 
 ## The modules
 
-All six are finished.
-
 | # | Subject | The question it answers | Status |
 |---|---------|-------------------------|--------|
 | 01 | [Instantaneous attributes](modules/instantaneous.html) | Why does my frequency volume go negative? | **ready** |
@@ -96,9 +94,7 @@ All six are finished.
 | 05 | [Amplitude volume transform](modules/avt.html) | What am I actually looking at on an AVT slice? | **ready** |
 | 06 | [Teager-Kaiser energy](modules/teager.html) | How is this different from the envelope? | **ready** |
 
-Algorithms follow the AASPI program documentation and the original papers. Where
-a source is ambiguous or contradicts itself, the module says so rather than
-quietly picking one.
+Algorithms follow the AASPI program documentation and the original papers. 
 
 Each module ends with the same four reference tabs: **Why it matters** (what the
 attribute is used for and how it misleads), **Exercises** (six or seven, each
@@ -162,19 +158,3 @@ local copies and for anyone browsing with Do Not Track set, and it can be
 switched off entirely by deleting `assets/count.js` and the one `<script>` line
 that loads it. That file documents exactly what is sent.
 
-## For anyone maintaining this
-
-Five shared files sit in `assets/`. `seismic.js` holds the wavelets, the FFT,
-the Hilbert transform, the color maps and the canvas helpers. `trace.js` holds
-the single-trace attribute algorithms themselves, written the way the AASPI
-documentation describes them rather than in any optimized form. `style.css` is
-the visual identity. `count.js` is the page counter described under Privacy
-above, and `popout.js` puts the **Open in new window** button on the exercises
-tab. The last two are drop-in: each goes into every teaching repository
-unchanged, following `docs/ADD-COUNTING.md` and `docs/ADD-POPOUT.md`. **`style.css` and `seismic.js` are shared with the
-geometric-attributes repository** — a change to either needs to go to both, or
-the two sites drift apart.
-
-File layout, the attribute library's API, the synthetic model, and the
-verification harness are documented in
-[`docs/MAINTAINING.md`](docs/MAINTAINING.md).
