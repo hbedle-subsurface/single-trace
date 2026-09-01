@@ -279,6 +279,21 @@ second volume. Two different synthetic volumes in one set would be worse than
 none.
 
 
+## Adding a tab
+
+Four places, and missing any one of them fails quietly rather than loudly:
+
+1. the `<button data-tab="pN">` in `#tabs`
+2. the `<section class="tabpane" id="pN">`
+3. **`pN` in the `PANES` array** next to `showTab`
+4. the `if (visible('pN')) drawStepN();` line in `drawAll`
+
+Number 3 is the one that gets forgotten. `showTab` hides everything in `PANES`
+and then unhides the one it was asked for, so a tab missing from the list
+highlights correctly, redraws correctly, throws nothing, and leaves the page
+blank below the tab bar. Every module harness now checks that each tab leaves
+exactly its own pane visible, which is what catches it.
+
 ## The impedance log
 
 Modules 01, 03, 04, 05 and 06 draw the acoustic impedance under the selected

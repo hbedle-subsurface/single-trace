@@ -112,8 +112,20 @@ if (require.main === module) {
       console.log('   ' + (worst < 1e-9 ? 'identical' : 'DIVERGENT'));
     }
 
-    console.log('\n--- every tab renders without throwing ---');
-    panes.forEach((p) => { M.showTab(p); console.log('   ' + p + ' ok'); });
+    console.log('\n--- every tab renders, and shows its own pane ---');
+    // Not just "did not throw". A tab whose id is missing from the module's
+    // PANES list still highlights and still redraws; it simply leaves every
+    // pane hidden, so the step looks blank. That is invisible to a check that
+    // only watches for exceptions, and it has happened once.
+    panes.forEach((p) => {
+      M.showTab(p);
+      const shown = panes.filter((q) => {
+        const el = win.document.getElementById(q);
+        return el && !el.hidden;
+      });
+      const ok = shown.length === 1 && shown[0] === p;
+      console.log('   ' + p + (ok ? ' ok' : '   FAIL visible: [' + shown.join(', ') + ']'));
+    });
     M.showTab('p1');
 
     dump('defaults');
