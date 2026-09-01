@@ -108,6 +108,16 @@
     <p class="lede">The panels below put the envelope and the Teager-Kaiser energy side by side on the same
       trace. They do not agree, and where they disagree the trace is changing frequency. Watch the wedge in
       particular, where interference shifts the local frequency around.</p>
+    <p class="lede">A word on where the line comes from, since the whole module is read against it. Under it
+      is a set of layers: a thinning wedge, a gas-charged sand with the same sand brine-filled along strike,
+      a package of thin interbeds, and a reflector that dims across the section. Each boundary between two
+      layers of different acoustic impedance returns a reflection coefficient, those coefficients are
+      convolved with the wavelet, and the result is the trace the attribute is computed from. Module 02
+      draws that chain out panel by panel &mdash; impedance, then reflectivity, then trace &mdash; and it is
+      worth looking at once if the connection between a rock boundary and a wiggle is not yet automatic.
+      Frequency is the part of the chain this module cares about: gas attenuates the high frequencies
+      passing through it, and thin beds raise the local frequency by interference, so both show up in an
+      attribute that counts frequency as well as amplitude.</p>
     <div class="stats">
       <div class="stat"><span>Trace at the cursor</span><b id="s1u">—</b></div>
       <div class="stat"><span>Envelope there</span><b id="s1e">—</b></div>
@@ -118,8 +128,11 @@
     <div class="legend prose">
       <span>The correlation readout is the honest measure of how much this attribute adds. If it sat at
         1.000 the attribute would be an expensive envelope. It does not, and the gap is the frequency
-        information. It is also worth noting that TK energy is never negative, which it shares with the
-        envelope and RMS, and which step 5 has to deal with before any of it can be displayed.</span>
+        information. One thing more about the sign. For a single frequency the operator returns
+        A&sup2;&omega;&sup2;, which cannot be negative, and on a seismic trace it is one-sided almost
+        everywhere. Almost. On this trace it dips below zero at about 3% of the samples, by less than a
+        thousandth of its peak, and step 4 is where that comes from. Near enough to one-sided to have the
+        display problem step 5 has to deal with, and not the guarantee it looks like.</span>
     </div>
   </section>
 
@@ -132,10 +145,10 @@
     <p class="lede">The three-sample formula is exact for a sampled cosine, but what it returns is
       <span class="k">A&sup2;sin&sup2;(&omega;&Delta;t)</span>, not
       <span class="k">A&sup2;&omega;&sup2;</span>. Those agree while
-      <span class="k">&omega;&Delta;t</span> is small, and drift apart as it is not. At a 2 ms sample
-      interval the error is about 1% at 12 Hz, 5% at 30 Hz and 18% at 60 Hz &mdash; always low, always
-      worse with frequency.</p>
-    <p class="lede">Kaiser's 1993 continuous form avoids that by using derivatives instead of neighbouring
+      <span class="k">&omega;&Delta;t</span> is small, and drift apart as it is not. For a pure tone at a
+      2 ms sample interval the error is about 1% at 12 Hz, 5% at 30 Hz and 18% at 60 Hz &mdash; always low,
+      always worse with frequency.</p>
+    <p class="lede">Kaiser's 1993 continuous form avoids that by using derivatives instead of neighboring
       samples:</p>
     <p class="lede" style="text-align:center"><span class="k">&psi;(t) = (dx/dt)&sup2; &minus;
       x&middot;(d&sup2;x/dt&sup2;)</span></p>
@@ -149,9 +162,13 @@
 
 
     <p class="lede">Which buys the noise rejection at a price nobody advertises. Those filters are smoothed,
-      so they roll off with frequency too: measured against the exact answer they read 98% at 12 Hz, 88% at
-      30 Hz and 66% at 60 Hz. <b>Both</b> practical formulas under-read, and both get worse with
-      frequency.</p>
+      so they roll off with frequency too: on the same pure tone, measured against the exact answer, they
+      read 98% at 12 Hz, 88% at 30 Hz and 66% at 60 Hz. <b>Both</b> practical formulas under-read, and both
+      get worse with frequency.</p>
+    <p class="lede">The readouts below are lower than those two lists, and the reason is worth knowing. Both
+      lists describe a single frequency. A Ricker wavelet carries energy well above the number on the
+      frequency slider, and both formulas do their worst work up there, so the shortfall measured on a real
+      wavelet is larger than the pure-tone table predicts at the same nominal frequency.</p>
     <div class="stats">
       <div class="stat"><span>Three-sample form at the cursor</span><b id="s2a">—</b></div>
       <div class="stat"><span>Holoborodko filters</span><b id="s2b">—</b></div>
@@ -220,16 +237,17 @@
     <p class="lede">Here is the awkward property. Put two frequencies into the operator at once and the
       answer is not the sum of what each would have given on its own. There are extra terms that depend on
       both, and they can be larger than either contribution.</p>
-    <p class="lede">The panel below does exactly that experiment on this trace's own frequencies. The first
-      curve is the energy of a low-frequency component alone, the second of a high-frequency component
-      alone, the third of the two together, and the fourth is the difference between the third and the sum
-      of the first two &mdash; the cross term, which should be nothing and is not.</p>
+    <p class="lede">The panel below does exactly that experiment on this trace's own frequencies. The trace
+      is split at 26 Hz into a low band and a high band. The first curve is the energy of the low band
+      alone, the second of the high band alone, the third of the two together, and the fourth is the
+      difference between the third and the sum of the first two &mdash; the cross term, which should be
+      nothing and is not.</p>
 
     <canvas id="c4a" aria-label="Teager-Kaiser energy of two components separately, together, and the cross term"></canvas>
 
 
     <p class="lede">Across this trace the cross term has an RMS of <b id="s4a">—</b> of the two parts
-      taken together, and at its worst single sample it is several times larger than the parts themselves. A seismic trace is never one frequency, so this is the normal case rather than a special one. Kaiser identified the problem in 1993, and the standard
+      taken together, and at its worst single sample it reaches twelve times their mean. A seismic trace is never one frequency, so this is the normal case rather than a special one. Kaiser identified the problem in 1993, and the standard
       answer is to split the trace into narrow frequency bands first, compute the energy in each, and put
       them back together &mdash; which is what Matos and colleagues did with a wavelet transform, and what
       AASPI's implementation works around by using the continuous operator with smooth derivatives.</p>
@@ -253,10 +271,11 @@
       <h3><span class="stepno">5</span>Making it displayable</h3>
       <span class="hint">The same fix module 05 used, for the same reason</span>
     </div>
-    <p class="lede">Energy is never negative, so a Teager-Kaiser volume has the display problem module 05
-      ran into: one color, no zero crossings, nothing to autotrack. The answer here is the same one, and it
-      comes from the same Brazilian work: bandpass it, then Hilbert transform it. Matos calls the result the
-      <b>Teager-Kaiser variation</b>, TKV.</p>
+    <p class="lede">The energy sits on one side of zero nearly everywhere, so a Teager-Kaiser volume has the
+      display problem module 05 ran into: one color, no zero crossings to speak of, nothing to autotrack.
+      The few negative samples step 1 mentioned are far too small to give the display anything to work with.
+      The answer here is the same one, and it comes from the same Brazilian work: bandpass it, then Hilbert
+      transform it. Matos calls the result the <b>Teager-Kaiser variation</b>, TKV.</p>
     <p class="lede">The bandpass is doing real work. Energy is squared amplitude, so it has a large constant
       component and a lot of very low frequency content, and Hilbert transforming that unfiltered gives a
       result dominated by the slow trend. The filter corner slider in the header controls it: take it to
@@ -354,7 +373,7 @@
           then change the dominant frequency and read it again.
           <details class="reveal"><summary>Hint</summary><span class="ans">At the default settings the envelope and the Teager-Kaiser energy correlate at 0.831
             on this trace. Not 1.000, which is the point: if it were, the attribute would be an expensive
-            envelope. The remaining 17% is the frequency term. Change the dominant frequency and the
+            envelope. What keeps it away from 1 is the frequency term. Change the dominant frequency and the
             correlation moves a little &mdash; 0.857 at 12 Hz, 0.865 at 45 Hz &mdash; but it never reaches
             1, because the two quantities are genuinely different. Where they part company is where the
             local frequency is changing: interference in the wedge, and the low-frequency shadow under the
@@ -366,9 +385,12 @@
             45 Hz and they fall to 63% and 83%. Drop it to 12 Hz and they rise to 98% and 99%. Both
             approximations are good at low frequency and both under-read at high frequency, for different
             reasons: the three-sample form is a small-angle approximation, and the Holoborodko filters are
-            deliberately smoothed to reject noise. Notice which is closer here. The plain three-sample
-            formula is <em>more</em> accurate on clean data; the filters earn their place only when there
-            is noise to reject, which is a trade the documentation does not spell out.</span></details></li>
+            deliberately smoothed to reject noise. These are further below the exact answer than the
+            pure-tone lists in step 2, and deliberately so: those describe one frequency, and a wavelet with
+            a 25 Hz peak carries plenty above 25 Hz, where both formulas are at their worst. Notice which is
+            closer here. The plain three-sample formula is <em>more</em> accurate on clean data; the filters
+            earn their place only when there is noise to reject, which is a trade the documentation does not
+            spell out.</span></details></li>
         <li><b>Kill the ripple.</b> In step 3, read the ripple in the real-trace energy and in the
           analytic-trace version.
           <details class="reveal"><summary>Hint</summary><span class="ans">At 25 Hz the real-trace energy carries 47% ripple against its own smooth level, and
@@ -434,8 +456,10 @@
           analytic trace instead cancels the ripple, exactly as the envelope does in module 01.</li>
         <li><b>Cross terms are real and large.</b> On a trace with more than one frequency present, the
           energy is not the sum of the energies of the parts.</li>
-        <li><b>Energy is never negative</b>, so the displayable version is bandpassed and Hilbert
-          transformed. That is the same construction as AVT, applied to a different quantity.</li>
+        <li><b>The energy is one-sided nearly everywhere</b>, so the displayable version is bandpassed and
+          Hilbert transformed. That is the same construction as AVT, applied to a different quantity. It is
+          not strictly positive: the cross terms drive it slightly below zero on a broadband trace, which is
+          a fact about the operator rather than a problem with the display.</li>
         <li><b>It squares the input amplitude</b>, so it inherits every upstream gain decision twice
           over.</li>
       </ul>
@@ -503,7 +527,7 @@
   <section class="nextup" id="nextup" hidden>
     <p class="eyebrow">That is the set</p>
     <h3>Six modules, one trace at a time</h3>
-    <p>Every attribute here came from a single trace with no reference to its neighbours. The companion set,
+    <p>Every attribute here came from a single trace with no reference to its neighbors. The companion set,
       <em>How Geometric Attributes Actually Work</em>, covers the ones that do look sideways: dip,
       coherence and curvature.</p>
     <a class="btn ghost" href="../index.html">All modules</a>
@@ -535,6 +559,7 @@
 </div>
 
 <script src="../assets/count.js"></script>
+<script src="../assets/popout.js"></script>
 <script src="../assets/seismic.js"></script>
 <script src="../assets/trace.js"></script>
 <script>
@@ -1529,7 +1554,7 @@
     sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
     SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
       R.y + 12, 'trace ' + S.tr, TEAL);
-    // and the time, labelled where the horizontal line leaves the panel, so the
+    // and the time, labeled where the horizontal line leaves the panel, so the
     // crosshair reads as a coordinate rather than as decoration
     const yc = yT(R, S.ts);
     if (yc >= R.y && yc <= R.y + R.h) {

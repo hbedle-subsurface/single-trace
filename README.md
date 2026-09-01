@@ -20,8 +20,9 @@ where they remember them and nowhere else. What they have never done is *watch
 the thing happen*: change the wavelet and see the frequency map change, turn the
 gain up and watch a bright spot appear where there is no bright spot.
 
-A rule that has been read is fragile. A limit that has been watched arising is
-available in situations the rule never named.
+A rule you have only read is fragile: it holds in the case you read it in and
+nowhere else. A limit you have watched appear is one you will recognize in
+situations nobody named for you.
 
 The gap is practical rather than conceptual. These models are small and run
 perfectly well in a browser. What has been missing is somewhere to open them up
@@ -75,8 +76,12 @@ trace read together with its Hilbert transform as a rotating arrow — gives
 envelope, phase and frequency. A **running window** gives RMS amplitude and AGC.
 Everything else is a combination of those two ideas rather than a new one.
 
-The companion set, *How Geometric Attributes Actually Work*, covers the
-attributes that do look sideways: dip, coherence, curvature.
+The companion set, [*How Geometric Attributes Actually
+Work*](https://hbedle-subsurface.github.io/geometric-attributes/), covers the
+attributes that do look sideways: dip, coherence, curvature. A third set,
+[*What Can You REALLY See in
+Seismic?*](https://hbedle-subsurface.github.io/seismic_resolution/), covers
+resolution.
 
 ## The modules
 
@@ -99,6 +104,10 @@ Each module ends with the same four reference tabs: **Why it matters** (what the
 attribute is used for and how it misleads), **Exercises** (six or seven, each
 with the answer written out), **Key points**, and **Method** (how it is computed,
 what has been simplified, and the references).
+
+The exercises open in a second window on request, so they stay readable beside
+the controls instead of behind them. The button is on the exercises tab; the
+pop-out is a copy of the text already on the page, and it needs no network.
 
 ## What you need before starting
 
@@ -155,11 +164,14 @@ that loads it. That file documents exactly what is sent.
 
 ## For anyone maintaining this
 
-Three shared files sit in `assets/`. `seismic.js` holds the wavelets, the FFT,
+Five shared files sit in `assets/`. `seismic.js` holds the wavelets, the FFT,
 the Hilbert transform, the color maps and the canvas helpers. `trace.js` holds
 the single-trace attribute algorithms themselves, written the way the AASPI
 documentation describes them rather than in any optimized form. `style.css` is
-the visual identity. **`style.css` and `seismic.js` are shared with the
+the visual identity. `count.js` is the page counter described under Privacy
+above, and `popout.js` puts the **Open in new window** button on the exercises
+tab. The last two are drop-in: each goes into every teaching repository
+unchanged, following `docs/ADD-COUNTING.md` and `docs/ADD-POPOUT.md`. **`style.css` and `seismic.js` are shared with the
 geometric-attributes repository** — a change to either needs to go to both, or
 the two sites drift apart.
 

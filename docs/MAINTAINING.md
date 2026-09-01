@@ -203,7 +203,7 @@ its truth rather than a set of reflection coefficients, so it builds its own.
 
 The AASPI `teager_kaiser_energy` documentation prints Holoborodko's nine-point
 second-derivative filter with the signs of the two coefficients either side of
-the centre reversed. As printed the coefficients sum to 48 rather than 0, which
+the center reversed. As printed the coefficients sum to 48 rather than 0, which
 would report a second derivative of 0.25 for a constant. The set used here keeps
 the same numbers with those two signs corrected: it sums to zero and returns
 exactly 2 for t squared. `verify_trace.js` checks both conditions, which is how
@@ -245,7 +245,7 @@ the point.
 `(NX, NY)` does not fail — it reads the array with the wrong stride and draws a
 plausible-looking map covered in vertical stripes, which looks enough like
 acquisition footprint to be believed. `check-volume.js` now measures the step
-between neighbouring inlines against the step between neighbouring crosslines
+between neighboring inlines against the step between neighboring crosslines
 and fails if the first is more than four times the second.
 
 **Slices are interpolated, not rounded.** A horizon moves smoothly across a

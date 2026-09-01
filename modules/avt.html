@@ -17,7 +17,7 @@
     <a class="brand" href="../index.html"><span class="dot"></span>How single-trace attributes <b>actually</b> work</a>
     <nav>
       <a href="../index.html">All modules</a>
-      <a href="rms.html">Module 03</a>
+      <a href="agc.html">Module 04</a>
       <a href="#notes">Method &amp; references</a>
     </nav>
   </header>
@@ -67,7 +67,7 @@
     </div>
   </div>
 
-  <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
+  <p class="tabhint">Work through the six steps in order, <b>then try the exercises</b>.
     Method and references are there when you want them.</p>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
     <button role="tab" data-tab="p1" aria-selected="false">1 · Recipe</button>
@@ -103,6 +103,14 @@
       <em>tecnica volume de amplitudes</em>, and the idea behind it was the <em>elementary seismic
       layer</em>: stop trying to interpret the reflections and interpret the packages between them
       instead.</p>
+    <p class="lede">That idea is the reason to keep the rock in mind while reading this module. Under the
+      line are layers: a thinning wedge, a gas-charged sand with its brine-filled equivalent along strike,
+      thin interbeds, and, in the volume step 6 uses, a channel 78 ms below the top of the sand. Each
+      boundary between two layers of different acoustic impedance returns a reflection coefficient, and the
+      trace is those coefficients convolved with the wavelet. Module 02 draws that chain panel by panel if
+      the step from a rock boundary to a wiggle is not yet automatic. What AVT is trying to recover is the
+      layer between the boundaries &mdash; the channel fill rather than its top and base &mdash; which is
+      the same thing a geologist wants and the trace does not offer.</p>
 
     <canvas id="c1a" aria-label="The trace, its envelope, the RMS of the envelope, and the amplitude volume transform"></canvas>
 
@@ -222,9 +230,9 @@
     <p class="lede">The running RMS in the middle of the recipe has a window length, and it does here
       exactly what it did in module 03: it decides what counts as a package.</p>
     <p class="lede">A short window keeps the individual events separate, and the AVT ends up looking like a
-      slightly smoothed, phase-rotated version of the data. A long window merges neighbouring events into
+      slightly smoothed, phase-rotated version of the data. A long window merges neighboring events into
       single blocks, which is what the technique was built for, at the cost of not being able to tell you
-      what is inside them. The wedge on the left of this line is a good place to watch the two behaviours
+      what is inside them. The wedge on the left of this line is a good place to watch the two behaviors
       trade off, because it has two events that get closer together across the section.</p>
     <p class="lede">The count below is of separate events surviving on the AVT of this trace, above a
       floor of a tenth of its peak. At the current window there are <b id="s4a">—</b> of them. Nothing in
@@ -341,11 +349,12 @@
     </div>
 
 
-    <p class="lede"><b>The AVT slice does not.</b> It runs smoothly from &times;3.3 near the top of the
-      interval down through &times;1.8 and &times;0.8 with no reversals at all. That stability is the
-      attribute's real contribution, and the readouts below measure it: at the current level, moving the
-      slice 12 ms either way changes the amplitude answer by <b id="s6a">—</b> and the AVT answer by
-      <b id="s6b">—</b>.</p>
+    <p class="lede"><b>The AVT slice does not.</b> From 42 ms down to 96 ms it falls steadily &mdash;
+      &times;3.3, then &times;1.8, then &times;0.8, then &times;0.3 &mdash; without once turning back. Below
+      that it wanders between &times;0.3 and &times;0.4, which is the attribute reading a level where there
+      is nothing much to read. That stability is the attribute's real contribution, and the readouts below
+      measure it: at the current level, moving the slice 12 ms either way changes the amplitude answer by
+      <b id="s6a">—</b> and the AVT answer by <b id="s6b">—</b>.</p>
     <p class="lede">There is a trap in it, though, and it is the one step 2 warned about. The AVT slice
       images the channel best at about 42 ms &mdash; roughly 36 ms <em>above</em> the channel &mdash; and
       reads its weakest right in the middle of it. AVT events sit on the edges of energy packages, not on
@@ -359,7 +368,7 @@
       <div class="stat"><span>RMS window</span><b id="s6g">—</b></div>
     </div>
     <div class="legend prose">
-      <span>Both of those behaviours follow from things this module already established, which is the
+      <span>Both of those behaviors follow from things this module already established, which is the
         point of putting the step last. The flicker is the amplitude slice cutting through a wavelet. The
         stability is the envelope having thrown the wavelet away in step 1. And the offset between the
         level that images the channel and the level the channel is at is the Hilbert transform from
@@ -401,9 +410,10 @@
     <p class="lede"><b>The events are not the interfaces.</b> They mark the edges of energy packages, a
       quarter cycle away from the RMS envelope peaks. Picking an AVT event and calling it a formation top
       will put the pick in the wrong place, consistently and by a predictable amount.</p>
-    <p class="lede"><b>The resolution is worse than the data's.</b> Measurably so: on this line the AVT
-      peaks at roughly a third of the seismic frequency. Anything you cannot separate on it may well be
-      separable on the amplitude display.</p>
+    <p class="lede"><b>The resolution is worse than the data's.</b> Measurably so: at the default settings
+      the AVT's mean frequency is two and a half times lower than the seismic's, and the gap widens as the
+      data improves &mdash; step 3 has the numbers. Anything you cannot separate on it may well be separable
+      on the amplitude display.</p>
     <p class="lede"><b>It inherits every amplitude decision, twice.</b> Both the envelope and the RMS scale
       directly with the input amplitudes, so gain applied upstream flows straight through &mdash; and
       module 04 showed what that does. An AVT volume made from AGC'd data is a picture of the AGC
@@ -463,10 +473,12 @@
         <li><b>Move a slice and watch an answer change.</b> In step 6, set the slice to 78 ms, where the
           channel is, and read how much each attribute's contrast moves when the slice moves 12 ms either
           way. Then do it again at 42 ms and at 108 ms.
-          <details class="reveal"><summary>Hint</summary><span class="ans">At 78 ms the amplitude contrast
-            swings by a factor of 12.2 across that 24 ms &mdash; from &times;0.43 to &times;1.42 &mdash;
-            while the AVT swings by 3.4. At 108 ms it is 6.0 against 1.5, and at 42 ms it is 2.4 against
-            1.3. The amplitude slice is unstable because it is cutting through a wavelet and the level
+          <details class="reveal"><summary>Hint</summary><span class="ans">At 78 ms the amplitude reads
+            &times;5.23 on the channel, &times;0.43 twelve milliseconds above it and &times;1.42 twelve
+            below. Highest over lowest across those three levels is a factor of 12.2, which is what the
+            swing readout reports, and it is the drop off the center value that does most of it. The AVT
+            over the same 24 ms swings by 3.4. At 108 ms it is 6.0 against 1.5, and at 42 ms it is 2.4
+            against 1.3. The amplitude slice is unstable because it is cutting through a wavelet and the level
             decides which lobe it lands on; the AVT slice is steadier because the envelope threw the
             wavelet away in step 1. That is the honest case for slicing this attribute rather than the
             amplitude: not that it sees more, but that it does not change its mind when your horizon pick
@@ -501,8 +513,10 @@
           a bipolar one with zero crossings, adding no information whatsoever.</li>
         <li><b>The events mark package edges</b>, a quarter cycle from the RMS envelope peaks, not the
           interfaces that produced them.</li>
-        <li><b>The result is lower frequency than the data</b> by roughly a factor of three on this line,
-          so its vertical resolution is worse and cannot be recovered.</li>
+        <li><b>The result is lower frequency than the data</b> &mdash; two and a half times lower at the
+          default settings on this line &mdash; so its vertical resolution is worse and cannot be recovered.
+          The ratio is not fixed either: it is x1.5 at a 12 Hz wavelet and x3.3 at 40 Hz, because the AVT
+          barely moves when the data gets better.</li>
         <li><b>Polarity is gone from the first step onward.</b> Hard and soft look identical.</li>
         <li><b>It is a slice attribute.</b> AVT was built for looking at depositional systems in plan
           view, and its advantage over an amplitude slice is stability rather than sensitivity: move the
@@ -608,6 +622,7 @@
 </div>
 
 <script src="../assets/count.js"></script>
+<script src="../assets/popout.js"></script>
 <script src="../assets/seismic.js"></script>
 <script src="../assets/trace.js"></script>
 <script>
@@ -1880,7 +1895,7 @@
     sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
     SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
       R.y + 12, 'trace ' + S.tr, TEAL);
-    // and the time, labelled where the horizontal line leaves the panel, so the
+    // and the time, labeled where the horizontal line leaves the panel, so the
     // crosshair reads as a coordinate rather than as decoration
     const yc = yT(R, S.ts);
     if (yc >= R.y && yc <= R.y + R.h) {

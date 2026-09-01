@@ -17,7 +17,7 @@
     <a class="brand" href="../index.html"><span class="dot"></span>How single-trace attributes <b>actually</b> work</a>
     <nav>
       <a href="../index.html">All modules</a>
-      <a href="instantaneous.html">Module 01</a>
+      <a href="impedance.html">Module 02</a>
       <a href="#notes">Method &amp; references</a>
     </nav>
   </header>
@@ -67,7 +67,7 @@
     </div>
   </div>
 
-  <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
+  <p class="tabhint">Work through the six steps in order, <b>then try the exercises</b>.
     Method and references are there when you want them.</p>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
     <button role="tab" data-tab="p1" aria-selected="false">1 · The window</button>
@@ -96,9 +96,21 @@
       window )</span></p>
     <p class="lede">The squaring is doing two jobs. It makes everything positive, so a trough counts as
       much as a peak and the answer never cancels itself out. And it weights the big samples much more
-      heavily than the small ones, so RMS is really a measure of <b>energy</b>, not of average size.</p>
+      heavily than the small ones, so RMS is dominated by the loud parts of the window rather than by the
+      typical part. It has the units of the trace, not of energy, but it is the mean <em>square</em> that
+      the loud samples set, which is why RMS behaves like an energy measure and not like an average
+      size.</p>
     <p class="lede">The shaded box on the left panel is the window at the cursor. Drag the cursor, or the
       half-length slider in the header, and watch the box and the number change together.</p>
+
+    <p class="lede">One thing to hold on to about the line itself, because every anomaly in this module has
+      to be judged against it. Under it is a set of layers: a thinning wedge, a gas-charged sand with the
+      same sand brine-filled along strike, thin interbeds, and a reflector that dims across the section. A
+      boundary between two layers of different acoustic impedance returns a reflection coefficient, and the
+      trace is those coefficients convolved with the wavelet. Module 02 draws that chain panel by panel. It
+      matters here because RMS answers a question about a stretch of time rather than about a boundary, so
+      the number it returns depends on which boundaries the window happened to catch &mdash; and the layers
+      are the only thing in the model that decides where those are.</p>
 
     <canvas id="c1a" aria-label="The trace with the analysis window drawn on it, and the RMS curve beside it"></canvas>
 
@@ -110,10 +122,14 @@
       <div class="stat"><span>Trace value at the cursor</span><b id="s1u">—</b></div>
     </div>
     <div class="legend prose">
-      <span>Compare the last two numbers. RMS is always smaller than the largest sample in the window and
-        always bigger than zero, no matter where the cursor sits. It cannot be negative, it has no phase
-        and it has no polarity: a peak and a trough of the same size give exactly the same answer. That is
-        useful when you want to know how much is happening, and useless when you want to know what.</span>
+      <span>Compare the last two numbers. RMS is never larger than the largest sample in the window, and
+        it cannot be negative: it has no phase and no polarity, so a peak and a trough of the same size give
+        exactly the same answer. It can be zero, though, and on this synthetic it is &mdash; park the cursor
+        in the quiet stretch above the first reflector and watch it go there. On real data it never quite
+        does, because there is always noise in the window, which is the subject of step 5. Module 04 divides
+        the trace by this number and has to carry a floor underneath it for exactly this reason. All of
+        which is useful when you want to know how much is happening, and useless when you want to know
+        what.</span>
     </div>
   </section>
 
@@ -478,8 +494,9 @@
     <div class="takeaway" style="max-width:none">
       <h3>The main points</h3>
       <ul>
-        <li><b>RMS is an energy average over a window.</b> Square, average, square root. Always positive,
-          never zero, no polarity and no phase.</li>
+        <li><b>RMS is an energy average over a window.</b> Square, average, square root. Never negative,
+          no polarity and no phase. Zero only where the window is genuinely silent, which real data never
+          quite is.</li>
         <li><b>The window length decides what the attribute measures.</b> Short windows map events, long
           windows map packages, and the same trace gives both honestly.</li>
         <li><b>A short-window RMS is very nearly the envelope</b>, scaled by about 1/&radic;2. They are not
@@ -488,7 +505,11 @@
           smear into their neighborhood, and nearby beds merge.</li>
         <li><b>In a quiet zone RMS reports your noise.</b> Signal and noise add in quadrature, so the
           attribute has a floor it can never go below and never announces.</li>
-        <li><b>It inherits every gain decision made upstream.</b> Which makes it powerful, cheap, and the
+        <li><b>Two assumptions ride along, and both get broken in this module.</b> That the trace is much
+          the same all across the window, which step 4 breaks by letting a bright event leak into a window
+          reaching 60 ms away from it; and that the window is a fair stand-in for the interval you care
+          about, which step 6 breaks by walking it off the feature. Neither is announced by the number.</li>
+        <li><b>It inherits every gain decision made upstream.</b> Which makes it cheap and the
           easiest attribute in the set to misread.</li>
         <li><b>It is a map attribute.</b> Sections teach you what it does; interval maps are what it is
           for. A feature that no section happens to cross stays invisible until somebody makes one.</li>
@@ -589,6 +610,7 @@
 </div>
 
 <script src="../assets/count.js"></script>
+<script src="../assets/popout.js"></script>
 <script src="../assets/seismic.js"></script>
 <script src="../assets/trace.js"></script>
 <script>
@@ -1783,7 +1805,7 @@
     sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
     SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
       R.y + 12, 'trace ' + S.tr, TEAL);
-    // and the time, labelled where the horizontal line leaves the panel, so the
+    // and the time, labeled where the horizontal line leaves the panel, so the
     // crosshair reads as a coordinate rather than as decoration
     const yc = yT(R, S.ts);
     if (yc >= R.y && yc <= R.y + R.h) {

@@ -99,6 +99,16 @@
       wherever it is high the data is being turned down, and wherever it is low the data is being turned
       up. At the cursor the trace is being multiplied by <b id="s1g">—</b>.</p>
 
+    <p class="lede">Worth being clear about what is being divided, because the whole module turns on it.
+      Under the line is a set of layers: a thinning wedge, a gas-charged sand with the same sand
+      brine-filled along strike, thin interbeds, and a reflector that dims across the section. Each boundary
+      between two layers of different acoustic impedance returns a reflection coefficient, and the trace is
+      those coefficients convolved with the wavelet, then multiplied by a decay that falls with time.
+      Module 02 draws that chain panel by panel. Two things are therefore mixed together in the amplitudes
+      &sigma; measures: how big the impedance contrasts are, which is geology, and how much the decay has
+      taken out of them, which is not. AGC cannot separate the two, and the rest of this module is what
+      follows from that.</p>
+
     <canvas id="c1a" aria-label="The trace, its RMS amplitude, and the result of dividing one by the other"></canvas>
 
     <div class="stats">
@@ -110,7 +120,7 @@
     </div>
     <div class="legend prose">
       <span>Notice that the gain is different at every sample and on every trace. Nothing coordinates them.
-        Two neighbouring traces with different amounts of energy in their windows get different gains, so
+        Two neighboring traces with different amounts of energy in their windows get different gains, so
         after AGC the amplitude relationship <em>between</em> traces has been rewritten too &mdash; not just
         the relationship down a trace. The AASPI documentation is blunt about this: trace-to-trace AGC is a
         poor choice before any true amplitude analysis.</span>
@@ -172,13 +182,20 @@
       the amplitude display that contrast is the most important thing in the picture: it is what a
       direct hydrocarbon indicator <em>is</em>.</p>
     <p class="lede">AGC does not know that. It sees a stretch of trace with more energy in it than its
-      neighbours, and its job is to remove exactly that difference. The gas sand is <b id="s3a">—</b>
+      neighbors, and its job is to remove exactly that difference. The gas sand is <b id="s3a">—</b>
       brighter than the brine sand before AGC and <b id="s3b">—</b> after it. The anomaly has been divided
       away by a process running on autopilot.</p>
     <p class="lede">Nothing on the display announces this. The AGC section looks cleaner, more balanced and
       more professional than the one it came from. It is the more attractive picture and the less
       informative one, and if you were handed it without being told, there is no way to tell from the
       screen that a bright spot ever existed.</p>
+    <p class="lede">One number to reconcile before you go on. Module 01 read the same two sands as
+      &times;3.29 apart and module 03 as &times;3.3; here the contrast before AGC is a little lower. Nothing
+      about the rock changed. This module opens at 14 dB per second of amplitude decay rather than 6 or 8,
+      because AGC has nothing to do until there is a gain problem to fix, and a steeper decay costs the
+      deeper of the two sands a little more of its amplitude. Turn the decay slider down and the contrast
+      walks back up. That is the module's own subject arriving early: a contrast you measure off a section
+      is a property of the rock <em>and</em> of what was done to the amplitudes.</p>
 
     <div class="sec-row" id="row3">
       <div class="panel-col">
@@ -416,9 +433,10 @@
         <li><b>AGC is division by the RMS amplitude.</b> Module 03 computed the divisor; this module
           divides by it. There is nothing else in the process.</li>
         <li><b>It makes the deep section visible</b>, and that is a real and often necessary gain. On this
-          line it turns a hundredfold difference between shallow and deep into a small one.</li>
+          line it turns an eightfold difference between shallow and deep into a fifth of that, and a nineteenfold
+          difference at the steepest decay setting into much the same small number.</li>
         <li><b>It removes exactly the differences an amplitude interpretation is looking for.</b> A bright
-          spot is a stretch of trace with more energy than its neighbours, which is the definition of what
+          spot is a stretch of trace with more energy than its neighbors, which is the definition of what
           AGC is built to flatten.</li>
         <li><b>Long windows are gentler.</b> They correct the slow trend and leave local contrast alone.
           Short windows remove almost everything and distort the waveform as well.</li>
@@ -481,12 +499,12 @@
     <h3>05 · Amplitude volume transform</h3>
     <p>Envelope, then the RMS of the envelope in a window, then a Hilbert transform back. Three steps that
       turn a wiggle into something that images stratigraphy, and lower the frequency doing it.</p>
-    <a class="btn ghost" href="../index.html">All modules</a>
+    <a class="btn ghost" href="avt.html">Go to module 05 &rarr;</a>
   </section>
 
   <div class="pager" id="pager" hidden>
     <a class="btn ghost" href="rms.html">← Module 03: RMS amplitude</a>
-    <a class="btn ghost" href="../index.html">All modules</a>
+    <a class="btn ghost" href="avt.html">Module 05: amplitude volume transform →</a>
   </div>
 
   <footer>
@@ -510,6 +528,7 @@
 </div>
 
 <script src="../assets/count.js"></script>
+<script src="../assets/popout.js"></script>
 <script src="../assets/seismic.js"></script>
 <script src="../assets/trace.js"></script>
 <script>
@@ -1480,7 +1499,7 @@
     sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
     SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
       R.y + 12, 'trace ' + S.tr, TEAL);
-    // and the time, labelled where the horizontal line leaves the panel, so the
+    // and the time, labeled where the horizontal line leaves the panel, so the
     // crosshair reads as a coordinate rather than as decoration
     const yc = yT(R, S.ts);
     if (yc >= R.y && yc <= R.y + R.h) {

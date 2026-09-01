@@ -335,7 +335,8 @@
       The four ways it will mislead you</h2>
     <p class="lede"><b>It is not inversion, and the difference is not a technicality.</b> Inversion brings
       in the low frequencies that seismic never recorded, from wells and velocities, and removes the
-      wavelet. This does neither. It is the seismic trace with its phase rotated and its low end boosted.
+      wavelet. Integration does neither of those things: it hands you the seismic trace with its phase
+      rotated and its low end boosted.
       Anyone who reads absolute rock properties off it is reading something that is not there.</p>
     <p class="lede"><b>Bright is not the boundary.</b> The quarter-cycle rotation from step 3 moves every
       event, and a pick made by habit on the bright part of the display lands in the middle of the layer
@@ -348,7 +349,8 @@
       directly, and recommends spectral balancing first. Turn the phase slider in the header and watch the
       match with the true log: 0.997 at zero phase, 0.884 at 30&deg;, 0.530 at 60&deg;, and 0.031 at
       90&deg;, where the attribute and the rock have almost nothing left in common. At 180&deg; it reads
-      &minus;0.997. That is not a small error. An impedance display made from reverse-polarity data is a
+      &minus;0.997, which is an error of a size worth dwelling on. An impedance display made from
+      reverse-polarity data is a
       near-perfect mirror of the truth, and every hard bed on it looks soft. Nothing on the screen tells
       you this has happened.</p>
     <div class="legend prose">
@@ -397,7 +399,8 @@
             0.179 and it recovers 99.4%. At &times;3, r reaches 0.494 and it recovers 94.1%. The shortfall
             always goes the same way, because r = tanh(&frac12;&Delta;lnZ) is always slightly smaller than
             &frac12;&Delta;lnZ, and integration returns the r it was given. Now watch the correlation while
-            you do it: 0.997 at every setting. The shape does not degrade at all; only the size is wrong.
+            you do it: 0.996 at the smallest contrast and 0.997 everywhere above it. The shape does not
+            degrade at all; only the size is wrong.
             That is a comfortable failure to live with while you are ranking layers against each other, and a
             dangerous one if you start quoting numbers.</span></details></li>
         <li><b>Switch the filter off.</b> In step 5, put the noise at 20% in the header, then take the
@@ -487,8 +490,8 @@
         integrating reflection coefficients returns slightly less than &frac12;ln(Z), and the shortfall
         grows with contrast. Measured on this model with the same code that draws the panels: at the
         smallest contrast setting the integrated result is 100.0% of the true log impedance, at the default
-        99.4%, and at the largest 94.1%. The shape survives throughout &mdash; the correlation stays above
-        0.999 &mdash; so the error is one of size, not of position.</p>
+        99.4%, and at the largest 94.1%. The shape survives throughout &mdash; the correlation holds at
+        0.996 to 0.997 across the whole slider &mdash; so the error is one of size, not of position.</p>
       <p><b>Simplifications, and where this departs from AASPI.</b> This is one dimension: normal incidence,
         acoustic, no multiples, no transmission loss, no offset, and a wavelet that does not change with
         depth. AASPI runs on a 3D volume and recommends <span class="k">spectral_balance</span> beforehand
@@ -514,12 +517,12 @@
     <h3>03 · RMS amplitude</h3>
     <p>A running window slid down the trace, and the average size of what is inside it. Simple enough to
       write in one line, and the window length turns out to matter more than the geology does.</p>
-    <a class="btn ghost" href="../index.html">All modules</a>
+    <a class="btn ghost" href="rms.html">Go to module 03 &rarr;</a>
   </section>
 
   <div class="pager" id="pager" hidden>
     <a class="btn ghost" href="instantaneous.html">← Module 01: instantaneous attributes</a>
-    <a class="btn ghost" href="../index.html">All modules</a>
+    <a class="btn ghost" href="rms.html">Module 03: RMS amplitude →</a>
   </div>
 
   <footer>
@@ -543,6 +546,7 @@
 </div>
 
 <script src="../assets/count.js"></script>
+<script src="../assets/popout.js"></script>
 <script src="../assets/seismic.js"></script>
 <script src="../assets/trace.js"></script>
 <script>
@@ -1209,7 +1213,7 @@
     sectionPanel(ctx, R, FIELD, { clip: 1, timeAxis: true });
     SEIS.tag(ctx, clamp(R.x + (S.tr / (NX - 1)) * R.w + 8, R.x, R.x + R.w - 62),
       R.y + 12, 'trace ' + S.tr, TEAL);
-    // and the time, labelled where the horizontal line leaves the panel, so the
+    // and the time, labeled where the horizontal line leaves the panel, so the
     // crosshair reads as a coordinate rather than as decoration
     const yc = yT(R, S.ts);
     if (yc >= R.y && yc <= R.y + R.h) {

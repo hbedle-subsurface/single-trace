@@ -3,13 +3,13 @@
    "How Single-Trace Attributes Actually Work"
    Heather Bedle / AASPI / University of Oklahoma
 
-   Companion to seismic.js, which supplies wavelets, the FFT, colour maps and
+   Companion to seismic.js, which supplies wavelets, the FFT, color maps and
    the canvas helpers. This file holds the attribute algorithms themselves,
    written the way the AASPI documentation describes them rather than in any
-   optimised form, so the code can be read alongside the module using it.
+   optimized form, so the code can be read alongside the module using it.
 
    Everything here works on ONE trace at a time. That is the whole point of the
-   set: no neighbouring trace is ever consulted, so nothing here knows anything
+   set: no neighboring trace is ever consulted, so nothing here knows anything
    about structure, dip or continuity. Where a formula is a simplification of
    what production software does, the comment says so.
 
@@ -155,7 +155,7 @@ const TRACE = (function () {
      different answers and the difference is worth seeing.
      -------------------------------------------------------------------- */
 
-  /** Raised-cosine window weights over -K..+K, normalised to sum 1. */
+  /** Raised-cosine window weights over -K..+K, normalized to sum 1. */
   function taper(K) {
     const n = 2 * K + 1, w = new Float64Array(n);
     let s = 0;
@@ -480,7 +480,7 @@ const TRACE = (function () {
      positive everywhere, which displays badly: no polarity, no zero crossings,
      nothing to pick. The inverse Hilbert transform, which is just the negative
      of the forward one, turns each positive hump into an odd-symmetric wiggle
-     centred on it, so the result is bipolar and looks like seismic again while
+     centered on it, so the result is bipolar and looks like seismic again while
      carrying envelope information instead of reflectivity.
      -------------------------------------------------------------------- */
 
@@ -524,7 +524,7 @@ const TRACE = (function () {
    *
    * A note on the source. The documentation's first-derivative coefficients are
    * correct and exact for a straight line. Its second-derivative row is printed
-   * with the signs of the two nearest neighbours wrong: as written the
+   * with the signs of the two nearest neighbors wrong: as written the
    * coefficients sum to 48 rather than 0, which would give a non-zero second
    * derivative for a constant. The set below is the one that satisfies both
    * conditions a second-derivative filter must satisfy -- it sums to zero and
@@ -587,7 +587,10 @@ const TRACE = (function () {
   }
 
   /**
-   * Teager-Kaiser variation (Matos, 2018): the energy is never negative, and a
+   * Teager-Kaiser variation (Matos, 2018): the energy sits on one side of zero
+   * nearly everywhere -- exactly so for a single frequency, where the operator
+   * returns A^2 w^2, and within a fraction of a percent of its peak on a
+   * broadband trace, where the cross terms push a few samples below zero. A
    * one-sided attribute is awkward to display, so it is bandpassed and Hilbert
    * transformed into something bipolar. The same trick module 05 uses on the
    * RMS envelope, for the same reason.
