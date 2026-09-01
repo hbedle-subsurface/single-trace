@@ -168,8 +168,3 @@ local copies and for anyone browsing with Do Not Track set, and it can be
 switched off entirely by deleting `assets/count.js` and the one `<script>` line
 that loads it. That file documents exactly what is sent.
 
-
-
-File layout, the attribute library's API, the synthetic model, and the
-verification harness are documented in
-[`docs/MAINTAINING.md`](docs/MAINTAINING.md).
