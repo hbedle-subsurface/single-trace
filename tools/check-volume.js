@@ -10,6 +10,7 @@ const mods = [
   ['01 instantaneous', './harness.js'],
   ['03 rms', './harness-rms.js'],
   ['05 avt', './harness-avt.js'],
+  ['06 teager', './harness-teager.js'],
 ];
 
 const loaded = mods.map(([name, h]) => ({ name, win: require(h).win }));
@@ -62,15 +63,21 @@ setTimeout(() => {
   /* Striping check. A map stored with the wrong stride still draws — it comes
      out covered in stripes running along the inline direction, which looks
      enough like acquisition footprint to be believed. The signature is a step
-     between neighbouring inlines several times larger than the step between
-     neighbouring crosslines. */
-  console.log('\nmaps: how much each one steps between neighbours');
+     between neighboring inlines several times larger than the step between
+     neighboring crosslines. */
+  console.log('\nmaps: how much each one steps between neighbors');
   ready.forEach((m) => {
     const M = m.win.__MOD;
     let maps = [];
-    if (M.extractMaps) { const q = M.extractMaps(); maps = [['envelope', q.env], ['sweetness', q.sweet]]; }
-    else if (M.extractMap) { maps = [['rms', M.extractMap()]]; }
-    else if (M.extractSlices) { const q = M.extractSlices(); maps = [['amplitude', q.amp], ['avt', q.avt]]; }
+    // Take whatever the module returns rather than naming its maps here, so a
+    // module that adds a map tab does not have to be added to a list in this
+    // file as well. Anything array-like of the right length is a map.
+    const collect = (obj) => Object.keys(obj)
+      .filter((k) => obj[k] && obj[k].length === M.NX * M.NY)
+      .map((k) => [k, obj[k]]);
+    if (M.extractMaps) maps = collect(M.extractMaps());
+    else if (M.extractMap) maps = [['rms', M.extractMap()]];
+    else if (M.extractSlices) maps = collect(M.extractSlices());
     maps.forEach((pair) => {
       const map = pair[1], NX = M.NX, NY = M.NY;
       let mean = 0, dx = 0, dy = 0, nx = 0, ny = 0;

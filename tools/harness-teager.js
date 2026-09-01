@@ -71,7 +71,8 @@ if (require.main === module) {
     const $ = (id) => { const el = win.document.getElementById(id); return el ? el.textContent : '(missing)'; };
     const IDS = ['s1u', 's1e', 's1t', 's1f', 's1c', 's2a', 's2b', 's2c', 's2d', 's2e',
       's3a', 's3b', 's3c', 's3d', 's3e', 's4a', 's4b', 's4c', 's4d', 's4e', 's4f',
-      's5a', 's5b', 's5c', 's5d', 's5e', 's5f'];
+      's5a', 's5b', 's5c', 's5d', 's5e', 's5f',
+      's6w', 's6a', 's6b', 's6c', 's6d', 's6e'];
 
     function dump(label) {
       M.drawAll();
@@ -87,7 +88,7 @@ if (require.main === module) {
     const ids = [...html.matchAll(/\$\('([A-Za-z0-9_]+)'\)/g)].map((m) => m[1]);
     const missing = [...new Set(ids)].filter((id) => !win.document.getElementById(id));
     console.log('  $(id) references with no element: ' + (missing.length ? missing.join(', ') : 'none'));
-    const panes = ['p1', 'p2', 'p3', 'p4', 'p5', 'pw', 'pe', 'pk', 'pm'];
+    const panes = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'pw', 'pe', 'pk', 'pm'];
     console.log('  panes present: ' + panes.every((p) => win.document.getElementById(p)));
     const labels = [...win.document.querySelectorAll('#tabs button')].map((b) => b.textContent);
     console.log('  tab label characters: ' + labels.join('').length + ' (keep under 115)');

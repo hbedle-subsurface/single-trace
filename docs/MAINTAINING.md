@@ -11,6 +11,8 @@ assets/style.css           the visual identity, shared with the other sets
 assets/seismic.js          wavelets, FFT, Hilbert, color maps, canvas helpers
 assets/trace.js            the single-trace attribute library for this set
 assets/count.js            page-view counting; see the file's own notes
+assets/popout.js           the exercises pop-out button; see docs/ADD-POPOUT.md
+LICENSE                    CC BY-SA 4.0, the same as every set in this series
 modules/instantaneous.html module 01
 modules/impedance.html     module 02
 modules/rms.html           module 03
@@ -79,7 +81,7 @@ node tools/measure-agc.js           # module 04: same
 node tools/harness-avt.js           # module 05: same
 node tools/harness-teager.js        # module 06: same
 node tools/check-shared.js          # modules 01, 03-06 are running one line
-node tools/check-volume.js          # modules 01, 03, 05 share one volume
+node tools/check-volume.js          # modules 01, 03, 05, 06 share one volume
 node tools/gen_thumbs.js            # regenerates the landing-page thumbnails
 ```
 
@@ -236,6 +238,12 @@ lesson does not repeat:
 | 01 | the gas lobe, and its edge | sweetness separates it better than the envelope does, and by how much |
 | 03 | the channel | the extraction window is a decision, and a map of the wrong 40 ms looks convincing |
 | 05 | the channel, as a slice | an amplitude slice flickers with level; an AVT slice does not |
+| 06 | the gas lobe again, and the shadow under it | the frequency term fights the amplitude term at the sand and joins it underneath |
+
+Module 06 is the one case where the map subject repeats: it maps the same gas
+lobe module 01 does. That is deliberate. The lesson only lands against module
+01's sweetness map of the identical rock, where the same frequency drop adds
+contrast instead of removing it.
 
 Both features are invisible on every section the earlier steps draw, which is
 the point.
@@ -269,3 +277,49 @@ readout is about.
 If map view is added to another module, reuse this block rather than inventing a
 second volume. Two different synthetic volumes in one set would be worse than
 none.
+
+
+## The impedance log
+
+Modules 01, 03, 04, 05 and 06 draw the acoustic impedance under the selected
+trace in step 1, beside the reflection coefficients it produces. The line is
+written as coefficients, so the log is recovered rather than stored:
+`Z_below = Z_above (1 + r) / (1 - r)` at each boundary, integrated downward from
+`Z0`. That is exact, not a model — it is the inverse of the definition of r.
+
+`Z0 = 6.71` is the only free parameter and nothing rests on it. Every claim the
+modules make about the log is a comparison between two depths, which is
+unaffected by where the log starts. Do not add a readout that reports an
+outright minimum or maximum over the trace: the top of the section is `Z0` by
+construction, so on a trace where everything below is harder, the minimum is
+reporting the constant rather than the rock. The sand-against-the-rock-above
+readouts avoid that, and that is why they are written the way they are.
+
+This line has no compaction trend, because the amplitude decay is a gain
+function rather than modelled rock, so the log is blocky. Module 02 uses a
+different model that does have a trend and spends a step on why seismic cannot
+recover it. Each Method tab says so.
+
+The block is identical in all five files. If you change it, change it
+everywhere; `spikesFor(ix)` is the only thing it needs from the host module.
+
+
+## License
+
+The whole repository is CC BY-SA 4.0, matching the other teaching sets. `LICENSE`
+carries the full legal text; the header above it names this set and its citation
+URL and is the only part that differs between repositories.
+
+Three places state the license in prose and all three have to agree with the
+file: the footer of every module, the footer of `index.html`, and the "Using it
+in your teaching" section of the README. `assets/popout.js` also carries a
+license line in its header comment, and because that file is meant to be
+byte-identical in every repository, changing it here means changing it in all of
+them.
+
+The terms are not the ones this set launched with. It was previously described as
+non-commercial with no redistribution, which CC BY-SA contradicts on both counts:
+commercial use is allowed, and so is redistribution and adaptation, provided the
+result carries the same license. ShareAlike is the term doing the work — someone
+at a company is welcome to learn from this and to build on it, and what they build
+stays as open as what they started from.

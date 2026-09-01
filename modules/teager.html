@@ -68,14 +68,19 @@
     </div>
   </div>
 
-  <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
+  <p class="sharerow" style="margin:0 0 2px;text-align:right">
+    <button type="button" class="btn ghost small" id="copylink" hidden
+      title="Copy a link that reopens this module with every control exactly where it is now">Copy link to this setup</button>
+  </p>
+  <p class="tabhint">Work through the six steps in order, <b>then try the exercises</b>.
     Method and references are there when you want them.</p>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
     <button role="tab" data-tab="p1" aria-selected="false">1 · A spring</button>
-    <button role="tab" data-tab="p2" aria-selected="false">2 · Two formulas</button>
+    <button role="tab" data-tab="p2" aria-selected="false">2 · Formulas</button>
     <button role="tab" data-tab="p3" aria-selected="false">3 · The ripple</button>
     <button role="tab" data-tab="p4" aria-selected="false">4 · Cross terms</button>
     <button role="tab" data-tab="p5" aria-selected="false">5 · TKV</button>
+    <button role="tab" data-tab="p6" aria-selected="false">6 · Map view</button>
     <button role="tab" data-tab="pw" aria-selected="false">Why it matters</button>
     <span class="gap"></span>
     <button role="tab" data-tab="pe" aria-selected="false">Exercises</button>
@@ -118,6 +123,23 @@
       Frequency is the part of the chain this module cares about: gas attenuates the high frequencies
       passing through it, and thin beds raise the local frequency by interference, so both show up in an
       attribute that counts frequency as well as amplitude.</p>
+
+    <div class="sec-row" id="rowRock">
+      <div class="panel-col">
+        <p class="sublabel"><b>0</b> The rock, and what it reflects
+          <span class="note">click the line above to change trace</span></p>
+        <canvas id="cRock" aria-label="Acoustic impedance under the selected trace, and the reflection coefficient at each boundary"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Impedance at the cursor</span><b id="sr1">&mdash;</b></div>
+      <div class="stat"><span>Nearest boundary</span><b id="sr2">&mdash;</b></div>
+      <div class="stat key"><span>Its reflection coefficient</span><b id="sr3">&mdash;</b></div>
+      <div class="stat key"><span>Impedance inside the sand</span><b id="sr4">&mdash;</b></div>
+      <div class="stat"><span>The rock just above it</span><b id="sr5">&mdash;</b></div>
+    </div>
+
     <div class="stats">
       <div class="stat"><span>Trace at the cursor</span><b id="s1u">—</b></div>
       <div class="stat"><span>Envelope there</span><b id="s1e">—</b></div>
@@ -317,6 +339,85 @@
     </div>
   </section>
 
+  <!-- =============================== STEP 6 =============================== -->
+  <section class="tabpane" id="p6" role="tabpanel" hidden>
+    <div class="plot-head" style="margin-bottom:14px">
+      <h3><span class="stepno">6</span>Two ingredients, pulling opposite ways</h3>
+      <span class="hint">The same gas sand module 01 mapped, on an attribute that squares the amplitude</span>
+    </div>
+    <p class="lede">Everything so far has been a section. Energy volumes get interpreted as maps, like every
+      other strength attribute in this set, so this step extracts one from a window below the top of the
+      sand &mdash; one number per trace, over a small volume of which the line you have been working on is
+      one crossline.</p>
+    <p class="lede">There is a specific reason to do it here rather than to round the module off. Energy
+      goes as <span class="k">A&sup2;&omega;&sup2;</span>, and a gas sand is <em>bright</em> and
+      <em>low frequency</em>. Those two facts push the attribute in opposite directions. Squaring the
+      amplitude ought to turn the sand's contrast into a much larger one; the frequency term, squared as
+      well, works against it. The readouts below measure which wins.</p>
+
+    <div class="controls" style="max-width:none;margin-bottom:16px">
+      <div class="ctl-col">
+        <div class="ctl">
+          <label for="mtop">Window starts below the horizon <span class="val" id="mtopV">0 ms</span></label>
+          <input type="range" data-key="mtop" id="mtop" min="0" max="150" step="5" value="0">
+        </div>
+        <div class="ctl">
+          <label for="mlen">Window length <span class="val" id="mlenV">60 ms</span></label>
+          <input type="range" data-key="mlen" id="mlen" min="10" max="120" step="5" value="60">
+        </div>
+      </div>
+      <div class="ctl-col">
+        <div class="ctl">
+          <label for="my">Crossline shown on the section <span class="val" id="myV">12</span></label>
+          <input type="range" data-key="my" id="my" min="0" max="47" step="1" value="12">
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-row" id="row6">
+      <div class="panel-col">
+        <p class="sublabel"><b>1</b> Envelope in the window
+          <span class="note">amplitude, and nothing else</span></p>
+        <canvas id="c6a" aria-label="Map of the envelope averaged in a window below the horizon"></canvas>
+      </div>
+      <div class="panel-col">
+        <p class="sublabel"><b>2</b> Teager-Kaiser energy, same window
+          <span class="note">amplitude squared times frequency squared</span></p>
+        <canvas id="c6b" aria-label="Map of Teager-Kaiser energy in the same window"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Window</span><b id="s6w">—</b></div>
+      <div class="stat key"><span>Envelope, inside the lobe vs outside</span><b id="s6a">—</b></div>
+      <div class="stat"><span>What squaring it alone would give</span><b id="s6b">—</b></div>
+      <div class="stat key"><span>Teager-Kaiser, inside vs outside</span><b id="s6c">—</b></div>
+      <div class="stat"><span>What the frequency term cost</span><b id="s6d">—</b></div>
+      <div class="stat"><span>Mean frequency, inside vs outside</span><b id="s6e">—</b></div>
+    </div>
+    <div class="legend prose">
+      <span>Read the middle three together. The envelope separates the gas lobe from the brine sand beside
+        it by one factor. Square that and you have what the energy would report if frequency played no
+        part. The energy reports less, and the gap between those two numbers is the <span class="k">&omega;&sup2;</span>
+        term pulling the other way, because the gas has taken the high frequencies out of everything below
+        it. Compare this against module 01's map of the same rock: there, sweetness divided by the square
+        root of frequency, so the same frequency drop <em>added</em> contrast. Same sand, same two
+        ingredients, opposite signs &mdash; which way an attribute's frequency term points is a decision
+        somebody made, and it can work for you or against you on the identical anomaly.</span>
+    </div>
+    <div class="legend prose">
+      <span>Now walk the window down past the sand, to 80 to 120 ms. Below the gas the wavelet has lost
+        both its high frequencies and its amplitude, so this time the two ingredients fall together. The
+        envelope barely reacts &mdash; it reads &times;1.5, marginally brighter under the lobe than beside
+        it, which no interpreter would look at twice. The energy reads &times;0.22: a strong, obvious low.
+        That is the low-frequency shadow, and it is the case this attribute is genuinely better at than an
+        amplitude map. Note what has happened across these two windows. The same pair of maps, 80
+        milliseconds apart, with the frequency term working against the energy at the sand and for it
+        underneath. An attribute that multiplies two quantities does not have one behavior; it has one per
+        combination of them.</span>
+    </div>
+  </section>
+
   <!-- ============================ WHY IT MATTERS ========================== -->
   <section class="tabpane" id="pw" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
@@ -421,6 +522,23 @@
             dominated by the trend rather than by the events. Push the corner the other way, to 14 Hz, and
             the correlation goes to &minus;0.084 &mdash; you have filtered away so much that the attribute
             no longer resembles anything. The corner is a real choice with a narrow sensible range.</span></details></li>
+        <li><b>Watch the two ingredients fight.</b> In step 6, read the envelope contrast across the gas
+          lobe, what squaring it alone would give, and what the energy actually returns. Then move the
+          window to 80&ndash;120 ms, below the sand.
+          <details class="reveal"><summary>Hint</summary><span class="ans">In the window on the sand, 0 to
+            60 ms below the horizon, the envelope separates the lobe from the brine sand beside it by
+            &times;3.96. Square that and you have &times;15.69, which is what the energy would report if
+            frequency played no part. It reports &times;4.29. The frequency term cost a factor of 3.7, and
+            the reason is in the last readout: 13.6 Hz inside the lobe against 27.3 Hz outside it, almost
+            exactly a factor of two, and &omega;&sup2; turns a factor of two into a factor of four. Now go
+            to 80 to 120 ms. The envelope reads &times;1.5, which is nothing an interpreter would stop
+            for. The energy reads &times;0.22, an unmistakable low, because under the gas the amplitude and
+            the frequency have both dropped and this time they push the same way. Same two maps, same rock,
+            80 milliseconds apart, and the attribute has changed its mind about which direction it points.
+            Compare all of this against module 01's map of the identical lobe: sweetness divides by the
+            square root of frequency, so there the drop from 27 Hz to 14 Hz <em>added</em> contrast. Which
+            way the frequency term points is a choice the attribute's designer made, not a property of the
+            rock.</span></details></li>
         <li><b>One high-energy zone, and why the number cannot tell you which.</b> A Teager-Kaiser volume
           shows a zone of high energy. Energy goes as amplitude squared times frequency squared, so name
           at least two situations that would raise it, and say what you would compute to separate
@@ -460,6 +578,11 @@
           Hilbert transformed. That is the same construction as AVT, applied to a different quantity. It is
           not strictly positive: the cross terms drive it slightly below zero on a broadband trace, which is
           a fact about the operator rather than a problem with the display.</li>
+        <li><b>The two ingredients can cancel each other.</b> On a map of the gas lobe, squaring the
+          amplitude should have turned a &times;4.0 contrast into &times;15.7; the frequency drop pulled it
+          back to &times;4.3. Beneath the sand, where amplitude and frequency fall together, the same pair
+          of maps shows the energy at &times;0.22 where the envelope shows &times;1.5. An attribute that
+          multiplies two quantities has one behavior per combination of them.</li>
         <li><b>It squares the input amplitude</b>, so it inherits every upstream gain decision twice
           over.</li>
       </ul>
@@ -470,6 +593,18 @@
   <section class="tabpane" id="pm" role="tabpanel" hidden>
     <details class="notes" id="notes" open>
       <summary>Method, sources, and what has been simplified</summary>
+      <p><b>The impedance log in step 1.</b> The model is written as reflection coefficients, so the
+        impedance is not stored anywhere &mdash; it is recovered from them. A boundary with coefficient r
+        has <span class="k">Z<sub>below</sub> = Z<sub>above</sub> (1 + r) / (1 &minus; r)</span> exactly,
+        the inverse of <span class="k">r = (Z&#8322; &minus; Z&#8321;) / (Z&#8322; + Z&#8321;)</span>, so
+        integrating down the spike list returns the log with no modelling choices beyond where to start.
+        That starting value is 6.71 &times; 10&#8310; kg m&#8315;&#178; s&#8315;&#185;, which is a
+        reasonable shallow clastic impedance and nothing more; every statement these modules make about the
+        log is a comparison between two depths on it, and a comparison does not care where the log begins.
+        Note also what is not there: this synthetic has no compaction trend, because the amplitude decay is
+        applied as a gain function rather than modelled as rock, so the log is blocky with no background
+        rise. Module 02 uses a different model that does have a trend, and spends a step on why seismic
+        cannot recover it.</p>
       <p><b>The data</b> is the same synthetic line as modules 01, 03, 04 and 05: 96 traces of 500
         samples at 2 ms, over a low-relief anticline, with a wedge, a gas sand and its brine
         equivalent, interbeds and a dimming reflector. The identical model code runs in all five and the
@@ -495,8 +630,20 @@
         with the shared Ormsby filter, computes the energy of each separately and of their sum, and reports
         the difference. That is a real decomposition of real data rather than a pair of synthetic tones, so
         the numbers describe this trace and would differ on another.</p>
-      <p><b>Simplifications, and where this departs from AASPI.</b> One dimension, normal incidence,
-        acoustic. AASPI computes on 3D volumes and, following Matos (2018), also offers energy of the
+      <p><b>The volume, for step 6.</b> The first five steps use one line. Step 6 needs a map, so the model
+        is extended to 48 crosslines using the same block modules 01, 03 and 05 use, and extended so that
+        crossline 12 is exactly the line the other steps show. The harness rebuilds that crossline out of
+        the volume and compares it against the section sample by sample. Both maps are averages over the
+        extraction window rather than single-sample slices, since the quantities being mapped are one-sided
+        and an average of them means something. The frequency readout is the instantaneous frequency
+        averaged over the window with each sample weighted by its own energy, which is the stabilization
+        module 01 step 4 arrives at, and for the same reason: an unweighted average over a window that
+        includes low-energy samples is dominated by frequencies that are not there. The horizon is the top
+        of the sand taken from the model rather than picked, so it carries no picking error, and the
+        band-limited noise field is reused across crosslines with an offset rather than generated
+        independently for each.</p>
+      <p><b>Simplifications, and where this departs from AASPI.</b> One dimension for the first five steps,
+        normal incidence, acoustic. AASPI computes on 3D volumes and, following Matos (2018), also offers energy of the
         complex trace, which is implemented here as step 3. The subband decomposition that Matos and
         colleagues used to avoid cross terms &mdash; a continuous wavelet transform, with the energy
         computed per voice &mdash; is described in step 4 but not implemented; doing it properly needs the
@@ -547,9 +694,9 @@
           Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
       </div>
       <div style="flex:1 1 330px;max-width:52ch">
-        <p class="lic" style="margin-top:0">Free to use for teaching, demonstration and non-commercial
-          study, with credit. Please do not republish or redistribute it, modified or otherwise, without
-          permission.</p>
+        <p class="lic" style="margin-top:0">Licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC
+          BY-SA 4.0</a>. Share it and adapt it for any purpose, including commercially, provided you credit
+          the source and license what you make from it under the same terms.</p>
         <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
           the page was opened, so that I can show the university these are being used &mdash; no cookie, no
           account, nothing about you.</p>
@@ -824,6 +971,7 @@
 
   const DEF = {
     freq: 25, decay: 8, noise: 0, cut: 6,
+    mtop: 0, mlen: 60, my: 12,
     tr: GASTRACE, ts: 0.500, tab: 'p1',
   };
   let S = SEIS.readState(DEF);
@@ -835,6 +983,18 @@
     if (!CAN_LINK) return;
     try { SEIS.writeState(S, DEF); } catch (e) { /* nothing shareable */ }
   };
+
+  // The URL already tracks every control; this is the button that says so, and
+  // it is how an instructor hands out one exact configuration. A file:// copy
+  // has no shareable URL, so the button stays hidden there rather than
+  // offering a link that would not work.
+  {
+    const lk = document.getElementById('copylink');
+    if (lk && CAN_LINK) {
+      lk.hidden = false;
+      lk.addEventListener('click', () => SEIS.copyLink(lk));
+    }
+  }
 
   let FIELD = null;        // the seismic section
   let TKVF = null;         // the same section as Teager-Kaiser variation
@@ -1051,6 +1211,464 @@
   }
 
   /* =====================================================================
+     THE THIRD DIMENSION
+
+     Everything above this point is one line. A map needs a volume, so the
+     model is extended sideways here — and extended so that the line itself is
+     untouched, because five modules quote numbers measured on it.
+
+     The rule: at crossline IY0 the volume is EXACTLY the section the other
+     steps show. The cross-dip is zero there, the gas lobe still covers it, and
+     the channel never reaches it. Each module's harness checks that by
+     rebuilding the reference crossline out of the volume and comparing it
+     against the section, sample by sample.
+
+     Two features only exist in map view:
+
+       the gas lobe    the sand's gas fill pinches out against a wavy edge in
+                       the crossline direction, which on a section looks like
+                       nothing at all and in map view looks like a lobe
+       the channel     a soft meandering fill 78 ms below the sand, which never
+                       crosses the reference line
+
+     This block is identical in every module that has a map tab. If you change
+     it, change it everywhere.
+     ===================================================================== */
+
+  const NY = 48, IY0 = 12;                     // crosslines, and the reference one
+  const CROSSDIP = 0.00020;                    // s per crossline, zero at IY0
+  const CHANT = 0.548, CHANTHICK = 0.030;      // the channel, just below the sand
+  const SLAB0 = 0.38, SLAB1 = 0.78;            // the only times a map ever needs
+
+  const tShift3 = (ix, iy) => tShift(ix) + CROSSDIP * (iy - IY0);
+
+  /** Where the channel axis runs, in crosslines, as a function of inline. */
+  const chanAxis = (ix) => IY0 + 15 + 9 * Math.sin(TWOPI * ix / 62 + 0.6);
+
+  /** How much channel there is at (ix, iy): 1 on the axis, 0 outside it. */
+  function chanMask(ix, iy) {
+    const d = Math.abs(iy - chanAxis(ix)) / 3.4;
+    if (d >= 1) return 0;
+    return Math.pow(Math.cos(0.5 * Math.PI * d), 2);
+  }
+
+  /** The gas lobe's edge, in crosslines, and how much gas there is at (ix, iy).
+      The edge never comes below crossline 24, so the reference line at 12 is
+      always fully inside the lobe and the section it shows is unchanged. */
+  const lobeEdge = (ix) => 29 + 5 * Math.sin(TWOPI * ix / 78 + 1.1);
+  function lobeMask(ix, iy) {
+    const u = clamp((lobeEdge(ix) - iy) / 5, 0, 1);
+    return u * u * (3 - 2 * u);
+  }
+
+  /**
+   * Reflection coefficients at (ix, iy). This is the earth model above, written
+   * out again with a crossline argument, rather than the two-dimensional
+   * version with something bolted on: the gas fraction now varies in both
+   * directions and everything below the sand follows it. Setting iy = IY0 must
+   * reproduce spikesFor(ix) exactly, and the harness checks that it does.
+   */
+  function spikes3(ix, iy) {
+    const s = tShift3(ix, iy);
+    const g = clamp(gasWin(ix) * lobeMask(ix, iy), 0, 1);
+    const norm = [], atten = [];
+    const below = (t, r) => {
+      norm.push({ t: t, r: r * (1 - g) });
+      atten.push({ t: t, r: r * g * 0.72 });
+    };
+    norm.push({ t: MARK + s, r: 0.130 });
+    norm.push({ t: 0.232 + s, r: -0.075 });
+    norm.push({ t: WEDGE + s, r: 0.085 });
+    norm.push({ t: WEDGE + wedgeGap(ix) + s, r: -0.085 });
+    atten.push({ t: SANDT + s, r: -0.115 * g });
+    atten.push({ t: SANDB + s, r: 0.115 * g });
+    norm.push({ t: SANDT + s, r: -0.035 * (1 - g) });
+    norm.push({ t: SANDB + s, r: 0.035 * (1 - g) });
+    for (let k = 0; k < 7; k++) below(0.600 + 0.015 * k + s, (k % 2 ? -1 : 1) * 0.022);
+    below(DIMT + s, 0.095 * dimFac(ix));
+    below(0.885 + s, -0.075);
+    // and the channel, which exists only here
+    const c = chanMask(ix, iy);
+    if (c > 0.001) {
+      const thick = CHANTHICK * (0.72 + 0.5 * c);
+      norm.push({ t: CHANT + s, r: -0.085 * c });
+      norm.push({ t: CHANT + thick + s, r: 0.085 * c });
+    }
+    return { norm: norm, atten: atten };
+  }
+
+  /* The slab: only the times a horizon window can reach. Building the whole
+     volume would be 4608 traces of 500 samples and several seconds of work for
+     data no panel ever draws. */
+  const SI0 = Math.round(SLAB0 / DT), SI1 = Math.round(SLAB1 / DT), NS = SI1 - SI0 + 1;
+  let SLAB = null;
+  let SLABKEY = '';
+
+  function slabKey() { return [S.freq, S.decay === undefined ? 0 : S.decay, S.noise].join('|'); }
+
+  function buildSlab() {
+    if (SLAB && SLABKEY === slabKey()) return SLAB;
+    const W = wavelets(S.freq, 0);
+    const out = new Float32Array(NX * NY * NS);
+    const tmp = new Float32Array(NS);
+    const dec = S.decay === undefined ? 0 : S.decay;
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const sp = spikes3(ix, iy);
+        for (let k = 0; k < NS; k++) tmp[k] = 0;
+        [[sp.norm, W.w], [sp.atten, W.wl]].forEach((pair) => {
+          const list = pair[0], wav = pair[1], half = wav.halfLength;
+          for (let q = 0; q < list.length; q++) {
+            const c = list[q];
+            if (!c.r) continue;
+            const a = Math.max(SI0, Math.ceil((c.t - half) / DT));
+            const b = Math.min(SI1, Math.floor((c.t + half) / DT));
+            for (let i = a; i <= b; i++) tmp[i - SI0] += c.r * wav.fn(i * DT - c.t);
+          }
+        });
+        const o = (ix * NY + iy) * NS;
+        for (let k = 0; k < NS; k++) {
+          out[o + k] = tmp[k] * Math.pow(10, -dec * ((SI0 + k) * DT) / 20) / NORM;
+        }
+      }
+    }
+    if (S.noise > 0) {
+      /* One band-limited field, reused across crosslines with a shift so no two
+         lines carry the same noise. Generating an independent field for every
+         crossline is the honest thing and costs about a second and a half; at
+         this scale the shift is indistinguishable, and the Method section says
+         so rather than leaving it to be discovered. */
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < out.length; i++) s2 += out[i] * out[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / out.length) || 1);
+      for (let iy = 0; iy < NY; iy++) {
+        for (let ix = 0; ix < NX; ix++) {
+          const o = (ix * NY + iy) * NS;
+          for (let k = 0; k < NS; k++) {
+            out[o + k] += amp * nf[ix * NT + ((SI0 + k + 7 * iy) % NT)];
+          }
+        }
+      }
+    }
+    SLAB = out; SLABKEY = slabKey();
+    return SLAB;
+  }
+
+  /** One trace out of the slab. */
+  function slabTrace(ix, iy, into) {
+    const slab = buildSlab();
+    const o = (ix * NY + iy) * NS;
+    const out = into || new Float32Array(NS);
+    for (let k = 0; k < NS; k++) out[k] = slab[o + k];
+    return out;
+  }
+
+  /** One crossline out of the volume, full length, for a section panel. */
+  function crosslineSection(iy) {
+    const W = wavelets(S.freq, 0);
+    const dec = S.decay === undefined ? 0 : S.decay;
+    const f = new Float32Array(NX * NT);
+    for (let ix = 0; ix < NX; ix++) {
+      const sp = spikes3(ix, iy);
+      const a = SEIS.traceFromSpikes(sp.norm, 0, DT, NT, W.w);
+      const b = SEIS.traceFromSpikes(sp.atten, 0, DT, NT, W.wl);
+      for (let it = 0; it < NT; it++) {
+        f[ix * NT + it] = (a[it] + b[it]) * Math.pow(10, -dec * (it * DT) / 20) / NORM;
+      }
+    }
+    if (S.noise > 0) {
+      const nf = noiseField(S.freq);
+      let s2 = 0;
+      for (let i = 0; i < f.length; i++) s2 += f[i] * f[i];
+      const amp = (S.noise / 100) * (Math.sqrt(s2 / f.length) || 1);
+      for (let ix = 0; ix < NX; ix++) {
+        for (let it = 0; it < NT; it++) {
+          f[ix * NT + it] += amp * nf[ix * NT + ((it + 7 * iy) % NT)];
+        }
+      }
+    }
+    return f;
+  }
+
+  /** The horizon every map extraction hangs from: the top of the sand. */
+  const horizonAt = (ix, iy) => SANDT + tShift3(ix, iy);
+
+  /** How close the channel ever comes to the line the other steps show. */
+  function channelReach() {
+    let closest = 1e9;
+    for (let ix = 0; ix < NX; ix++) closest = Math.min(closest, Math.abs(chanAxis(ix) - IY0));
+    return closest;
+  }
+
+  /** Mean of a map on the channel axis, and well away from it. */
+  function onOffChannel(map, absolute) {
+    let on = 0, non = 0, off = 0, noff = 0;
+    for (let ix = 8; ix < NX - 8; ix++) {
+      const yc = chanAxis(ix);
+      for (let iy = 0; iy < NY; iy++) {
+        const v = absolute ? Math.abs(map[ix * NY + iy]) : map[ix * NY + iy];
+        const d = Math.abs(iy - yc);
+        if (d < 2) { on += v; non++; } else if (d > 8 && d < 16) { off += v; noff++; }
+      }
+    }
+    const a = non ? on / non : 0, b = noff ? off / noff : 0;
+    return { on: a, off: b, ratio: b > 0 ? a / b : 0 };
+  }
+
+  /** Mean of a map inside the gas lobe, and outside it. */
+  function inOutLobe(map) {
+    let a = 0, na = 0, b = 0, nb = 0;
+    for (let ix = 8; ix < NX - 8; ix++) {
+      if (gasWin(ix) < 0.9) continue;                 // only where the sand is gas-charged at all
+      for (let iy = 0; iy < NY; iy++) {
+        const v = map[ix * NY + iy];
+        const m = lobeMask(ix, iy);
+        if (m > 0.9) { a += v; na++; } else if (m < 0.1) { b += v; nb++; }
+      }
+    }
+    const x = na ? a / na : 0, y = nb ? b / nb : 0;
+    return { inside: x, outside: y, ratio: y > 0 ? x / y : 0 };
+  }
+
+  /** A map panel, drawn into a box whose shape matches the grid.
+      Maps are stored inline-major, map[ix * NY + iy], because that is how
+      SEIS.drawVarDensity reads its data. Storing them crossline-major and
+      passing (NX, NY) makes it read the array with the wrong stride, which
+      does not fail — it draws a plausible-looking map covered in vertical
+      stripes. */
+  function mapPanel(ctx, R, map, opts) {
+    const o = opts || {};
+    SEIS.drawVarDensity(ctx, map, NX, NY, R, {
+      cmap: o.cmap || SEIS.SEQMAPS.warm, clip: o.clip, gain: 1,
+    });
+    SEIS.frame(ctx, R);
+    SEIS.axisBottom(ctx, R, 0, NX - 1, o.label === null ? null : 'inline',
+      (v) => v.toFixed(0), { ticks: 5 });
+    if (o.timeAxis) {
+      SEIS.axisLeft(ctx, R, 0, NY - 1, 'crossline', (v) => v.toFixed(0), { ticks: 4 });
+    }
+    if (o.markLine !== undefined) {
+      const y = R.y + (o.markLine / (NY - 1)) * R.h;
+      SEIS.dashedLine(ctx, R.x, y, R.x + R.w, y, 'rgba(255,255,255,.9)', [6, 4], 1.6);
+    }
+  }
+
+  /** 96 inlines by 48 crosslines with equal spacing: the box has to be 2:1, or
+      every shape and direction read off it is wrong. */
+  function mapBox(w, h, x0, footer) {
+    const availW = w - x0 - M.r, availH = h - M.t - (footer === undefined ? 46 : footer);
+    let bw = availW, bh = bw * (NY / NX);
+    if (bh > availH) { bh = availH; bw = bh * (NX / NY); }
+    return { x: x0, y: M.t + (availH - bh) / 2, w: bw, h: bh };
+  }
+
+
+  /* =====================================================================
+     STEP 6: the maps
+
+     Envelope and Teager-Kaiser energy averaged over the same window, one
+     value per trace, so the only difference between the two maps is the
+     attribute. Both are computed from the slab the shared volume block
+     builds, with the same library calls the section panels use, so a map
+     cannot quietly be computed a different way from the curves.
+     ===================================================================== */
+
+  let MAPCACHE = null, MAPKEY = '';
+
+  function extractMaps() {
+    const key = [slabKey(), S.mtop, S.mlen].join('|');
+    if (MAPCACHE && MAPKEY === key) return MAPCACHE;
+    buildSlab();
+    const env = new Float32Array(NX * NY);
+    const tk = new Float32Array(NX * NY);
+    const fr = new Float32Array(NX * NY);
+    const u = new Float32Array(NS);
+    const t0 = S.mtop / 1000, len = S.mlen / 1000;
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        slabTrace(ix, iy, u);
+        const c = T.complexTrace(u, DT);
+        const e = T.tkAnalytic(u, DT, 'holo');
+        const hz = horizonAt(ix, iy);
+        const a = clamp(Math.round((hz + t0) / DT) - SI0, 0, NS - 1);
+        const b = clamp(Math.round((hz + t0 + len) / DT) - SI0, 0, NS - 1);
+        let se = 0, st = 0, sf = 0, sw = 0, n = 0;
+        for (let i = a; i <= b; i++) {
+          se += c.env[i];
+          st += e[i];
+          // frequency averaged with energy weighting, as step 4 of module 01
+          // does, so a sample with nothing in it cannot vote.
+          const wgt = c.env[i] * c.env[i];
+          sf += c.freq[i] * wgt; sw += wgt;
+          n++;
+        }
+        env[ix * NY + iy] = n ? se / n : 0;
+        tk[ix * NY + iy] = n ? st / n : 0;
+        fr[ix * NY + iy] = sw > 0 ? sf / sw : 0;
+      }
+    }
+    MAPCACHE = { env: env, tk: tk, freq: fr }; MAPKEY = key;
+    return MAPCACHE;
+  }
+
+  function drawStep6() {
+    const el = $('c6a');
+    if (!el) return;
+    const maps = extractMaps();
+    const w = rowWidth('row6', 2);
+    const hh = clamp(Math.round(w * 0.66), 240, 400);
+    const draw = (canvasId, map, cmap) => {
+      const c = $(canvasId);
+      if (!c) return;
+      const ctx = SEIS.fitCanvas(c, w, hh);
+      ctx.clearRect(0, 0, w, hh);
+      let pk = 1e-12;
+      for (let i = 0; i < map.length; i++) pk = Math.max(pk, map[i]);
+      const R = mapBox(w, hh, M.l);
+      mapPanel(ctx, R, map, { cmap: cmap, clip: pk, timeAxis: true, markLine: IY0 });
+      SEIS.tag(ctx, R.x + 6, clamp(R.y + (IY0 / (NY - 1)) * R.h - 10, R.y + 8, R.y + R.h - 8),
+        'the line above', SLATE);
+      bar(ctx, { x: R.x, y: R.y + R.h + 34, w: Math.min(200, R.w * 0.5), h: 8 },
+        cmap, '0', pk < 1 ? pk.toPrecision(2) : pk.toPrecision(3), null, true);
+    };
+    draw('c6a', maps.env, SEIS.SEQMAPS.warm);
+    draw('c6b', maps.tk, SEIS.SEQMAPS.viridis);
+  }
+
+  function step6Stats() {
+    const maps = extractMaps();
+    const e = inOutLobe(maps.env);
+    const k = inOutLobe(maps.tk);
+    const f = inOutLobe(maps.freq);
+    return { e: e, k: k, f: f, sq: e.ratio * e.ratio };
+  }
+
+
+  /* =====================================================================
+     THE ROCK UNDER THE TRACE
+
+     The model is written as reflection coefficients, so the impedance a
+     geologist would want is not stored anywhere. It does not have to be:
+     the two are the same information. A boundary with coefficient r has
+
+         Z below = Z above * (1 + r) / (1 - r)
+
+     exactly, which is the inverse of r = (Z2 - Z1) / (Z2 + Z1). Integrating
+     down the spike list from a starting impedance recovers the whole log,
+     with no modelling choices beyond where to start.
+
+     Z0 is that starting value and nothing else rests on it. Every statement
+     the modules make about this log is a comparison between two depths on
+     it, which is unaffected by where it begins -- the same point module 02
+     makes about the word "relative".
+
+     This synthetic has no compaction trend: the amplitude decay is applied
+     as a gain function rather than modelled as rock, so the log is blocky
+     with no background rise. That is a real difference from module 02's
+     model and each Method tab says so rather than leaving it to be noticed.
+
+     This block is identical in every module that draws the log. If you
+     change it, change it everywhere.
+     ===================================================================== */
+
+  const Z0 = 6.71;                        // 10^6 kg m^-2 s^-1, at the top of the section
+
+  /** Every boundary on trace ix, as time and total reflection coefficient.
+      The gas window splits its spikes across two lists, so they are summed
+      by time before anything is integrated. */
+  function boundariesFor(ix) {
+    const sp = spikesFor(ix);
+    const at = new Map();
+    const add = (q) => {
+      const k = q.t.toFixed(5);
+      at.set(k, (at.get(k) || 0) + q.r);
+    };
+    sp.norm.forEach(add);
+    sp.atten.forEach(add);
+    return [...at.keys()].map(Number).sort((a, b) => a - b)
+      .map((t) => ({ t: t, r: at.get(t.toFixed(5)) }))
+      // A coefficient of zero is a boundary the model switched off along
+      // strike, not a boundary with no contrast across it.
+      .filter((q) => Math.abs(q.r) > 1e-9);
+  }
+
+  /** The impedance log under trace ix, sampled onto the module's time axis. */
+  function impedanceLog(ix) {
+    const bs = boundariesFor(ix);
+    const out = new Float32Array(NT);
+    let z = Z0, k = 0;
+    for (let i = 0; i < NT; i++) {
+      const t = tOf(i);
+      while (k < bs.length && bs[k].t <= t) { z = z * (1 + bs[k].r) / (1 - bs[k].r); k++; }
+      out[i] = z;
+    }
+    return out;
+  }
+
+  /** Smallest and largest impedance in the drawn window, for scaling. */
+  function impedanceRange(ix) {
+    const log = impedanceLog(ix);
+    let lo = Infinity, hi = -Infinity;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) {
+      if (log[i] < lo) lo = log[i];
+      if (log[i] > hi) hi = log[i];
+    }
+    const pad = 0.15 * (hi - lo || 1);
+    return { lo: lo, hi: hi, plotLo: lo - pad, plotHi: hi + pad };
+  }
+
+  /** The boundary nearest a given time, for the readouts. */
+  function nearestBoundary(ix, t) {
+    const bs = boundariesFor(ix);
+    let best = null, d = 1e9;
+    bs.forEach((q) => { const e = Math.abs(q.t - t); if (e < d) { d = e; best = q; } });
+    return best;
+  }
+
+  function drawRockPanel() {
+    const el = $('cRock');
+    if (!el) return;
+    const w = rowWidth('rowRock', 1);
+    const h = clamp(Math.round(w * 0.34), 170, 260);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 2, 18);
+    const log = impedanceLog(S.tr);
+    const rg = impedanceRange(S.tr);
+    const RMAX = 0.2;
+    panelBox(ctx, P[0], rg.plotLo, rg.plotHi, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], -RMAX, RMAX, (v) => v.toFixed(2), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    series(ctx, P[0], log, rg.plotLo, rg.plotHi, TEAL, { width: 1.6 });
+
+    // the coefficients, as stems, so the differencing step is visible rather
+    // than asserted: a spike wherever the log takes a step, nothing between
+    const yT = (R, t) => R.y + ((t - TV0) / (TV1 - TV0)) * R.h;
+    const xR = (R, r) => R.x + ((r + RMAX) / (2 * RMAX)) * R.w;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(P[1].x - 1, P[1].y, P[1].w + 2, P[1].h); ctx.clip();
+    ctx.strokeStyle = 'rgba(22,25,28,.20)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xR(P[1], 0), P[1].y); ctx.lineTo(xR(P[1], 0), P[1].y + P[1].h); ctx.stroke();
+    ctx.strokeStyle = CRIM;
+    ctx.lineWidth = 1.6;
+    boundariesFor(S.tr).forEach((q) => {
+      if (q.t < TV0 || q.t > TV1) return;
+      const y = yT(P[1], q.t);
+      ctx.beginPath();
+      ctx.moveTo(xR(P[1], 0), y);
+      ctx.lineTo(xR(P[1], clamp(q.r, -RMAX, RMAX)), y);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    panelTitle(ctx, P[0], 'acoustic impedance under this trace', TEAL);
+    panelTitle(ctx, P[1], 'the reflection coefficient at each boundary', CRIM);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]);
+  }
+
+  /* =====================================================================
      DRAWING
      ===================================================================== */
 
@@ -1251,7 +1869,29 @@
     setText('cutV', S.cut === 0 ? 'off' : S.cut + ' Hz');
   }
 
+
+  /** The rock readouts. Same block in every module that draws the log. */
+  function syncRockStats() {
+    if (!$('sr1')) return;
+    const log = impedanceLog(S.tr);
+    const rg = impedanceRange(S.tr);
+    const b = nearestBoundary(S.tr, S.ts);
+    const U = ' \u00d7\u2076 kg m\u207b\u00b2 s\u207b\u00b9';
+    setText('sr1', log[clamp(iOf(S.ts), 0, NT - 1)].toFixed(2));
+    setText('sr2', b ? (b.t * 1000).toFixed(0) + ' ms' : '\u2014');
+    setText('sr3', b ? (b.r > 0 ? '+' : '\u2212') + Math.abs(b.r).toFixed(3) +
+      (b.r > 0 ? '  (harder below)' : '  (softer below)') : '\u2014');
+    // The sand against the rock it sits in. Both are read off the same log, so
+    // the comparison is independent of where Z0 put the whole thing -- which
+    // the outright minimum on the trace would not be, since the top of the
+    // section is Z0 by construction.
+    const s = tShift(S.tr);
+    setText('sr4', log[clamp(iOf(SANDT + s + 0.010), 0, NT - 1)].toFixed(2));
+    setText('sr5', log[clamp(iOf(SANDT + s - 0.020), 0, NT - 1)].toFixed(2));
+  }
+
   function syncStats() {
+    syncRockStats();
     const i = iOf(S.ts), sc = tkScale();
     const i0 = iOf(TV0 + 0.03), i1 = iOf(TV1 - 0.03);
     setText('s1u', fmt2(CUR.u[i]));
@@ -1298,6 +1938,19 @@
     setText('s5d', meanFrequency(CUR.avt).toFixed(1) + ' Hz');
     setText('s5e', belowZero(CUR.tkv).toFixed(0) + '%');
     setText('s5f', meanFrequency(CUR.tkv).toFixed(1) + ' Hz');
+
+    if ($('s6a')) {
+      const q = step6Stats();
+      setText('s6w', S.mtop + ' to ' + (S.mtop + S.mlen) + ' ms below the horizon');
+      setText('s6a', q.e.inside.toFixed(3) + '  vs  ' + q.e.outside.toFixed(3) +
+        '   (\u00d7' + q.e.ratio.toFixed(2) + ')');
+      setText('s6b', '\u00d7' + q.sq.toFixed(2));
+      setText('s6c', '\u00d7' + q.k.ratio.toFixed(2));
+      setText('s6d', q.k.ratio > 0
+        ? '\u00d7' + (q.sq / q.k.ratio).toFixed(2) + ' of the contrast squaring bought'
+        : '\u2014');
+      setText('s6e', q.f.inside.toFixed(1) + '  vs  ' + q.f.outside.toFixed(1) + ' Hz');
+    }
   }
 
   /* =====================================================================
@@ -1310,11 +1963,12 @@
     const onStep = visible('p1') || visible('p2') || visible('p3')
       || visible('p4') || visible('p5');
     if (onStep) drawHeader();
-    if (visible('p1')) drawStep1();
+    if (visible('p1')) { drawStep1(); drawRockPanel(); }
     if (visible('p2')) drawStep2();
     if (visible('p3')) drawStep3();
     if (visible('p4')) drawStep4();
     if (visible('p5')) drawStep5();
+    if (visible('p6')) drawStep6();
     syncStats();
   }
 
@@ -1705,6 +2359,8 @@
     iOf: iOf, tOf: tOf, kOf: kOf, showTab: showTab, drawAll: drawAll,
     ripple: ripple, crossStats: crossStats, strongEvent: strongEvent,
     meanFrequency: meanFrequency, rawSection: rawSection,
+    crosslineSection: crosslineSection, spikes3: spikes3, NY: NY, IY0: IY0,
+    extractMaps: extractMaps, step6Stats: step6Stats, channelReach: channelReach,
   };
 })();
 </script>

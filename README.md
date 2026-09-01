@@ -41,7 +41,8 @@ two-hour undergraduate session.
   discipline and are expected to be productive in weeks.
 - **Instructors**, who are welcome to use any of this in a course. Module state
   is encoded in the URL, so a specific configuration can be handed out as a link
-  and every student opens the same picture.
+  and every student opens the same picture. **Copy link to this setup**, above
+  the step tabs, does it in one click.
 
 ## How the modules are built
 
@@ -85,6 +86,8 @@ resolution.
 
 ## The modules
 
+All six are finished.
+
 | # | Subject | The question it answers | Status |
 |---|---------|-------------------------|--------|
 | 01 | [Instantaneous attributes](modules/instantaneous.html) | Why does my frequency volume go negative? | **ready** |
@@ -94,7 +97,15 @@ resolution.
 | 05 | [Amplitude volume transform](modules/avt.html) | What am I actually looking at on an AVT slice? | **ready** |
 | 06 | [Teager-Kaiser energy](modules/teager.html) | How is this different from the envelope? | **ready** |
 
-Algorithms follow the AASPI program documentation and the original papers. 
+Every module opens on the rock: step 1 draws the acoustic impedance under the
+trace you have selected, beside the reflection coefficient each boundary
+produces, so the chain from a layer to a wiggle to an attribute is visible
+rather than asserted. Modules 01, 03, 05 and 06 also end in map view, because
+that is where these attributes are actually used.
+
+Algorithms follow the AASPI program documentation and the original papers. Where
+a source is ambiguous or contradicts itself, the module says so rather than
+quietly picking one.
 
 Each module ends with the same four reference tabs: **Why it matters** (what the
 attribute is used for and how it misleads), **Exercises** (six or seven, each
@@ -121,10 +132,13 @@ habit.
 
 ## Using it in your teaching
 
-Free to use for teaching, demonstration, and non-commercial study, provided the
-source is credited. Please do not republish or redistribute it, modified or
-otherwise, without permission. If you use it in a course or a talk, a credit
-line and a link back are all that is asked.
+Licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). You
+are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit and license any adaptation
+under the same terms. Use it in a course, cut it up for a talk, translate it,
+build on it — a credit line and a link back are all that is asked. The
+ShareAlike term is the one that matters to me: what you make from this has to
+stay as open as what you started with.
 
 To cite: H. Bedle, *How Single-Trace Attributes Actually Work*, University of
 Oklahoma. SSRN: [article link to follow]
@@ -158,3 +172,19 @@ local copies and for anyone browsing with Do Not Track set, and it can be
 switched off entirely by deleting `assets/count.js` and the one `<script>` line
 that loads it. That file documents exactly what is sent.
 
+## For anyone maintaining this
+
+Five shared files sit in `assets/`. `seismic.js` holds the wavelets, the FFT,
+the Hilbert transform, the color maps and the canvas helpers. `trace.js` holds
+the single-trace attribute algorithms themselves, written the way the AASPI
+documentation describes them rather than in any optimized form. `style.css` is
+the visual identity. `count.js` is the page counter described under Privacy
+above, and `popout.js` puts the **Open in new window** button on the exercises
+tab. The last two are drop-in: each goes into every teaching repository
+unchanged, following `docs/ADD-COUNTING.md` and `docs/ADD-POPOUT.md`. **`style.css` and `seismic.js` are shared with the
+geometric-attributes repository** — a change to either needs to go to both, or
+the two sites drift apart.
+
+File layout, the attribute library's API, the synthetic model, and the
+verification harness are documented in
+[`docs/MAINTAINING.md`](docs/MAINTAINING.md).

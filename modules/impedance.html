@@ -69,6 +69,10 @@
     </div>
   </div>
 
+  <p class="sharerow" style="margin:0 0 2px;text-align:right">
+    <button type="button" class="btn ghost small" id="copylink" hidden
+      title="Copy a link that reopens this module with every control exactly where it is now">Copy link to this setup</button>
+  </p>
   <p class="tabhint">Work through the five steps in order, <b>then try the exercises</b>.
     Method and references are there when you want them.</p>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
@@ -534,9 +538,9 @@
           Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
       </div>
       <div style="flex:1 1 330px;max-width:52ch">
-        <p class="lic" style="margin-top:0">Free to use for teaching, demonstration and non-commercial
-          study, with credit. Please do not republish or redistribute it, modified or otherwise, without
-          permission.</p>
+        <p class="lic" style="margin-top:0">Licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC
+          BY-SA 4.0</a>. Share it and adapt it for any purpose, including commercially, provided you credit
+          the source and license what you make from it under the same terms.</p>
         <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
           the page was opened, so that I can show the university these are being used &mdash; no cookie, no
           account, nothing about you.</p>
@@ -778,6 +782,18 @@
     if (!CAN_LINK) return;
     try { SEIS.writeState(S, DEF); } catch (e) { /* nothing shareable */ }
   };
+
+  // The URL already tracks every control; this is the button that says so, and
+  // it is how an instructor hands out one exact configuration. A file:// copy
+  // has no shareable URL, so the button stays hidden there rather than
+  // offering a link that would not work.
+  {
+    const lk = document.getElementById('copylink');
+    if (lk && CAN_LINK) {
+      lk.hidden = false;
+      lk.addEventListener('click', () => SEIS.copyLink(lk));
+    }
+  }
 
   let FIELD = null;        // the seismic section, normalized
   let RAI = null;          // the attribute, whole section

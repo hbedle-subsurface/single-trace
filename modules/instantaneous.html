@@ -68,6 +68,10 @@
     </div>
   </div>
 
+  <p class="sharerow" style="margin:0 0 2px;text-align:right">
+    <button type="button" class="btn ghost small" id="copylink" hidden
+      title="Copy a link that reopens this module with every control exactly where it is now">Copy link to this setup</button>
+  </p>
   <p class="tabhint">Work through the six steps in order, <b>then try the exercises</b>.
     Method and references are there when you want them.</p>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Module steps">
@@ -103,6 +107,23 @@
       &mdash; impedance, then reflectivity, then trace &mdash; and it is worth a look if the step from a
       rock boundary to a wiggle is not yet automatic. Everything in this module is a question asked of that
       wiggle, so every answer traces back to those layers.</p>
+
+    <div class="sec-row" id="rowRock">
+      <div class="panel-col">
+        <p class="sublabel"><b>0</b> The rock, and what it reflects
+          <span class="note">click the line above to change trace</span></p>
+        <canvas id="cRock" aria-label="Acoustic impedance under the selected trace, and the reflection coefficient at each boundary"></canvas>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Impedance at the cursor</span><b id="sr1">&mdash;</b></div>
+      <div class="stat"><span>Nearest boundary</span><b id="sr2">&mdash;</b></div>
+      <div class="stat key"><span>Its reflection coefficient</span><b id="sr3">&mdash;</b></div>
+      <div class="stat key"><span>Impedance inside the sand</span><b id="sr4">&mdash;</b></div>
+      <div class="stat"><span>The rock just above it</span><b id="sr5">&mdash;</b></div>
+    </div>
+
     <p class="lede">Here is the fix, and it is the whole trick behind every attribute in this module.
       Alongside the recorded trace we build a second one, called the <b>Hilbert transform</b>. It contains
       exactly the same frequencies with exactly the same strengths — it is only shifted by a quarter of a
@@ -618,6 +639,18 @@
   <section class="tabpane" id="pm" role="tabpanel" hidden>
     <details class="notes" id="notes" open>
       <summary>Method, sources, and what has been simplified</summary>
+      <p><b>The impedance log in step 1.</b> The model is written as reflection coefficients, so the
+        impedance is not stored anywhere &mdash; it is recovered from them. A boundary with coefficient r
+        has <span class="k">Z<sub>below</sub> = Z<sub>above</sub> (1 + r) / (1 &minus; r)</span> exactly,
+        the inverse of <span class="k">r = (Z&#8322; &minus; Z&#8321;) / (Z&#8322; + Z&#8321;)</span>, so
+        integrating down the spike list returns the log with no modelling choices beyond where to start.
+        That starting value is 6.71 &times; 10&#8310; kg m&#8315;&#178; s&#8315;&#185;, which is a
+        reasonable shallow clastic impedance and nothing more; every statement these modules make about the
+        log is a comparison between two depths on it, and a comparison does not care where the log begins.
+        Note also what is not there: this synthetic has no compaction trend, because the amplitude decay is
+        applied as a gain function rather than modelled as rock, so the log is blocky with no background
+        rise. Module 02 uses a different model that does have a trend, and spends a step on why seismic
+        cannot recover it.</p>
       <p><b>The data.</b> The section is a synthetic: 96 traces of 500 samples at a 2 ms
         sample interval, built by convolving a Ricker wavelet with a set of reflection coefficients. It
         contains a shallow marker, a thinning wedge, a gas sand with a brine-filled equivalent along strike,
@@ -733,9 +766,9 @@
           Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
       </div>
       <div style="flex:1 1 330px;max-width:52ch">
-        <p class="lic" style="margin-top:0">Free to use for teaching, demonstration and non-commercial
-          study, with credit. Please do not republish or redistribute it, modified or otherwise, without
-          permission.</p>
+        <p class="lic" style="margin-top:0">Licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC
+          BY-SA 4.0</a>. Share it and adapt it for any purpose, including commercially, provided you credit
+          the source and license what you make from it under the same terms.</p>
         <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
           the page was opened, so that I can show the university these are being used &mdash; no cookie, no
           account, nothing about you.</p>
@@ -1026,6 +1059,18 @@
     try { SEIS.writeState(S, DEF); } catch (e) { /* nothing shareable */ }
   };
 
+  // The URL already tracks every control; this is the button that says so, and
+  // it is how an instructor hands out one exact configuration. A file:// copy
+  // has no shareable URL, so the button stays hidden there rather than
+  // offering a link that would not work.
+  {
+    const lk = document.getElementById('copylink');
+    if (lk && CAN_LINK) {
+      lk.hidden = false;
+      lk.addEventListener('click', () => SEIS.copyLink(lk));
+    }
+  }
+
   let FIELD = null;         // the section, normalized, trace-major
   let CT = null;            // complex-trace attributes of the selected trace
   let ATT = null;           // section-wide attributes, computed lazily
@@ -1187,6 +1232,130 @@
   const fmtT = (t) => (t * 1000).toFixed(0) + ' ms';
   const fmt2 = (v) => (Math.abs(v) < 0.0005 ? '0.000' : v.toFixed(3));
   const fmtF = (v) => (isFinite(v) ? v.toFixed(1) + ' Hz' : '—');
+
+
+  /* =====================================================================
+     THE ROCK UNDER THE TRACE
+
+     The model is written as reflection coefficients, so the impedance a
+     geologist would want is not stored anywhere. It does not have to be:
+     the two are the same information. A boundary with coefficient r has
+
+         Z below = Z above * (1 + r) / (1 - r)
+
+     exactly, which is the inverse of r = (Z2 - Z1) / (Z2 + Z1). Integrating
+     down the spike list from a starting impedance recovers the whole log,
+     with no modelling choices beyond where to start.
+
+     Z0 is that starting value and nothing else rests on it. Every statement
+     the modules make about this log is a comparison between two depths on
+     it, which is unaffected by where it begins -- the same point module 02
+     makes about the word "relative".
+
+     This synthetic has no compaction trend: the amplitude decay is applied
+     as a gain function rather than modelled as rock, so the log is blocky
+     with no background rise. That is a real difference from module 02's
+     model and each Method tab says so rather than leaving it to be noticed.
+
+     This block is identical in every module that draws the log. If you
+     change it, change it everywhere.
+     ===================================================================== */
+
+  const Z0 = 6.71;                        // 10^6 kg m^-2 s^-1, at the top of the section
+
+  /** Every boundary on trace ix, as time and total reflection coefficient.
+      The gas window splits its spikes across two lists, so they are summed
+      by time before anything is integrated. */
+  function boundariesFor(ix) {
+    const sp = spikesFor(ix);
+    const at = new Map();
+    const add = (q) => {
+      const k = q.t.toFixed(5);
+      at.set(k, (at.get(k) || 0) + q.r);
+    };
+    sp.norm.forEach(add);
+    sp.atten.forEach(add);
+    return [...at.keys()].map(Number).sort((a, b) => a - b)
+      .map((t) => ({ t: t, r: at.get(t.toFixed(5)) }))
+      // A coefficient of zero is a boundary the model switched off along
+      // strike, not a boundary with no contrast across it.
+      .filter((q) => Math.abs(q.r) > 1e-9);
+  }
+
+  /** The impedance log under trace ix, sampled onto the module's time axis. */
+  function impedanceLog(ix) {
+    const bs = boundariesFor(ix);
+    const out = new Float32Array(NT);
+    let z = Z0, k = 0;
+    for (let i = 0; i < NT; i++) {
+      const t = tOf(i);
+      while (k < bs.length && bs[k].t <= t) { z = z * (1 + bs[k].r) / (1 - bs[k].r); k++; }
+      out[i] = z;
+    }
+    return out;
+  }
+
+  /** Smallest and largest impedance in the drawn window, for scaling. */
+  function impedanceRange(ix) {
+    const log = impedanceLog(ix);
+    let lo = Infinity, hi = -Infinity;
+    for (let i = iOf(TV0); i <= iOf(TV1); i++) {
+      if (log[i] < lo) lo = log[i];
+      if (log[i] > hi) hi = log[i];
+    }
+    const pad = 0.15 * (hi - lo || 1);
+    return { lo: lo, hi: hi, plotLo: lo - pad, plotHi: hi + pad };
+  }
+
+  /** The boundary nearest a given time, for the readouts. */
+  function nearestBoundary(ix, t) {
+    const bs = boundariesFor(ix);
+    let best = null, d = 1e9;
+    bs.forEach((q) => { const e = Math.abs(q.t - t); if (e < d) { d = e; best = q; } });
+    return best;
+  }
+
+  function drawRockPanel() {
+    const el = $('cRock');
+    if (!el) return;
+    const w = rowWidth('rowRock', 1);
+    const h = clamp(Math.round(w * 0.34), 170, 260);
+    const ctx = SEIS.fitCanvas(el, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const P = panels(w, h, 2, 18);
+    const log = impedanceLog(S.tr);
+    const rg = impedanceRange(S.tr);
+    const RMAX = 0.2;
+    panelBox(ctx, P[0], rg.plotLo, rg.plotHi, (v) => v.toFixed(1), 3);
+    panelBox(ctx, P[1], -RMAX, RMAX, (v) => v.toFixed(2), 3);
+    SEIS.axisLeft(ctx, P[0], TV0, TV1, 'time (s)', (v) => v.toFixed(2), { ticks: 6 });
+    series(ctx, P[0], log, rg.plotLo, rg.plotHi, TEAL, { width: 1.6 });
+
+    // the coefficients, as stems, so the differencing step is visible rather
+    // than asserted: a spike wherever the log takes a step, nothing between
+    const yT = (R, t) => R.y + ((t - TV0) / (TV1 - TV0)) * R.h;
+    const xR = (R, r) => R.x + ((r + RMAX) / (2 * RMAX)) * R.w;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(P[1].x - 1, P[1].y, P[1].w + 2, P[1].h); ctx.clip();
+    ctx.strokeStyle = 'rgba(22,25,28,.20)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xR(P[1], 0), P[1].y); ctx.lineTo(xR(P[1], 0), P[1].y + P[1].h); ctx.stroke();
+    ctx.strokeStyle = CRIM;
+    ctx.lineWidth = 1.6;
+    boundariesFor(S.tr).forEach((q) => {
+      if (q.t < TV0 || q.t > TV1) return;
+      const y = yT(P[1], q.t);
+      ctx.beginPath();
+      ctx.moveTo(xR(P[1], 0), y);
+      ctx.lineTo(xR(P[1], clamp(q.r, -RMAX, RMAX)), y);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    panelTitle(ctx, P[0], 'acoustic impedance under this trace', TEAL);
+    panelTitle(ctx, P[1], 'the reflection coefficient at each boundary', CRIM);
+    cursorLine(ctx, P[0]); cursorLine(ctx, P[1]);
+  }
 
   /* =====================================================================
      DRAWING
@@ -2021,7 +2190,29 @@
     });
   }
 
+
+  /** The rock readouts. Same block in every module that draws the log. */
+  function syncRockStats() {
+    if (!$('sr1')) return;
+    const log = impedanceLog(S.tr);
+    const rg = impedanceRange(S.tr);
+    const b = nearestBoundary(S.tr, S.ts);
+    const U = ' \u00d7\u2076 kg m\u207b\u00b2 s\u207b\u00b9';
+    setText('sr1', log[clamp(iOf(S.ts), 0, NT - 1)].toFixed(2));
+    setText('sr2', b ? (b.t * 1000).toFixed(0) + ' ms' : '\u2014');
+    setText('sr3', b ? (b.r > 0 ? '+' : '\u2212') + Math.abs(b.r).toFixed(3) +
+      (b.r > 0 ? '  (harder below)' : '  (softer below)') : '\u2014');
+    // The sand against the rock it sits in. Both are read off the same log, so
+    // the comparison is independent of where Z0 put the whole thing -- which
+    // the outright minimum on the trace would not be, since the top of the
+    // section is Z0 by construction.
+    const s = tShift(S.tr);
+    setText('sr4', log[clamp(iOf(SANDT + s + 0.010), 0, NT - 1)].toFixed(2));
+    setText('sr5', log[clamp(iOf(SANDT + s - 0.020), 0, NT - 1)].toFixed(2));
+  }
+
   function syncStats() {
+    syncRockStats();
     const i = iOf(S.ts);
     setText('s1t', fmtT(S.ts));
     setText('s1u', fmt2(CT.u[i]));
@@ -2085,7 +2276,7 @@
     const onStep = visible('p1') || visible('p2') || visible('p3')
       || visible('p4') || visible('p5') || visible('p6');
     if (onStep) drawHeader();
-    if (visible('p1')) drawStep1();
+    if (visible('p1')) { drawStep1(); drawRockPanel(); }
     if (visible('p2')) drawStep2();
     if (visible('p3')) drawStep3();
     if (visible('p4')) drawStep4();
@@ -2239,7 +2430,7 @@
     iOf: iOf, tOf: tOf, argMaxIn: argMaxIn, argMaxAbsIn: argMaxAbsIn, showTab: showTab,
     drawAll: drawAll, rawSection: rawSection,
     extractMaps: extractMaps, crosslineSection: crosslineSection, inOutLobe: inOutLobe,
-    NY: NY, IY0: IY0, channelReach: channelReach,
+    NY: NY, IY0: IY0, channelReach: channelReach, spikesFor: spikesFor,
   };
 })();
 </script>
