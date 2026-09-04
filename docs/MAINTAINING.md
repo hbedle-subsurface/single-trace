@@ -82,6 +82,7 @@ node tools/harness-avt.js           # module 05: same
 node tools/harness-teager.js        # module 06: same
 node tools/check-shared.js          # modules 01, 03-06 are running one line
 node tools/check-volume.js          # modules 01, 03, 05, 06 share one volume
+node tools/check-blocking.js        # response attributes block on the envelope minima
 node tools/gen_thumbs.js            # regenerates the landing-page thumbnails
 ```
 
@@ -197,6 +198,17 @@ others to match.
 Those five module scripts were assembled from shared blocks rather than typed
 five times. If a shared block needs changing, change it in every module and let
 `check-shared.js` confirm the result.
+
+`check-blocking.js` covers the one place where a plausible shortcut gives a
+different answer. The response attributes are blocked between adjacent envelope
+minima, after Bodine (1984). Assigning each sample to its nearest envelope
+maximum instead puts the block edge at the midpoint between two maxima, which is
+the same place whenever neighboring events are the same size and a long way from
+it when they are not: a weak event beside a strong one has its trough pushed
+toward the weak side. That shortcut was in the library for a while, and on the
+synthetic line it moved about four percent of samples, some by 17 Hz. The check
+implements the rule a second time rather than calling the library, since a check
+that shares code with the thing it checks is not a check.
 
 Module 02 deliberately does **not** share that line. It needs an impedance log as
 its truth rather than a set of reflection coefficients, so it builds its own.

@@ -1,7 +1,7 @@
 /* ===========================================================================
    seismic.js — shared math + plotting core
-   "What Can You REALLY See in Seismic?"
-   Heather Bedle / AASPI / University of Oklahoma
+   "How Single-Trace Attributes Actually Work"
+   Heather Bedle and April Moreno-Ward / AASPI / University of Oklahoma
    Vanilla JS, no dependencies, no build step.
    =========================================================================== */
 

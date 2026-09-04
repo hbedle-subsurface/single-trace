@@ -6,7 +6,10 @@
     "verify": "node verify_trace.js",
     "harness": "node harness.js",
     "measure": "node measure.js",
-    "thumbs": "node gen_thumbs.js"
+    "thumbs": "node gen_thumbs.js",
+    "blocking": "node check-blocking.js"
   },
-  "devDependencies": { "jsdom": "^24.0.0" }
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
 }

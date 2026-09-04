@@ -21,7 +21,7 @@ const fakeWin = {
 };
 
 const dom = new JSDOM(html, {
-  url: 'https://hbedle-subsurface.github.io/geometric-attributes/modules/' + path.basename(modulePath),
+  url: 'https://hbedle-subsurface.github.io/single-trace/modules/' + path.basename(modulePath),
   runScripts: 'outside-only',
   pretendToBeVisual: true
 });
@@ -79,7 +79,7 @@ const out = fakeWin.document._buf;
 check('doctype written', out.startsWith('<!doctype html>'));
 check('title carries module name', /<title>Exercises — .+<\/title>/.test(out),
       (out.match(/<title>([^<]*)<\/title>/) || [])[1]);
-check('stylesheet linked absolutely', /<link rel="stylesheet" href="https:\/\/hbedle-subsurface\.github\.io\/geometric-attributes\/assets\/style\.css">/.test(out));
+check('stylesheet linked absolutely', /<link rel="stylesheet" href="https:\/\/hbedle-subsurface\.github\.io\/single-trace\/assets\/style\.css">/.test(out));
 check('fonts linked', /fonts\.googleapis\.com/.test(out));
 check('exercise list copied', /<ol>/.test(out) && (out.match(/<li>/g) || []).length >= 5,
       (out.match(/<li>/g) || []).length + ' items');

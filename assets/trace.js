@@ -1,7 +1,7 @@
 /* ===========================================================================
    trace.js — single-trace (complex trace) attribute computation
    "How Single-Trace Attributes Actually Work"
-   Heather Bedle / AASPI / University of Oklahoma
+   Heather Bedle and April Moreno-Ward / AASPI / University of Oklahoma
 
    Companion to seismic.js, which supplies wavelets, the FFT, color maps and
    the canvas helpers. This file holds the attribute algorithms themselves,
@@ -168,7 +168,7 @@ const TRACE = (function () {
   }
 
   /**
-   * Weighted-average frequency (Barnes, 1993; 2016). Average the instantaneous
+   * Weighted-average frequency (Barnes, 2000; 2016). Average the instantaneous
    * frequency over a window, weighting each sample by its instantaneous POWER
    * e^2, so the samples where the frequency is meaningless — the ones with no
    * energy — contribute almost nothing.
@@ -212,6 +212,20 @@ const TRACE = (function () {
    * either side. The result is blocky by construction: that is what tells you
    * you are looking at a wavelet attribute rather than an instantaneous one.
    *
+   * The block edges are the envelope minima, not the midpoints between maxima.
+   * The two coincide when neighboring events are the same size and part
+   * company when they are not: a weak event beside a strong one has its
+   * trough pushed toward the weak side, so a midpoint rule would hand several
+   * tens of milliseconds of the weak event to the strong one. On the line
+   * these modules run, the two rules disagree on about four percent of
+   * samples, by as much as 17 Hz. tools/check-blocking.js measures it.
+   *
+   * A minimum belongs to the block that starts at it, so every sample lands in
+   * exactly one block. Where an interval holds more than one maximum, which
+   * strict interlacing forbids but a plateau in the envelope can produce, the
+   * largest is used. Samples before the first maximum or after the last take
+   * that maximum, since there is no interval for them to sit in.
+   *
    * Returns { phase, freq, env, isPeak } — isPeak marks the sample each block
    * was read from, which the module draws so the blockiness is explainable.
    */
@@ -228,18 +242,31 @@ const TRACE = (function () {
       if (env[i] >= env[i - 1] && env[i] > env[i + 1]) { maxima.push(i); isPeak[i] = 1; }
       if (env[i] <= env[i - 1] && env[i] < env[i + 1]) minima.push(i);
     }
-    if (!maxima.length) return { phase: outP, freq: outF, env: outE, isPeak };
+    if (!maxima.length) return { phase: outP, freq: outF, env: outE, isPeak, maxima, minima };
 
-    // each sample takes the value at the nearest envelope maximum that is not
-    // separated from it by another maximum: i.e. the maximum inside its block
-    let m = 0;
-    for (let i = 0; i < n; i++) {
-      while (m < maxima.length - 1 &&
-             Math.abs(maxima[m + 1] - i) < Math.abs(maxima[m] - i)) m++;
-      const p = maxima[m];
-      outP[i] = phase[p];
-      outF[i] = freq[p];
-      outE[i] = env[p];
+    // block edges: the start of the trace, every envelope minimum, the end
+    const edges = [0].concat(minima, [n]);
+
+    let m = 0;                                   // index into maxima, swept once
+    for (let b = 0; b < edges.length - 1; b++) {
+      const lo = edges[b], hi = edges[b + 1];     // block covers lo .. hi-1
+      if (hi <= lo) continue;
+
+      while (m < maxima.length - 1 && maxima[m] < lo) m++;
+      let p = -1;
+      for (let k = m; k < maxima.length && maxima[k] < hi; k++) {
+        if (maxima[k] >= lo && (p < 0 || env[maxima[k]] > env[p])) p = maxima[k];
+      }
+      if (p < 0) {
+        // no maximum inside this block: the leading and trailing stretches of
+        // the trace, which take the first or last maximum there is
+        p = lo < maxima[0] ? maxima[0] : maxima[maxima.length - 1];
+      }
+      for (let i = lo; i < hi; i++) {
+        outP[i] = phase[p];
+        outF[i] = freq[p];
+        outE[i] = env[p];
+      }
     }
     return { phase: outP, freq: outF, env: outE, isPeak, maxima, minima };
   }
@@ -457,6 +484,10 @@ const TRACE = (function () {
     let mx = 0;
     for (let i = 0; i < n; i++) mx = Math.max(mx, rms[i]);
     const floor = (floorFrac === undefined ? 0.02 : floorFrac) * mx;
+    // a trace with nothing in it anywhere has a floor of zero, so the test
+    // below never fires and the count would read zero on the one trace where
+    // the floor did all of the work
+    if (mx <= 0) return { out: new Float32Array(n), rms: rms, floored: n, floor: 0 };
     const out = new Float32Array(n);
     let floored = 0;
     for (let i = 0; i < n; i++) {

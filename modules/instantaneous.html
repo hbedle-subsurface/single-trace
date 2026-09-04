@@ -720,8 +720,8 @@
         program produces by the method of Vesnaver (2017) — integrating dφ/dt rather than repairing the
         jumps — is implemented in the shared library and used to state the definition, but is not displayed
         in this module because it has no useful color scale in a beginner's first pass. The wavelet
-        attribute assignment here uses the nearest envelope maximum rather than an explicit search between
-        adjacent minima; on these traces the two agree, but on a very noisy trace they need not. The
+        attributes are blocked between adjacent envelope minima, after Bodine (1984), each block carrying
+        the values read at the envelope maximum inside it. The
         synthetic is acoustic, normal-incidence, and one-dimensional: no multiples, no transmission losses,
         no offset, no anisotropy, and a wavelet that does not change shape with depth except in the gas
         window.</p>
@@ -760,18 +760,21 @@
   <footer>
     <div class="foot-grid">
       <div style="flex:1 1 330px;max-width:46ch">
-        <p>Built for teaching by Heather Bedle, School of Geosciences, University of Oklahoma, with the
+        <p>Built for teaching by Heather Bedle and April Moreno-Ward, School of Geosciences,
+          University of Oklahoma, with the
           <a href="https://www.ou.edu/mcee/labs/aaspi">AASPI</a> consortium.</p>
-        <p class="lic">To cite: H. Bedle, <i>How Single-Trace Attributes Actually Work</i>, University of
-          Oklahoma. <span class="k">SSRN: [article link to follow]</span></p>
+        <p class="lic">To cite: Bedle, H., and A. Moreno-Ward, 2026b, <i>How single-trace attributes
+          actually work: A set of browser-based interactive modules for teaching the complex trace,
+          relative impedance, RMS amplitude, AGC, AVT and Teager-Kaiser energy</i>: SSRN Working
+          Paper. <span class="k">SSRN: [article link to follow]</span></p>
       </div>
       <div style="flex:1 1 330px;max-width:52ch">
         <p class="lic" style="margin-top:0">Licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC
           BY-SA 4.0</a>. Share it and adapt it for any purpose, including commercially, provided you credit
           the source and license what you make from it under the same terms.</p>
         <p class="lic">Nothing you do in this module leaves your browser. The only thing recorded is that
-          the page was opened, so that I can show the university these are being used &mdash; no cookie, no
-          account, nothing about you.</p>
+          the page was opened, so that we can show the university these are being used &mdash; no cookie,
+          no account, nothing about you.</p>
       </div>
     </div>
   </footer>

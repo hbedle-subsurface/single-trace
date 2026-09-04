@@ -6,8 +6,8 @@ computed live in the browser while you change it.
 
 **[Open the modules →](https://hbedle-subsurface.github.io/single-trace/)**
 
-Heather Bedle, School of Geosciences, University of Oklahoma, with the
-[AASPI](https://www.ou.edu/mcee/labs/aaspi) consortium.
+Heather Bedle and April Moreno-Ward, School of Geosciences, University of
+Oklahoma, with the [AASPI](https://www.ou.edu/mcee/labs/aaspi) consortium.
 
 ---
 
@@ -137,11 +137,13 @@ are free to share and adapt this material for any purpose, including
 commercially, provided you give appropriate credit and license any adaptation
 under the same terms. Use it in a course, cut it up for a talk, translate it,
 build on it — a credit line and a link back are all that is asked. The
-ShareAlike term is the one that matters to me: what you make from this has to
+ShareAlike term is the one that matters to us: what you make from this has to
 stay as open as what you started with.
 
-To cite: H. Bedle, *How Single-Trace Attributes Actually Work*, University of
-Oklahoma. SSRN: [article link to follow]
+To cite: Bedle, H., and A. Moreno-Ward, 2026b, *How single-trace attributes
+actually work: A set of browser-based interactive modules for teaching the
+complex trace, relative impedance, RMS amplitude, AGC, AVT and Teager-Kaiser
+energy*: SSRN Working Paper. SSRN: [article link to follow]
 
 ## What this is not
 
@@ -154,8 +156,8 @@ package. The numbers here describe the model on the screen, not your survey.
 ## Privacy
 
 Nothing you do inside a module leaves your browser. No slider setting, no click,
-no computed trace is transmitted anywhere, and the modules make no network
-requests at all.
+no computed trace is transmitted anywhere. One anonymous page-view ping goes out
+from the hosted site, and a copy downloaded to disk does not send even that.
 
 The one thing recorded is that a page was opened. No cookie, no account,
 nothing about the person. That count exists so the modules people actually use
