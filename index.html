@@ -27,16 +27,16 @@
    <div class="hero-grid">
     <div class="hero-copy">
       <p class="eyebrow">AASPI &nbsp;·&nbsp; University of Oklahoma</p>
-      <h1 class="title">These attributes never look sideways. <em>One trace</em> is all they get.</h1>
+      <h1 class="title">One trace at a time, with no reference to its neighbors.</h1>
       <p class="lede">Dip, coherence and curvature all compare a trace with its neighbors. The attributes in
-        this set do not. Each one takes a single trace, on its own, and asks a question about its shape:
-        how strong is it here, where in the wavelet am I, how fast is it wiggling, how much energy is in
-        it. That is a severe restriction, and it is also why they are fast, why they are on every
-        interpretation system, and why they know nothing whatever about structure.</p>
-      <p class="lede">Two pieces of machinery answer nearly all of it. Turning the trace into a
-        <b>rotating arrow</b> gives you envelope, phase and frequency. Sliding a <b>running window</b> down
-        the trace gives you RMS amplitude, AGC and everything built on them. Six modules, each one thing at
-        a time, computed live in your browser.</p>
+        this set do not. Each one takes a single trace on its own and measures something about its shape:
+        how strong it is at a given time, where in the wavelet that time falls, how fast the trace is
+        oscillating, how much energy it carries. That restriction is why they are fast, why they are on
+        every interpretation system, and why none of them carries any information about structure.</p>
+      <p class="lede">Two calculations produce nearly all of them. Reading the trace as a
+        <b>rotating arrow</b> gives envelope, phase and frequency. Sliding a <b>running window</b> down
+        the trace gives RMS amplitude, AGC and everything built on them. Six modules, one topic at a
+        time, computed live in the browser.</p>
       <div class="hero-cta">
         <a class="btn" href="modules/instantaneous.html">Start with instantaneous attributes →</a>
         <a class="btn ghost" href="#modules">See all modules</a>
@@ -52,18 +52,18 @@
    <div class="primer-grid">
     <div>
       <h3>One trace, no neighbors</h3>
-      <p>Nothing in this set can tell a fault from a flat spot, because nothing in it ever looks at the
-        trace next door. What you see on a map of one of these attributes is bedding, tuning and gain.</p>
+      <p>Nothing in this set can tell a fault from a flat spot, because nothing in it ever reads the
+        neighboring trace. A map of one of these attributes shows bedding, tuning and gain.</p>
     </div>
     <div>
-      <h3>Two engines, six attributes</h3>
+      <h3>Two calculations, six attributes</h3>
       <p>The complex trace gives envelope, phase and frequency. A running window gives RMS amplitude and
-        AGC. The remaining attributes are combinations of those two ideas, not new ones.</p>
+        AGC. The remaining attributes are combinations of those two calculations rather than new ones.</p>
     </div>
     <div>
-      <h3>Amplitude is a decision</h3>
-      <p>Most of these attributes scale directly with the numbers going in. Change the gain upstream and
-        the map changes everywhere, without anything in the ground having moved.</p>
+      <h3>Amplitude depends on processing</h3>
+      <p>Most of these attributes scale directly with the amplitudes going in. A gain change upstream
+        changes the map everywhere, with no change in the rocks.</p>
     </div>
    </div>
   </section>
@@ -91,7 +91,7 @@
         <div class="card-body">
           <div class="card-no">01</div>
           <h3>Instantaneous attributes</h3>
-          <p>The trace and its Hilbert transform, read together as a spinning arrow. Envelope, phase,
+          <p>The trace and its Hilbert transform, read together as a rotating arrow. Envelope, phase,
             cosine of phase, frequency and sweetness all fall out of that one picture.</p>
           <div class="q">Why does my frequency volume go negative?</div>
         </div>
@@ -126,8 +126,8 @@
         <div class="card-body">
           <div class="card-no">04</div>
           <h3>AGC</h3>
-          <p>Divide the trace by its own RMS amplitude and every event becomes equally bright. Useful for
-            picking, and the fastest way there is to destroy an amplitude interpretation.</p>
+          <p>Divide the trace by its own RMS amplitude and every event becomes about equally bright. Useful
+            for picking, and it removes the amplitude differences an interpretation depends on.</p>
           <div class="q">Why did my bright spot disappear?</div>
         </div>
       </a>
@@ -138,7 +138,7 @@
           <div class="card-no">05</div>
           <h3>Amplitude volume transform</h3>
           <p>Envelope, then the RMS of the envelope in a window, then a Hilbert transform back. Three steps
-            that turn a wiggle into a display of packages, and lower the frequency doing it.</p>
+            that turn a wiggle into a display of packages, at the cost of about a third of the frequency.</p>
           <div class="q">What am I actually looking at on an AVT slice?</div>
         </div>
       </a>
@@ -177,8 +177,7 @@
         Geometric Attributes Actually Work</em></a>, which covers the attributes that do look sideways
         &mdash; dip, coherence and curvature &mdash; and to <a
         href="https://hbedle-subsurface.github.io/seismic_resolution/"><em>What Can You REALLY See in
-        Seismic?</em></a> on resolution. This set is the one to read first: it is the shortest path from a
-        wiggle to an attribute.</p>
+        Seismic?</em></a> on resolution. This set is the one to read first, since it starts at the trace itself.</p>
       <p>Everything runs in the browser, with no installation and no account. The one thing recorded is
         that a page was opened. We keep that count so the modules people actually use are the ones that
         get improved, and so we can show the university these are being used &mdash; which is how they

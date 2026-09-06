@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RMS amplitude | How Single-Trace Attributes Actually Work</title>
-<meta name="description" content="RMS amplitude for beginners: what a running window measures, why the window length is the attribute, how bright events smear, and why an RMS map of a quiet zone is a map of your noise.">
+<meta name="description" content="RMS amplitude for beginners: what a running window measures, why the window length decides what is measured, how bright events smear, and why an RMS map of a quiet zone is a map of your noise.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,11 +24,11 @@
 
   <div class="mod-head">
     <p class="eyebrow">Module 03 &nbsp;·&nbsp; Single-trace attributes</p>
-    <h1>RMS amplitude: how loud is it around here</h1>
+    <h1>RMS amplitude: the average size of the trace in a window</h1>
     <p class="sub">Modules 01 and 02 asked questions about a single instant. This one asks about a stretch
       of time. Slide a window down the trace, and at every sample report the average size of what is inside
-      it. The arithmetic takes one line. The window length takes judgement, and it turns out to matter more
-      than almost anything in the geology.</p>
+      it. The arithmetic takes one line. The window length takes judgment, and it changes the result more
+      than most of the geology does.</p>
   </div>
 
   <div class="labhead">
@@ -157,7 +157,7 @@
   <!-- =============================== STEP 2 =============================== -->
   <section class="tabpane" id="p2" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">2</span>The window length is the attribute</h3>
+      <h3><span class="stepno">2</span>The window length decides what is measured</h3>
       <span class="hint">Same trace, three different answers</span>
     </div>
     <p class="lede">Nothing about the data changes between the three curves below. Only the length of the
@@ -232,8 +232,9 @@
       <div class="stat"><span>Window</span><b id="s3g">—</b></div>
     </div>
     <div class="legend prose">
-      <span>The two ratios are close but not equal, and which is larger depends on the window. RMS is an energy average over a stretch of time, so it rewards a feature that is bright <em>and</em> long over one that is brighter but brief. It is not a neutral summary of amplitude. A thin, very bright
-        bed can lose to a thicker, duller one.</span>
+      <span>The two ratios are close but not equal, and which is larger depends on the window. RMS is an energy average over a stretch of time, so a feature that is bright <em>and</em> long returns a
+        larger value than one that is brighter but brief. It is not a neutral summary of amplitude: a thin,
+        very bright bed can read lower than a thicker, duller one.</span>
     </div>
   </section>
 
@@ -257,8 +258,8 @@
 
 
     <p class="lede">This is also why an interval RMS map straddling a strong reflector is so often
-      disappointing. If the window catches the same bright event everywhere, the map is flat, and the flat
-      map is the window talking rather than the geology.</p>
+      disappointing. If the window catches the same bright event everywhere, the map is flat, and that flatness comes
+      from the window rather than from the geology.</p>
     <div class="stats">
       <div class="stat"><span>Window</span><b id="s4w">—</b></div>
       <div class="stat key"><span>RMS above the sand, current window</span><b id="s4a">—</b></div>
@@ -283,15 +284,16 @@
       <span class="hint">In a quiet zone you are measuring your own noise</span>
     </div>
     <p class="lede">Squaring makes everything positive, so nothing in the window can cancel anything else
-      out. Signal and noise both contribute, and they combine the way the sides of a right triangle do:</p>
+      out. Signal and noise both contribute, and they combine in quadrature, the way the sides of a right
+      triangle do:</p>
     <p class="lede" style="text-align:center"><span class="k">RMS&sup2; = signal&sup2; + noise&sup2;</span></p>
     <p class="lede">Two things follow. In a loud zone the noise is almost invisible, because adding a small
       number in quadrature to a large one changes it very little. In a quiet zone there is nothing else, so
-      <b>the RMS value is your noise level and nothing more</b>. The attribute cannot tell you it has run
-      out of signal. It just keeps returning a positive number.</p>
+      <b>the RMS value is your noise level and nothing more</b>. Nothing in the output distinguishes the two cases; the attribute
+      returns a positive number either way.</p>
     <p class="lede">The readouts below check the arithmetic live, on the quiet stretch of this trace.
       The model is computed twice, once with the noise and once without, so the signal and the noise can be
-      measured separately and then compared against what the triangle predicts. Turn the noise slider up
+      measured separately and then compared against the quadrature sum. Turn the noise slider up
       and watch the prediction track the measurement.</p>
 
     <canvas id="c5a" aria-label="The trace and its RMS with the quiet window marked, showing the noise floor"></canvas>
@@ -301,7 +303,7 @@
       <div class="stat"><span>Signal there, noise removed</span><b id="s5s">—</b></div>
       <div class="stat"><span>Noise there, on its own</span><b id="s5n">—</b></div>
       <div class="stat key"><span>Measured RMS</span><b id="s5m">—</b></div>
-      <div class="stat key"><span>Predicted from the triangle</span><b id="s5p">—</b></div>
+      <div class="stat key"><span>Predicted in quadrature</span><b id="s5p">—</b></div>
     </div>
     <div class="legend prose">
       <span>This is the reason RMS values cannot be compared between two surveys, or between two vintages
@@ -328,8 +330,8 @@
     <p class="lede">Set the window top to about 80 ms and its length to 40 ms, and a <b>channel</b> appears.
       It has been in the data the whole time. It is <b id="s6a">—</b> crosslines away from the line every
       other step in this module has been showing, so no section you have looked at has come anywhere near
-      it. That is the case for map view in one picture: a section tells you about a line, and geology is
-      not arranged in lines.</p>
+      it. That is the case for map view: a section reports on one line, and a depositional system is not
+      confined to one.</p>
 
     <div class="controls" style="max-width:none;margin-bottom:16px">
       <div class="ctl-col">
@@ -372,7 +374,7 @@
     </div>
     <div class="legend prose">
       <span>Move the window top back to 0 ms and the channel vanishes, replaced by the sand. Both maps are
-        correct; they are maps of different intervals, and neither of them announces which. This is the
+        correct; they are maps of different intervals, and neither of them states which. This is the
         single most common way an amplitude map goes wrong &mdash; not bad arithmetic, but a window sitting
         20 ms from where the interpreter thought it was. On a map with no section beside it there is
         nothing to catch that.</span>
@@ -382,13 +384,12 @@
   <!-- ============================ WHY IT MATTERS ========================== -->
   <section class="tabpane" id="pw" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">?</span>Why this one is everywhere</h3>
-      <span class="hint">The most-used attribute in interpretation, and the most abused</span>
+      <h3><span class="stepno">?</span>Why this one is used so often</h3>
+      <span class="hint">The most-used attribute in interpretation, and the most often misread</span>
     </div>
-    <p class="lede">If you only ever see one attribute map in your career it will be an RMS amplitude map.
-      It is on every system, it takes seconds, and the picture it makes is easy to explain to someone who
-      does not do this for a living. All of that is true, and none of it makes the map mean what people
-      usually take it to mean.</p>
+    <p class="lede">RMS amplitude is the attribute map most interpreters see most often. It is on every system, it
+      takes seconds, and the picture it produces is easy to explain to a non-specialist. None of that
+      makes it mean what it is usually taken to mean.</p>
 
     <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
       What it is used for</h2>
@@ -406,7 +407,7 @@
     <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
       The four ways it will mislead you</h2>
     <p class="lede"><b>The window is an interpretation.</b> Not a setting, not a default. A short window
-      maps events and a long one maps packages, and the same data honestly gives both. Whatever you chose
+      maps events and a long one maps packages, and the same data gives both. Whatever you chose
       has to travel with the map, because nothing in the picture says what it was.</p>
     <p class="lede"><b>Everything is taller than it looks.</b> A 50 ms sand produces an anomaly of 106 ms
       at a &plusmn;20 ms window and 540 ms at &plusmn;80 ms, without changing at all. Two thin beds closer
@@ -441,8 +442,8 @@
             The exact number matters less than what it means: a short-window RMS and an envelope are two calculations of nearly the same thing, so having both in a volume does not give you two pieces of evidence.</span></details></li>
         <li><b>Measure the smear.</b> In step 4, read the RMS at the fixed point above the sand with the
           window at &plusmn;8 ms, then at &plusmn;40 ms, then at &plusmn;80 ms.
-          <details class="reveal"><summary>Hint</summary><span class="ans">The point being measured is 60 ms above the top of the sand, where the model has no reflector at all and the trace is nearly flat. At &plusmn;8 ms the RMS reads 0.005, which
-            is honest. At &plusmn;20 it reads 0.026. At &plusmn;40, 0.104. At &plusmn;60, 0.178. At
+          <details class="reveal"><summary>Hint</summary><span class="ans">The point being measured is 60 ms above the top of the sand, where the model has no reflector at all and the trace is nearly flat. At &plusmn;8 ms the RMS reads 0.005, close to the
+            true value. At &plusmn;20 it reads 0.026. At &plusmn;40, 0.104. At &plusmn;60, 0.178. At
             &plusmn;80, 0.264. Nothing was ever there. Every one of those numbers is the sand leaking
             upward into a window long enough to reach it, and on a map that leak is indistinguishable from
             a real anomaly at that level. This is the mechanism behind almost every disappointing interval
@@ -461,12 +462,12 @@
           the measured RMS and the prediction each time.
           <details class="reveal"><summary>Hint</summary><span class="ans">In the quiet window at 828 ms the signal on its own reads 0.0088 and never changes.
             The noise reads 0.0000, 0.0100, 0.0200, 0.0300, 0.0400 as you turn the slider. The measured RMS
-            goes 0.0088, 0.0139, 0.0225, 0.0320, 0.0417, and the triangle predicts 0.0088, 0.0133, 0.0219,
+            goes 0.0088, 0.0139, 0.0225, 0.0320, 0.0417, and the quadrature sum predicts 0.0088, 0.0133, 0.0219,
             0.0313, 0.0409 &mdash; within about 3% every time, the residual being the cross term between
             signal and noise that only vanishes over an infinitely long window. Two things to take away.
-            The attribute is measuring the noise almost entirely by 20%, and it looks exactly as
-            respectable doing that as it does over the sand. And the value it reports can be pushed
-            anywhere you like by reprocessing, without a single rock moving.</span></details></li>
+            By 20% the attribute is measuring the noise almost entirely, and the display gives no sign of
+            it. The value it reports can also be moved anywhere by reprocessing, with no change in the
+            rocks.</span></details></li>
         <li><b>Separate two sands that are not separate.</b> In step 3, compare the gas and brine ratios on
           RMS and on raw amplitude, at a short window and a long one.
           <details class="reveal"><summary>Hint</summary><span class="ans">The raw amplitude ratio between the gas sand and the brine sand is &times;3.3 at every
@@ -525,13 +526,13 @@
         <li><b>Every anomaly is at least a window taller than the feature that made it.</b> Bright events
           smear into their neighborhood, and nearby beds merge.</li>
         <li><b>In a quiet zone RMS reports your noise.</b> Signal and noise add in quadrature, so the
-          attribute has a floor it can never go below and never announces.</li>
-        <li><b>Two assumptions ride along, and both get broken in this module.</b> That the trace is much
+          attribute has a floor that it cannot go below and that the display does not show.</li>
+        <li><b>Two assumptions come with it, and both are broken in this module.</b> That the trace is much
           the same all across the window, which step 4 breaks by letting a bright event leak into a window
           reaching 60 ms away from it; and that the window is a fair stand-in for the interval you care
           about, which step 6 breaks by walking it off the feature. Neither is announced by the number.</li>
-        <li><b>It inherits every gain decision made upstream.</b> Which makes it cheap and the
-          easiest attribute in the set to misread.</li>
+        <li><b>It inherits every gain decision made upstream.</b> That is what makes it cheap to
+          compute and the easiest attribute in the set to misread.</li>
         <li><b>It is a map attribute.</b> Sections teach you what it does; interval maps are what it is
           for. A feature that no section happens to cross stays invisible until somebody makes one.</li>
       </ul>
@@ -546,12 +547,12 @@
         impedance is not stored anywhere &mdash; it is recovered from them. A boundary with coefficient r
         has <span class="k">Z<sub>below</sub> = Z<sub>above</sub> (1 + r) / (1 &minus; r)</span> exactly,
         the inverse of <span class="k">r = (Z&#8322; &minus; Z&#8321;) / (Z&#8322; + Z&#8321;)</span>, so
-        integrating down the spike list returns the log with no modelling choices beyond where to start.
+        integrating down the spike list returns the log with no modeling choices beyond where to start.
         That starting value is 6.71 &times; 10&#8310; kg m&#8315;&#178; s&#8315;&#185;, which is a
         reasonable shallow clastic impedance and nothing more; every statement these modules make about the
         log is a comparison between two depths on it, and a comparison does not care where the log begins.
         Note also what is not there: this synthetic has no compaction trend, because the amplitude decay is
-        applied as a gain function rather than modelled as rock, so the log is blocky with no background
+        applied as a gain function rather than modeled as rock, so the log is blocky with no background
         rise. Module 02 uses a different model that does have a trend, and spends a step on why seismic
         cannot recover it.</p>
       <p><b>The data</b> is the same synthetic line as module 01, deliberately: the wedge, the gas sand and
@@ -1696,7 +1697,7 @@
 
      exactly, which is the inverse of r = (Z2 - Z1) / (Z2 + Z1). Integrating
      down the spike list from a starting impedance recovers the whole log,
-     with no modelling choices beyond where to start.
+     with no modeling choices beyond where to start.
 
      Z0 is that starting value and nothing else rests on it. Every statement
      the modules make about this log is a comparison between two depths on
@@ -1704,7 +1705,7 @@
      makes about the word "relative".
 
      This synthetic has no compaction trend: the amplitude decay is applied
-     as a gain function rather than modelled as rock, so the log is blocky
+     as a gain function rather than modeled as rock, so the log is blocky
      with no background rise. That is a real difference from module 02's
      model and each Method tab says so rather than leaving it to be noticed.
 

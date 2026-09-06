@@ -28,7 +28,7 @@
     <p class="sub">Take the RMS amplitude you computed in module 03 and divide the trace by it. That is the
       whole operation. Deep reflectors that were invisible come up to full strength, the section becomes
       easy to look at from top to bottom, and every amplitude interpretation you were about to do becomes
-      impossible. This module is about the trade, and about why AGC done quietly to your data upstream is
+      impossible. This module is about that trade, and about why AGC applied upstream without being recorded is
       the most common way an amplitude study goes wrong.</p>
   </div>
 
@@ -90,15 +90,15 @@
   <!-- =============================== STEP 1 =============================== -->
   <section class="tabpane" id="p1" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">1</span>Divide the trace by its own loudness</h3>
+      <h3><span class="stepno">1</span>Divide the trace by its own RMS amplitude</h3>
       <span class="hint">Two steps, and the first one is module 03</span>
     </div>
     <p class="lede">AGC is defined in two lines. Compute the RMS amplitude in a running window, exactly as
       in module 03. Then divide every sample by the RMS at that sample:</p>
     <p class="lede" style="text-align:center"><span class="k">d<sub>AGC</sub>(t) = d(t) / &sigma;(t)</span></p>
-    <p class="lede">That is all of it. Where the trace is loud, &sigma; is large and the division shrinks it.
-      Where the trace is quiet, &sigma; is small and the division blows it up. The result is a trace whose
-      loudness is roughly constant all the way down, because it has been defined to be.</p>
+    <p class="lede">That is all of it. Where the trace is strong, &sigma; is large and the division reduces it.
+      Where the trace is weak, &sigma; is small and the division raises it. The result is a trace whose
+      RMS amplitude is roughly constant all the way down, because it has been defined that way.</p>
     <p class="lede">The middle panel is the divisor. Read it as the gain curve being applied, upside down:
       wherever it is high the data is being turned down, and wherever it is low the data is being turned
       up. At the cursor the trace is being multiplied by <b id="s1g">—</b>.</p>
@@ -160,10 +160,10 @@
       bottom half of the section is a gray smear.</p>
     <p class="lede">The decay slider in the header controls how severe that is here. At the default setting
       the shallow marker on this trace is <b id="s2r">—</b> times the size of the deep one. After AGC the
-      same two events are <b id="s2s">—</b> apart. That is a strong case for the process. You cannot interpret what you cannot see.</p>
+      same two events are <b id="s2s">—</b> apart. That is the case for the process: the deep section cannot be interpreted while it is invisible.</p>
     <p class="lede">This is also why AGC is nearly always already on. Every display package applies some
-      form of gain by default, often without saying so in any obvious place. If you have never turned it
-      off, you have probably never seen your data.</p>
+      form of gain by default, often without saying so in any obvious place. A display that has never had it
+      switched off has never shown the recorded amplitudes.</p>
 
     <div class="sec-row" id="row2">
       <div class="panel-col">
@@ -202,21 +202,20 @@
     <p class="lede">This line has a gas sand on the right and the same sand, brine-filled, on the left. On
       the amplitude display that contrast is the most important thing in the picture: it is what a
       direct hydrocarbon indicator <em>is</em>.</p>
-    <p class="lede">AGC does not know that. It sees a stretch of trace with more energy in it than its
-      neighbors, and its job is to remove exactly that difference. The gas sand is <b id="s3a">—</b>
+    <p class="lede">AGC is not sensitive to that. The gas sand is a stretch of trace with more energy in it than
+      its neighbors, and removing exactly that difference is what the process does. The gas sand is <b id="s3a">—</b>
       brighter than the brine sand before AGC and <b id="s3b">—</b> after it. The anomaly has been divided
-      away by a process running on autopilot.</p>
-    <p class="lede">Nothing on the display announces this. The AGC section looks cleaner, more balanced and
-      more professional than the one it came from. It is the more attractive picture and the less
-      informative one, and if you were handed it without being told, there is no way to tell from the
-      screen that a bright spot ever existed.</p>
+      away by a process that was never told to preserve it.</p>
+    <p class="lede">Nothing in the display indicates this. The AGC section looks cleaner and more balanced than the
+      one it came from, and it carries less information. Handed the second section alone, there is no way
+      to tell from the screen that a bright spot ever existed.</p>
     <p class="lede">One number to reconcile before you go on. Module 01 read the same two sands as
       &times;3.29 apart and module 03 as &times;3.3; here the contrast before AGC is a little lower. Nothing
       about the rock changed. This module opens at 14 dB per second of amplitude decay rather than 6 or 8,
       because AGC has nothing to do until there is a gain problem to fix, and a steeper decay costs the
       deeper of the two sands a little more of its amplitude. Turn the decay slider down and the contrast
-      walks back up. That is the module's own subject arriving early: a contrast you measure off a section
-      is a property of the rock <em>and</em> of what was done to the amplitudes.</p>
+      rises again. That is this module's subject arriving early: a contrast measured off a section is a
+      property of the rock <em>and</em> of what was done to the amplitudes.</p>
 
     <div class="sec-row" id="row3">
       <div class="panel-col">
@@ -299,8 +298,8 @@
       gets passed along, and attributes get computed from it.</p>
     <p class="lede">Here is what that does. The panel below computes the <b>envelope</b> from module 01 two
       ways: from the original trace, and from the AGC'd trace. On the original, the gas sand's envelope is
-      <b id="s5a">—</b> times the brine sand's. On the AGC'd version it is <b id="s5b">—</b>. The envelope
-      is a perfectly good attribute and it has been told a lie.</p>
+      <b id="s5a">—</b> times the brine sand's. On the AGC'd version it is <b id="s5b">—</b>. The envelope calculation is
+      unchanged; only the amplitudes it was given have changed.</p>
     <p class="lede">The same applies to everything else in this set that depends on amplitude: RMS, of
       course, since AGC is defined as division by it; sweetness, which is envelope over a root frequency;
       and relative acoustic impedance, whose whole output scales with the trace it integrated. Only the
@@ -324,8 +323,9 @@
         &mdash; module 01 spent a step on why that qualifier is needed. Both sit close to 1, because each of
         those attributes already divides the trace by its own strength, so a gain applied beforehand
         cancels. That is a genuinely useful property: on data whose processing history nobody can tell you,
-        the phase-based attributes are the ones still worth trusting, which is why phase makes such a good
-        horizon-tracking attribute on old volumes.</span>
+        the
+            phase-based attributes are the ones that remain reliable, which is why phase works well for
+            horizon tracking on old volumes.</span>
     </div>
   </section>
 
@@ -353,9 +353,9 @@
 
     <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
       Where it will cost you</h2>
-    <p class="lede"><b>Any amplitude interpretation, full stop.</b> Bright spots, dim spots, AVO, impedance,
+    <p class="lede"><b>Any amplitude interpretation.</b> Bright spots, dim spots, AVO, impedance,
       RMS maps, anything with the word amplitude in it. AGC is defined as removing amplitude variation, and
-      it cannot tell your anomaly from the trend it was asked to flatten.</p>
+      it does not distinguish an anomaly from the trend it was asked to flatten.</p>
     <p class="lede"><b>Anything that compares one place against another.</b> The gain is computed
       independently on every trace, so amplitudes are no longer comparable between traces, between lines or
       between surveys.</p>
@@ -383,11 +383,10 @@
           <details class="reveal"><summary>Hint</summary><span class="ans">At the default 14 dB per second the shallow marker reads 0.772 and the deep one
             0.097 &mdash; a factor of eight. After AGC they are 4.011 and 3.279, a factor of 1.2. Push the
             decay to 24 dB/s and the difference before AGC becomes nineteenfold, with the deep event down at
-            0.034, and after AGC it is still 1.3. That is the process doing its job, and doing it well.
+            0.034, and after AGC it is still 1.3. That is the process doing what it was designed to do.
             Now set the decay to zero. The two events still differ by a factor of 2.4, because they are
-            genuinely different reflectors, and AGC still flattens them to 1.2. It cannot tell the
-            difference between a gain problem and geology, because from inside a single trace there is no
-            difference to see.</span></details></li>
+            genuinely different reflectors, and AGC still flattens them to 1.2. It does not distinguish a gain problem from geology, because within a single trace the two look
+            the same.</span></details></li>
         <li><b>Measure what it destroys.</b> In step 3, read the gas-to-brine contrast before and after,
           then take the AGC window from &plusmn;300 ms down to &plusmn;10 ms.
           <details class="reveal"><summary>Hint</summary><span class="ans">Before AGC the gas sand is &times;3.2 brighter than the brine sand at every window,
@@ -478,12 +477,12 @@
         impedance is not stored anywhere &mdash; it is recovered from them. A boundary with coefficient r
         has <span class="k">Z<sub>below</sub> = Z<sub>above</sub> (1 + r) / (1 &minus; r)</span> exactly,
         the inverse of <span class="k">r = (Z&#8322; &minus; Z&#8321;) / (Z&#8322; + Z&#8321;)</span>, so
-        integrating down the spike list returns the log with no modelling choices beyond where to start.
+        integrating down the spike list returns the log with no modeling choices beyond where to start.
         That starting value is 6.71 &times; 10&#8310; kg m&#8315;&#178; s&#8315;&#185;, which is a
         reasonable shallow clastic impedance and nothing more; every statement these modules make about the
         log is a comparison between two depths on it, and a comparison does not care where the log begins.
         Note also what is not there: this synthetic has no compaction trend, because the amplitude decay is
-        applied as a gain function rather than modelled as rock, so the log is blocky with no background
+        applied as a gain function rather than modeled as rock, so the log is blocky with no background
         rise. Module 02 uses a different model that does have a trend, and spends a step on why seismic
         cannot recover it.</p>
       <p><b>The data</b> is the same synthetic line as modules 01 and 03: 96 traces of 500 samples at
@@ -1390,7 +1389,7 @@
 
      exactly, which is the inverse of r = (Z2 - Z1) / (Z2 + Z1). Integrating
      down the spike list from a starting impedance recovers the whole log,
-     with no modelling choices beyond where to start.
+     with no modeling choices beyond where to start.
 
      Z0 is that starting value and nothing else rests on it. Every statement
      the modules make about this log is a comparison between two depths on
@@ -1398,7 +1397,7 @@
      makes about the word "relative".
 
      This synthetic has no compaction trend: the amplitude decay is applied
-     as a gain function rather than modelled as rock, so the log is blocky
+     as a gain function rather than modeled as rock, so the log is blocky
      with no background rise. That is a real difference from module 02's
      model and each Method tab says so rather than leaving it to be noticed.
 

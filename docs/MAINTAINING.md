@@ -323,7 +323,7 @@ reporting the constant rather than the rock. The sand-against-the-rock-above
 readouts avoid that, and that is why they are written the way they are.
 
 This line has no compaction trend, because the amplitude decay is a gain
-function rather than modelled rock, so the log is blocky. Module 02 uses a
+function rather than modeled rock, so the log is blocky. Module 02 uses a
 different model that does have a trend and spends a step on why seismic cannot
 recover it. Each Method tab says so.
 

@@ -16,20 +16,20 @@ Oklahoma, with the [AASPI](https://www.ou.edu/mcee/labs/aaspi) consortium.
 Most people who use seismic attributes were never taught the machinery inside
 them. They know the rules — envelope is reflection strength, phase is good for
 following weak reflectors, sweetness finds sands — and they apply those rules
-where they remember them and nowhere else. What they have never done is *watch
-the thing happen*: change the wavelet and see the frequency map change, turn the
-gain up and watch a bright spot appear where there is no bright spot.
+where they remember them and nowhere else. What they have never done is *change something and
+watch the result move*: raise the wavelet frequency and see the frequency map
+change, turn the gain up and watch a bright spot appear where there is no bright
+spot.
 
-A rule you have only read is fragile: it holds in the case you read it in and
-nowhere else. A limit you have watched appear is one you will recognize in
-situations nobody named for you.
+A rule that has only been read applies in the case it was read in. A limit that
+has been watched appear is recognizable in cases nobody named in advance.
 
 The gap is practical rather than conceptual. These models are small and run
 perfectly well in a browser. What has been missing is somewhere to open them up
 and push on them. An interpretation package computes attributes but will not
-show you the calculation; a notebook will show you the calculation but needs an
-installation, a language, and an afternoon. Neither is a reasonable ask for a
-two-hour undergraduate session.
+show you the calculation; a notebook will show the calculation but needs an
+installation, a programming language and more time than the topic is worth.
+Neither fits a two-hour undergraduate session.
 
 ## Who it is for
 
@@ -46,13 +46,13 @@ two-hour undergraduate session.
 
 ## How the modules are built
 
-Five principles, each applied against a real temptation:
+Five principles, each of them a constraint on how a module is written:
 
 1. **Compute, don't illustrate.** Every panel is generated from the parameters
    on screen. There are no stored images and no curves drawn to look plausible.
-   That is a hard constraint, because it means the tool can be wrong — and
-   several times it was, which is the point. A drawing cannot disagree with
-   theory.
+   That is a hard constraint, because it means the tool can be wrong, and
+   several times it was. A drawing cannot be wrong in that way, and so cannot be
+   checked.
 2. **Say what has been left out.** Every module carries a Method section listing
    its simplifications and naming where the implementation differs from
    production software. That is teaching content, not a disclaimer.
@@ -65,17 +65,17 @@ Five principles, each applied against a real temptation:
    answers is read out of the running page by a test harness. Where a
    measurement contradicts the teaching text, the text is what changes.
 
-## The through-line
+## What the set has in common
 
 Every attribute in this set is computed from **one trace, with no reference to
-its neighbors**. That restriction is the spine of the whole set, and it is why
-none of these attributes knows anything about structure: they cannot tell a
-fault from a flat spot, because they never look at the trace next door.
+its neighbors**. That restriction organizes the whole set, and it is why none of
+these attributes carries information about structure: they cannot tell a fault
+from a flat spot, because they never read the neighboring trace.
 
-Two pieces of machinery produce nearly all of them. The **complex trace** — the
-trace read together with its Hilbert transform as a rotating arrow — gives
-envelope, phase and frequency. A **running window** gives RMS amplitude and AGC.
-Everything else is a combination of those two ideas rather than a new one.
+Two calculations produce nearly all of them. The **complex trace** &mdash; the trace
+read together with its Hilbert transform as a rotating arrow &mdash; gives envelope,
+phase and frequency. A **running window** gives RMS amplitude and AGC. Everything
+else is a combination of those two rather than a new one.
 
 The companion set, [*How Geometric Attributes Actually
 Work*](https://hbedle-subsurface.github.io/geometric-attributes/), covers the

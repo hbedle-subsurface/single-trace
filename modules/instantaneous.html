@@ -24,12 +24,12 @@
 
   <div class="mod-head">
     <p class="eyebrow">Module 01 &nbsp;·&nbsp; Single-trace attributes</p>
-    <h1>Instantaneous attributes: the trace as a spinning arrow</h1>
-    <p class="sub">A seismic trace is one number per sample. That is not much to work with, so we make a
-      second trace out of the first one — the same wiggle, shifted a quarter of a cycle — and read the two
-      together as an arrow going round and round. Most of this module is then three questions about that
-      arrow: <b>how long is it</b> (envelope), <b>where in the turn is it</b> (phase), and <b>how fast is
-      it turning</b> (frequency). The last two steps combine those answers and take them into map view.</p>
+    <h1>Instantaneous attributes: the trace as a rotating arrow</h1>
+    <p class="sub">A seismic trace is one number per sample. That is not much to work with, so a
+      second trace is built from the first &mdash; the same wiggle, shifted a quarter of a cycle &mdash; and the
+      two are read together as a rotating arrow. Three measurements of that arrow give the first four
+      attributes: <b>its length</b> (envelope), <b>its angle</b> (phase), and <b>the rate its angle
+      changes</b> (frequency). The last two steps combine those and take them into map view.</p>
   </div>
 
   <div class="labhead">
@@ -91,7 +91,7 @@
   <!-- =============================== STEP 1 =============================== -->
   <section class="tabpane" id="p1" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">1</span>One trace, and the trace you never see</h3>
+      <h3><span class="stepno">1</span>One trace, and a second one built from it</h3>
       <span class="hint">The Hilbert transform, without the equation</span>
     </div>
     <p class="lede">Pick any trace out of the line above and you have a single wiggly curve: one amplitude
@@ -124,7 +124,7 @@
       <div class="stat"><span>The rock just above it</span><b id="sr5">&mdash;</b></div>
     </div>
 
-    <p class="lede">Here is the fix, and it is the whole trick behind every attribute in this module.
+    <p class="lede">Here is the fix, and every attribute in this module rests on it.
       Alongside the recorded trace we build a second one, called the <b>Hilbert transform</b>. It contains
       exactly the same frequencies with exactly the same strengths — it is only shifted by a quarter of a
       cycle, so that where the original has a peak, the shifted one crosses zero. It is what you would have
@@ -144,11 +144,11 @@
     </div>
 
 
-    <p class="lede">Think of a bicycle wheel with a reflector clipped to the rim, seen edge on in the dark.
-      All you see is a dot going up and down — that is the trace. Seen from the side at the same moment you
-      would see it going side to side instead, a quarter turn out of step. Two shadows, one wheel. Put the
-      two together and you get the wheel back: the position of the reflector at every instant. That
-      recovered arrow is the <b>complex trace</b>, or <span class="k">analytic trace</span>,
+    <p class="lede">A point going round a circle at a steady rate traces out two curves at once: its height
+      above the center, and its distance to one side of it. Each curve on its own is a wave, and the two
+      are a quarter turn apart. The recorded trace is one of those curves and the Hilbert transform is the
+      other, so holding the two together recovers the point itself &mdash; where it sits on the circle at
+      every instant. That recovered arrow is the <b>complex trace</b>, or <span class="k">analytic trace</span>,
       <span class="k">A(t) = u(t) + i·u<sub>H</sub>(t)</span>.</p>
     <div class="stats">
       <div class="stat"><span>Time at the cursor</span><b id="s1t">—</b></div>
@@ -160,9 +160,9 @@
     <div class="legend prose">
       <span><b>Click on either panel</b> to move the cursor in time, and click the seismic line at the top to
         change trace. Watch the two numbers on the left trade places as you move: when u is at its largest,
-        u<sub>H</sub> is at zero, and a moment later they have swapped. Their combination — the arrow length
-        — barely changes at all across those same samples. That steadiness is the point of the whole
-        exercise.</span>
+        u<sub>H</sub> is at zero, and a moment later they have swapped. Their combination, the arrow length,
+        barely changes at all across those same samples. That steadiness is what makes the envelope
+        useful.</span>
     </div>
   </section>
 
@@ -181,9 +181,8 @@
       <li><b>It does not care about phase.</b> Rotate the wavelet with the slider above and the wiggle
         changes completely: peaks become troughs, zero crossings land somewhere new. The envelope hardly
         moves.</li>
-      <li><b>It is smooth.</b> One event gives one envelope hump, not a peak and two side lobes. That is
-        why the envelope is the attribute to use for picking where something is, and the raw trace is the
-        one to use for picking exactly when.</li>
+      <li><b>It is smooth.</b> One event gives one envelope hump, not a peak and two side lobes. The envelope is therefore the better attribute for locating an event, and the raw trace the
+        better one for timing it.</li>
     </ul>
 
     <div class="sec-row" id="row2">
@@ -225,8 +224,7 @@
       <span class="k">φ(t) = atan2(u<sub>H</sub>, u)</span>. It says where you are within the wavelet and
       nothing about how strong that wavelet is: 0° at a peak, ±180° at a trough, ±90° at the zero
       crossings between them. Divide the trace by its own envelope and every event, strong or weak, comes
-      out the same size. That is the attribute's whole personality — <b>phase has no amplitude in it at
-      all</b>.</p>
+      out the same size. <b>Phase has no amplitude in it at all.</b></p>
     <p class="lede">Which makes it very good at one job. Turn the amplitude decay up and watch the deep
       reflectors fade out of the amplitude section. On the phase section they do not fade, because there is
       nothing left to fade. A reflector that is too weak to see can still be followed.</p>
@@ -270,7 +268,7 @@
   <section class="tabpane" id="p4" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
       <h3><span class="stepno">4</span>Frequency: how fast the arrow turns</h3>
-      <span class="hint">The most misused attribute in the list</span>
+      <span class="hint">Three attributes share this name</span>
     </div>
     <p class="lede">If phase is the angle, <b>instantaneous frequency</b> is how fast that angle is
       changing: <span class="k">f(t) = (1/2π) dφ/dt</span>. Where the wiggles are close together the arrow
@@ -315,14 +313,15 @@
         frequency slider. Instantaneous frequency is a mean of everything present at that instant, weighted
         by energy; the dominant frequency is the peak of a spectrum. They are different quantities that
         happen to share a name and a unit. Comparing an instantaneous frequency map against a
-        spectral-decomposition peak-frequency map without knowing that will cost you an afternoon.</span>
+        spectral-decomposition peak-frequency map without accounting for that difference compares two
+        quantities that were never meant to match.</span>
     </div>
   </section>
 
   <!-- =============================== STEP 5 =============================== -->
   <section class="tabpane" id="p5" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">5</span>Sweetness: two attributes in a trench coat</h3>
+      <h3><span class="stepno">5</span>Sweetness: envelope and frequency combined</h3>
       <span class="hint">Bright and low frequency, in one number</span>
     </div>
     <p class="lede">Radovich and Oliveros noticed in the Gulf of Mexico that sands encased in shale tended
@@ -394,7 +393,7 @@
   <section class="tabpane" id="p6" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
       <h3><span class="stepno">6</span>The same attributes, seen from above</h3>
-      <span class="hint">Where sweetness earns its keep</span>
+      <span class="hint">Where sweetness is actually used</span>
     </div>
     <p class="lede">Nobody interprets sweetness on a section. It is a screening attribute, and screening
       means a map: pick an interval, take one number per trace, and look at the whole survey at once.</p>
@@ -499,9 +498,9 @@
       event. They can differ by tens of hertz at the same sample.</p>
     <p class="lede"><b>Phase has thrown the amplitude away on purpose.</b> That is what makes it useful, and
       it also means noise gets the same treatment as signal. In a quiet zone with nothing in it, the cosine
-      of phase will happily paint confident-looking bands out of whatever is there. Turn the noise slider up
+      of phase returns confident-looking bands built out of whatever is there. Turn the noise slider up
       and look at the deep part of the phase section for the full effect.</p>
-    <p class="lede"><b>Every one of them is amplitude-dependent, whatever the marketing says.</b> Envelope
+    <p class="lede"><b>Every one of them depends on amplitude.</b> Envelope
       and sweetness scale directly with the amplitudes going in, so a gain change, a different processing
       vintage or an AGC applied earlier in the flow will change their values everywhere. That is the subject
       of modules 03 and 04.</p>
@@ -523,9 +522,8 @@
           <details class="reveal"><summary>Hint</summary><span class="ans">At 0° the trace peaks at 158 ms and so does the envelope. At 45° the trace peak
             has moved to 162 ms, at 90° to 166 ms, and at 135° the largest excursion has become a trough at
             154 ms. By 180° the event is a trough at 158 ms. The envelope peak does not move at any of those
-            settings, and its value stays 0.896 throughout. Two things follow. The envelope is the honest
-            answer to "where is the reflection", because it is the only one of the two that does not depend
-            on a processing decision. And if you need the time of a reflection to the millisecond, you need
+            settings, and its value stays 0.896 throughout. Two things follow. The envelope locates the reflection without depending on a
+            processing decision, and the trace peak does not. And if you need the time of a reflection to the millisecond, you need
             to know the phase of your data first, because the wiggle will give you a different answer every
             time that phase changes.</span></details></li>
         <li><b>Follow a reflector that is not there.</b> In step 3, look at the reflector at 0.77 s, which
@@ -582,8 +580,7 @@
             arriving as extra contrast. Slide the window to 80 to 120 ms and both collapse, to &times;1.46
             and &times;2.09, because you are no longer looking at the sand at all. Notice that sweetness
             keeps more of its contrast even there, which is not always a good thing: an attribute that
-            responds to something in every window is an attribute that will find you an anomaly wherever
-            you put the window.</span></details></li>
+        responds to something in every window returns an anomaly wherever the window is placed.</span></details></li>
         <li><b>One bright sweetness anomaly, three explanations.</b> A sweetness map shows a strong
           anomaly over your prospect. Sweetness is envelope divided by the square root of frequency, so
           write down at least two geological situations that would raise it, and say which readouts in
@@ -614,7 +611,8 @@
       <ul>
         <li><b>Every attribute here comes from one arrow.</b> The recorded trace and its quarter-cycle
           shift are two views of the same rotating vector. Its length is the envelope, its angle is the
-          phase, and the rate the angle changes is the frequency. Nothing else is going on.</li>
+          phase, and the rate the angle changes is the frequency. There is nothing else in the
+          calculation.</li>
         <li><b>The envelope is strength with polarity and phase removed.</b> Never negative, one hump per
           event, and it stays put when the wavelet is rotated — which is why it is good for finding
           features and poor for timing them.</li>
@@ -643,12 +641,12 @@
         impedance is not stored anywhere &mdash; it is recovered from them. A boundary with coefficient r
         has <span class="k">Z<sub>below</sub> = Z<sub>above</sub> (1 + r) / (1 &minus; r)</span> exactly,
         the inverse of <span class="k">r = (Z&#8322; &minus; Z&#8321;) / (Z&#8322; + Z&#8321;)</span>, so
-        integrating down the spike list returns the log with no modelling choices beyond where to start.
+        integrating down the spike list returns the log with no modeling choices beyond where to start.
         That starting value is 6.71 &times; 10&#8310; kg m&#8315;&#178; s&#8315;&#185;, which is a
         reasonable shallow clastic impedance and nothing more; every statement these modules make about the
         log is a comparison between two depths on it, and a comparison does not care where the log begins.
         Note also what is not there: this synthetic has no compaction trend, because the amplitude decay is
-        applied as a gain function rather than modelled as rock, so the log is blocky with no background
+        applied as a gain function rather than modeled as rock, so the log is blocky with no background
         rise. Module 02 uses a different model that does have a trend, and spends a step on why seismic
         cannot recover it.</p>
       <p><b>The data.</b> The section is a synthetic: 96 traces of 500 samples at a 2 ms
@@ -656,8 +654,8 @@
         contains a shallow marker, a thinning wedge, a gas sand with a brine-filled equivalent along strike,
         a package of weak interbeds, a reflector that dims laterally, and a deep marker, all draped over a
         low-relief anticline. The gas sand and everything below it inside the gas window are convolved with
-        a wavelet at 62% of the dominant frequency, which is a crude but honest way to produce the
-        attenuation a gas sand really causes. Amplitude decay is applied as a gain function in dB per
+        a wavelet at 62% of the dominant frequency, which is a coarse but explicit way to produce the
+        attenuation a gas sand causes. Amplitude decay is applied as a gain function in dB per
         second; noise is band-limited to the wavelet and expressed as a percentage of the section's RMS
         amplitude. Everything is normalized by a single fixed constant taken from the default settings, so
         that changing a slider changes the numbers you see rather than silently rescaling the axes.</p>
@@ -667,8 +665,8 @@
         but has to be truncated. The sign convention used throughout is
         <span class="k">u<sub>H</sub> = sin(ωt)</span> when <span class="k">u = cos(ωt)</span>, so that the
         phase increases with time and a normal event has a positive frequency. Getting that sign backwards
-        negates every frequency in a volume without changing the envelope at all, which is a hard error to
-        notice.</p>
+        negates every frequency in a volume and leaves the envelope unchanged, so nothing in the display
+        indicates it.</p>
       <p><b>Envelope, phase and frequency</b> follow Taner et al. (1979):
         <span class="k">e = √(u² + u<sub>H</sub>²)</span>,
         <span class="k">φ = atan2(u<sub>H</sub>, u)</span>, and for the frequency the chain-rule form
@@ -1248,7 +1246,7 @@
 
      exactly, which is the inverse of r = (Z2 - Z1) / (Z2 + Z1). Integrating
      down the spike list from a starting impedance recovers the whole log,
-     with no modelling choices beyond where to start.
+     with no modeling choices beyond where to start.
 
      Z0 is that starting value and nothing else rests on it. Every statement
      the modules make about this log is a comparison between two depths on
@@ -1256,7 +1254,7 @@
      makes about the word "relative".
 
      This synthetic has no compaction trend: the amplitude decay is applied
-     as a gain function rather than modelled as rock, so the log is blocky
+     as a gain function rather than modeled as rock, so the log is blocky
      with no background rise. That is a real difference from module 02's
      model and each Method tab says so rather than leaving it to be noticed.
 

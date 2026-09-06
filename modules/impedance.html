@@ -98,7 +98,7 @@
       multiplied by its density. Every rock has one, and it stays the same all the way through a uniform
       bed. The left-hand panel below is the impedance of the rocks under the trace you have selected. It
       looks like a set of steps, because that is what layered rock is.</p>
-    <p class="lede">A seismic wave does not care about impedance. It cares about <em>changes</em> in
+    <p class="lede">A seismic wave does not respond to impedance itself, only to <em>changes</em> in
       impedance. At every boundary a fraction of the wave bounces back, and that fraction is the
       <b>reflection coefficient</b>:</p>
     <p class="lede" style="text-align:center"><span class="k">r = (Z<sub>below</sub> &minus;
@@ -139,7 +139,7 @@
       <em>differencing</em>: each spike came from the change across a boundary. The way back is the
       opposite operation, <b>integration</b> &mdash; running down the trace and keeping a running total.
       Every time the trace has a positive bump the total steps up and stays up. Between events the trace is
-      near zero, so the total holds still. Steps in, steps out.</p>
+      near zero, so the total holds still. A stepped log goes in and a stepped log comes back.</p>
     <p class="lede">There is a tidy piece of algebra underneath. For small reflection coefficients,</p>
     <p class="lede" style="text-align:center"><span class="k">r &nbsp;&asymp;&nbsp; &frac12; &times; the
       change in ln(Z)</span></p>
@@ -177,7 +177,7 @@
         things of you. On the amplitude section you read the lines; on the impedance section you read the
         blocks between them. For picking the top of a reservoir the amplitude display is better, because
         the event is sharp. For seeing that the reservoir is thicker here than there, the impedance display
-        wins, because a thick low-impedance body looks like a thick low-impedance body.</span>
+        is better, because a thick low-impedance body reads as a thick low-impedance body.</span>
     </div>
   </section>
 
@@ -200,8 +200,8 @@
     <canvas id="c3a" aria-label="Zoomed comparison of the trace and the integrated trace at one boundary"></canvas>
 
 
-    <p class="lede">So the rule for reading these sections is different, and it catches people out
-      constantly. <b>On an amplitude section, the boundary is the bright line. On a relative impedance
+    <p class="lede">The rule for reading these sections is therefore different from the one that applies to an
+      amplitude section, and it is a common source of mispicks. <b>On an amplitude section, the boundary is the bright line. On a relative impedance
       section, the boundary is where the color changes.</b> Pick the bright part of an impedance display
       and you have picked the middle of the layer.</p>
     <div class="stats">
@@ -229,8 +229,7 @@
       Find it on the integrated trace below. It is not there.</p>
     <p class="lede">This is not a flaw in the arithmetic, and no better algorithm would fix it. A slow trend
       is a very low frequency, well under 1 Hz, and seismic data does not record frequencies that low. The
-      trend never made it into the trace, so integration has nothing to give back. The seismic simply never
-      knew.</p>
+      trend never entered the trace, so integration has nothing to give back.</p>
     <p class="lede">The consequence is the whole reason for the word <b>relative</b> in the name:</p>
     <ul class="lede" style="padding-left:20px">
       <li><b>There is no absolute scale.</b> The numbers on an impedance display are not impedance. You
@@ -243,7 +242,8 @@
     </ul>
     <p class="lede">Move the low-frequency slider in the header and watch the third panel. As you let the
       data record lower and lower frequencies, more of the trend comes back and the integrated version gets
-      closer to the truth. That slider is the most important control on this page. In real life you do not get a slider: the low end of your band is whatever the acquisition and the processing delivered.</p>
+      closer to the truth. On real data there is no such slider: the low end of the band is whatever the acquisition and
+      the processing delivered.</p>
 
     <canvas id="c4a" aria-label="True log impedance, the integrated trace, and the missing low-frequency trend"></canvas>
 
@@ -267,7 +267,7 @@
   <!-- =============================== STEP 5 =============================== -->
   <section class="tabpane" id="p5" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">5</span>The filter that stops it running away</h3>
+      <h3><span class="stepno">5</span>The filter that stops the result drifting</h3>
       <span class="hint">Why there is a bandpass at the end of the flow</span>
     </div>
     <p class="lede">Integration in the frequency domain means dividing by frequency. That is fine in the
@@ -288,7 +288,7 @@
     <canvas id="c5a" aria-label="Integrated trace with and without the Ormsby filter"></canvas>
 
 
-    <p class="lede">Setting the corner is a judgement call. Too low and the noise comes through. Too high
+    <p class="lede">Setting the corner is a judgment call. Too low and the noise comes through. Too high
       and you throw away the low frequencies that made the attribute worth computing, since the whole
       point was to emphasize them. Somewhere just below the lowest frequency your data actually recorded is
       the usual answer.</p>
@@ -312,12 +312,13 @@
   <!-- ============================ WHY IT MATTERS ========================== -->
   <section class="tabpane" id="pw" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">?</span>Why anyone bothers</h3>
+      <h3><span class="stepno">?</span>Why the attribute is used</h3>
       <span class="hint">What it is good for, and what it is not</span>
     </div>
     <p class="lede">Trace integration is about as simple as a seismic attribute gets, and it survives
-      because it changes the question the display answers. An amplitude section asks you to interpret
-      lines. An impedance section asks you to interpret bodies. Geologists think in bodies.</p>
+      because it changes the question the display answers. An amplitude section presents the data as lines
+      to be interpreted. An impedance section presents it as bodies, which is closer to the way a
+      geologist describes the rock.</p>
 
     <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
       What it is used for</h2>
@@ -331,8 +332,8 @@
         look like layers, and the quarter-cycle rotation makes bed boundaries fall where the color
         changes.</li>
       <li><b>A first look before committing to inversion.</b> Proper inversion needs wells, a wavelet
-        estimate and a low-frequency model. This needs a button. If the relative version shows nothing,
-        the expensive version will probably not rescue it.</li>
+        estimate and a low-frequency model, where this needs none of them. If the relative version shows
+        nothing, the full inversion is unlikely to recover it.</li>
     </ul>
 
     <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
@@ -346,17 +347,15 @@
       event, and a pick made by habit on the bright part of the display lands in the middle of the layer
       instead of on its top.</p>
     <p class="lede"><b>It assumes the reflection coefficients are small.</b> The step from r to &frac12;
-      ln(Z) is an approximation that holds beautifully at a shale-on-shale contact and starts to slip at a
-      hard limestone or a salt boundary. Push the contrast slider to 3 and the integrated result under-reads
+      ln(Z) is an approximation that is accurate at a shale-on-shale contact and degrades at a hard
+      limestone or a salt boundary. Push the contrast slider to 3 and the integrated result under-reads
       the true impedance by a measurable amount, always in the same direction.</p>
     <p class="lede"><b>It assumes the wavelet is close to a spike.</b> The AASPI documentation says so
       directly, and recommends spectral balancing first. Turn the phase slider in the header and watch the
       match with the true log: 0.997 at zero phase, 0.884 at 30&deg;, 0.530 at 60&deg;, and 0.031 at
       90&deg;, where the attribute and the rock have almost nothing left in common. At 180&deg; it reads
-      &minus;0.997, which is an error of a size worth dwelling on. An impedance display made from
-      reverse-polarity data is a
-      near-perfect mirror of the truth, and every hard bed on it looks soft. Nothing on the screen tells
-      you this has happened.</p>
+      &minus;0.997: an impedance display made from reverse-polarity data is a near-perfect mirror of the
+      truth, with every hard bed reading soft. Nothing in the display indicates it.</p>
     <div class="legend prose">
       <span>Worth carrying: this attribute makes the data easier to look at without adding anything to it.
         Everything on the impedance display was already in the trace. That is a genuine and useful thing to
@@ -388,14 +387,15 @@
             0.997. The attribute does a nearly perfect job of the part it can do and none at all of the part
             it cannot. If you want the trend, you have to bring it from somewhere else, which is what
             inversion does and this does not.</span></details></li>
-        <li><b>Buy the low frequencies back.</b> In step 4, move the lowest-recorded-frequency slider from
+        <li><b>Recover the low frequencies.</b> In step 4, move the lowest-recorded-frequency slider from
           20 Hz down to 2 Hz, watching the two match numbers.
           <details class="reveal"><summary>Hint</summary><span class="ans">Reading the first number as you go: 20 Hz gives 0.245, then 0.270 at 16, 0.342 at
-            12, 0.434 at 8, 0.494 at 6 and 0.556 at 4. Every hertz recorded at the low end buys back a
+            12, 0.434 at 8, 0.494 at 6 and 0.556 at 4. Every hertz recorded at the low end recovers a
             little more of the trend, and it never gets close to 1 &mdash; you would have to record down to a
             fraction of a hertz for that, and nobody does. Watch the second number as well. It sits near 0.99
             most of the way and then falls to 0.948 at 4 Hz. That is not the attribute failing. That is the
-            filter from step 5, still sitting at 5 Hz, throwing away the 4 Hz signal you just paid to record.
+            filter from step 5, still sitting at 5 Hz, removing the 4 Hz signal the acquisition just
+            recorded.
             The two settings have to be chosen with each other in mind.</span></details></li>
         <li><b>Break the small-contrast assumption.</b> In step 2, set the impedance contrast to 0.3, note
           the match with the true log, then take it to 3.0 and look again.
@@ -405,16 +405,15 @@
             &frac12;&Delta;lnZ, and integration returns the r it was given. Now watch the correlation while
             you do it: 0.996 at the smallest contrast and 0.997 everywhere above it. The shape does not
             degrade at all; only the size is wrong.
-            That is a comfortable failure to live with while you are ranking layers against each other, and a
-            dangerous one if you start quoting numbers.</span></details></li>
+            The error is tolerable when layers are being ranked against each other, and not when absolute
+            values are quoted.</span></details></li>
         <li><b>Switch the filter off.</b> In step 5, put the noise at 20% in the header, then take the
           filter corner from 5 Hz down to 0.
           <details class="reveal"><summary>Hint</summary><span class="ans">At 20% noise with the corner at 5 Hz the largest excursion on the attribute is
             0.93 and the match with the true log is 0.992. Take the corner to 0 and the excursion doubles to
             1.90 while the match collapses to 0.452. At 40% noise it is 3.15 and 0.234. That extra size is noise sitting below the seismic band, divided by a very small frequency. Then
             try the opposite mistake and set the corner to 12 Hz. The drift is gone, but the match drops to
-            0.835, because now you are filtering out the low frequencies of the data itself. Both failures
-            look like a smooth, plausible section. Neither announces itself.</span></details></li>
+            0.835, because now you are filtering out the low frequencies of the data itself. Both failures produce a smooth, plausible section, and neither is visible in the display.</span></details></li>
         <li><b>One low on the impedance display, several rocks.</b> A relative impedance section shows a
           clear low across your reservoir interval. List at least three rocks or fluid conditions that
           would produce it, and say what you would need in order to choose between them.
@@ -448,12 +447,12 @@
           own cycle, which changes the shape of the wavelet rather than delaying it. Bed boundaries end up
           where the color changes and not where the display is brightest, so picking by brightness puts you
           in the middle of the layer.</li>
-        <li><b>The bandpass at the end is load-bearing.</b> Dividing by frequency amplifies whatever sits
+        <li><b>The bandpass at the end is not optional.</b> Dividing by frequency amplifies whatever sits
           near zero frequency without limit, and the filter is what stops the section drifting.</li>
         <li><b>Two assumptions come with it.</b> Small reflection coefficients, and a wavelet close to a
           spike. Both are stated in the AASPI documentation, and both are visible on the sliders here.</li>
         <li><b>It is not inversion.</b> No wavelet has been removed and no low-frequency model has been
-          added. It is a re-display of the trace, and a good one.</li>
+          added. It is a re-display of the trace.</li>
       </ul>
     </div>
   </section>

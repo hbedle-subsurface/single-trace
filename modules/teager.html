@@ -26,10 +26,10 @@
     <p class="eyebrow">Module 06 &nbsp;·&nbsp; Single-trace attributes</p>
     <h1>Teager-Kaiser energy: the one that counts frequency too</h1>
     <p class="sub">Every attribute so far that measures strength &mdash; envelope, RMS, AVT &mdash; measures
-      amplitude and nothing else. A physicist would object. The energy in an oscillation depends on how fast
-      it is oscillating as well as how far, and a quiet, high-frequency event can carry as much energy as a
-      loud, slow one. Teager-Kaiser energy is that objection turned into an attribute, and it comes with
-      three complications that are worth more than the attribute itself.</p>
+      amplitude and nothing else. That is not what a physicist means by energy. The energy in an oscillation
+      depends on how fast it oscillates as well as how far, so a weak high-frequency event can carry as
+      much energy as a strong low-frequency one. Teager-Kaiser energy applies that definition to a seismic trace, and it comes with
+      three complications that are worth as much as the attribute itself.</p>
   </div>
 
   <div class="labhead">
@@ -148,7 +148,7 @@
       <div class="stat key"><span>Envelope and TK, correlated</span><b id="s1c">—</b></div>
     </div>
     <div class="legend prose">
-      <span>The correlation readout is the honest measure of how much this attribute adds. If it sat at
+      <span>The correlation readout measures how much this attribute adds over the envelope. If it sat at
         1.000 the attribute would be an expensive envelope. It does not, and the gap is the frequency
         information. One thing more about the sign. For a single frequency the operator returns
         A&sup2;&omega;&sup2;, which cannot be negative, and on a seismic trace it is one-sided almost
@@ -183,7 +183,8 @@
     <canvas id="c2a" aria-label="Teager-Kaiser energy computed three ways on the same trace"></canvas>
 
 
-    <p class="lede">Which buys the noise rejection at a price nobody advertises. Those filters are smoothed,
+    <p class="lede">That buys the noise rejection at a price the documentation does not state. Those filters are
+      smoothed,
       so they roll off with frequency too: on the same pure tone, measured against the exact answer, they
       read 98% at 12 Hz, 88% at 30 Hz and 66% at 60 Hz. <b>Both</b> practical formulas under-read, and both
       get worse with frequency.</p>
@@ -227,7 +228,7 @@
     <canvas id="c3a" aria-label="Teager-Kaiser energy of the real trace and of the analytic trace"></canvas>
 
 
-    <p class="lede">It is the same trick that made the envelope smooth in module 01, applied to a
+    <p class="lede">That is the same construction that made the envelope smooth in module 01, applied to a
       different quantity. The panels below show both, and the readouts measure how much ripple survives in
       each. At the default 25 Hz the improvement is real but modest. Take the dominant frequency up to
       45 Hz, where each cycle covers fewer samples, and it becomes obvious: the real-trace energy breaks
@@ -301,7 +302,7 @@
     <p class="lede">The bandpass is doing real work. Energy is squared amplitude, so it has a large constant
       component and a lot of very low frequency content, and Hilbert transforming that unfiltered gives a
       result dominated by the slow trend. The filter corner slider in the header controls it: take it to
-      zero to switch the filter off and watch the attribute go soft.</p>
+      zero to switch the filter off and watch the result sag toward the slow trend.</p>
 
     <div class="sec-row" id="row5">
       <div class="panel-col">
@@ -334,15 +335,15 @@
         difference is the &omega;&sup2; in the energy, and it also shows in the frequency readouts: TKV
         comes out around 18 Hz on this trace against about 9 Hz for AVT, because squaring the trace
         generates content the envelope never had. Neither attribute adds information to the trace. If you
-        are choosing between them, choose on what the positive quantity was &mdash; TKV knows about
-        frequency and AVT does not.</span>
+        are choosing between them, choose on what the positive quantity was: TKV carries frequency
+        information and AVT does not.</span>
     </div>
   </section>
 
   <!-- =============================== STEP 6 =============================== -->
   <section class="tabpane" id="p6" role="tabpanel" hidden>
     <div class="plot-head" style="margin-bottom:14px">
-      <h3><span class="stepno">6</span>Two ingredients, pulling opposite ways</h3>
+      <h3><span class="stepno">6</span>Two terms that can work against each other</h3>
       <span class="hint">The same gas sand module 01 mapped, on an attribute that squares the amplitude</span>
     </div>
     <p class="lede">Everything so far has been a section. Energy volumes get interpreted as maps, like every
@@ -351,9 +352,9 @@
       one crossline.</p>
     <p class="lede">There is a specific reason to do it here rather than to round the module off. Energy
       goes as <span class="k">A&sup2;&omega;&sup2;</span>, and a gas sand is <em>bright</em> and
-      <em>low frequency</em>. Those two facts push the attribute in opposite directions. Squaring the
+      <em>low frequency</em>. Those two facts move the attribute in opposite directions. Squaring the
       amplitude ought to turn the sand's contrast into a much larger one; the frequency term, squared as
-      well, works against it. The readouts below measure which wins.</p>
+      well, works against it. The readouts below measure which of the two dominates.</p>
 
     <div class="controls" style="max-width:none;margin-bottom:16px">
       <div class="ctl-col">
@@ -425,8 +426,8 @@
       <span class="hint">The one strength attribute that is not just amplitude</span>
     </div>
     <p class="lede">Everything else in this set that measures how much is happening measures amplitude.
-      This one measures amplitude and frequency together, which is either the reason to use it or the
-      reason to be careful with it, depending on what you are trying to see.</p>
+      This one measures amplitude and frequency together, which is the reason to use it and the
+      reason to be careful with it, depending on what is being looked for.</p>
 
     <h2 style="font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--crimson);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)">
       What it is used for</h2>
@@ -490,9 +491,9 @@
             pure-tone lists in step 2, and deliberately so: those describe one frequency, and a wavelet with
             a 25 Hz peak carries plenty above 25 Hz, where both formulas are at their worst. Notice which is
             closer here. The plain three-sample formula is <em>more</em> accurate on clean data; the filters
-            earn their place only when there is noise to reject, which is a trade the documentation does not
-            spell out.</span></details></li>
-        <li><b>Kill the ripple.</b> In step 3, read the ripple in the real-trace energy and in the
+            are worth their cost only when there is noise to reject, which is a trade the documentation does
+            not state.</span></details></li>
+        <li><b>Cancel the ripple.</b> In step 3, read the ripple in the real-trace energy and in the
           analytic-trace version.
           <details class="reveal"><summary>Hint</summary><span class="ans">At 25 Hz the real-trace energy carries 47% ripple against its own smooth level, and
             the analytic version carries 28%. Both show one hump per event, so at this frequency the effect
@@ -522,7 +523,7 @@
             dominated by the trend rather than by the events. Push the corner the other way, to 14 Hz, and
             the correlation goes to &minus;0.084 &mdash; you have filtered away so much that the attribute
             no longer resembles anything. The corner is a real choice with a narrow sensible range.</span></details></li>
-        <li><b>Watch the two ingredients fight.</b> In step 6, read the envelope contrast across the gas
+        <li><b>Watch the two terms work against each other.</b> In step 6, read the envelope contrast across the gas
           lobe, what squaring it alone would give, and what the energy actually returns. Then move the
           window to 80&ndash;120 ms, below the sand.
           <details class="reveal"><summary>Hint</summary><span class="ans">In the window on the sand, 0 to
@@ -534,7 +535,7 @@
             to 80 to 120 ms. The envelope reads &times;1.5, which is nothing an interpreter would stop
             for. The energy reads &times;0.22, an unmistakable low, because under the gas the amplitude and
             the frequency have both dropped and this time they push the same way. Same two maps, same rock,
-            80 milliseconds apart, and the attribute has changed its mind about which direction it points.
+            80 milliseconds apart, and the anomaly has reversed direction.
             Compare all of this against module 01's map of the identical lobe: sweetness divides by the
             square root of frequency, so there the drop from 27 Hz to 14 Hz <em>added</em> contrast. Which
             way the frequency term points is a choice the attribute's designer made, not a property of the
@@ -597,12 +598,12 @@
         impedance is not stored anywhere &mdash; it is recovered from them. A boundary with coefficient r
         has <span class="k">Z<sub>below</sub> = Z<sub>above</sub> (1 + r) / (1 &minus; r)</span> exactly,
         the inverse of <span class="k">r = (Z&#8322; &minus; Z&#8321;) / (Z&#8322; + Z&#8321;)</span>, so
-        integrating down the spike list returns the log with no modelling choices beyond where to start.
+        integrating down the spike list returns the log with no modeling choices beyond where to start.
         That starting value is 6.71 &times; 10&#8310; kg m&#8315;&#178; s&#8315;&#185;, which is a
         reasonable shallow clastic impedance and nothing more; every statement these modules make about the
         log is a comparison between two depths on it, and a comparison does not care where the log begins.
         Note also what is not there: this synthetic has no compaction trend, because the amplitude decay is
-        applied as a gain function rather than modelled as rock, so the log is blocky with no background
+        applied as a gain function rather than modeled as rock, so the log is blocky with no background
         rise. Module 02 uses a different model that does have a trend, and spends a step on why seismic
         cannot recover it.</p>
       <p><b>The data</b> is the same synthetic line as modules 01, 03, 04 and 05: 96 traces of 500
@@ -1559,7 +1560,7 @@
 
      exactly, which is the inverse of r = (Z2 - Z1) / (Z2 + Z1). Integrating
      down the spike list from a starting impedance recovers the whole log,
-     with no modelling choices beyond where to start.
+     with no modeling choices beyond where to start.
 
      Z0 is that starting value and nothing else rests on it. Every statement
      the modules make about this log is a comparison between two depths on
@@ -1567,7 +1568,7 @@
      makes about the word "relative".
 
      This synthetic has no compaction trend: the amplitude decay is applied
-     as a gain function rather than modelled as rock, so the log is blocky
+     as a gain function rather than modeled as rock, so the log is blocky
      with no background rise. That is a real difference from module 02's
      model and each Method tab says so rather than leaving it to be noticed.
 
