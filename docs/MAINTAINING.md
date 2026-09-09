@@ -12,6 +12,7 @@ assets/seismic.js          wavelets, FFT, Hilbert, color maps, canvas helpers
 assets/trace.js            the single-trace attribute library for this set
 assets/count.js            page-view counting; see the file's own notes
 assets/popout.js           the exercises pop-out button; see docs/ADD-POPOUT.md
+assets/panelout.js         the control-panel pop-out; see docs/ADD-PANELOUT.md
 LICENSE                    CC BY-SA 4.0, the same as every set in this series
 modules/instantaneous.html module 01
 modules/impedance.html     module 02
@@ -83,8 +84,15 @@ node tools/harness-teager.js        # module 06: same
 node tools/check-shared.js          # modules 01, 03-06 are running one line
 node tools/check-volume.js          # modules 01, 03, 05, 06 share one volume
 node tools/check-blocking.js        # response attributes block on the envelope minima
+node tools/harness-panelout.js      # the control panel, driven from its second window
 node tools/gen_thumbs.js            # regenerates the landing-page thumbnails
 ```
+
+`harness-panelout.js` is the only one that runs two documents at once. It loads
+a module with its own scripts running, hands `window.open` a second jsdom
+window, and then drives the module entirely from the copy of the panel in that
+second window: every slider, a press on the map, and the readouts coming back
+the other way. It takes a module path, and defaults to module 01.
 
 `verify_trace.js` checks the library against cases with a known answer: the
 Hilbert transform of a cosine, the Fourier derivative, the envelope of a

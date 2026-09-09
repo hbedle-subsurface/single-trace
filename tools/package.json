@@ -7,7 +7,8 @@
     "harness": "node harness.js",
     "measure": "node measure.js",
     "thumbs": "node gen_thumbs.js",
-    "blocking": "node check-blocking.js"
+    "blocking": "node check-blocking.js",
+    "panelout": "node harness-panelout.js"
   },
   "devDependencies": {
     "jsdom": "^24.0.0"
